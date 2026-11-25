@@ -813,6 +813,20 @@ dialog.modal[open] > form { display: flex; flex-direction: column; flex: 1 1 aut
 .toast-info .icon { color: var(--info); }
 .toast-close { margin-inline-start: auto; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0; display: grid; }
 .toast.is-leaving { animation: toastOut var(--dur-3) ease-in forwards; }
+/* شريط انقطاع الاتصال */
+.net-bar {
+  position: fixed; top: calc(var(--topbar-h) + 8px); inset-inline: 0; margin-inline: auto; width: max-content; max-width: calc(100vw - 32px);
+  z-index: var(--z-toast); pointer-events: none;
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: 7px 14px; border-radius: 999px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  font-size: 13px; font-weight: 600;
+  opacity: 0; transform: translateY(-140%);
+  transition: opacity var(--dur-4) var(--ease-out), transform var(--dur-4) var(--ease-out);
+}
+.net-bar.is-visible { opacity: 1; transform: none; }
+.net-bar .icon { color: var(--danger); }
+.net-bar.is-back .icon { color: var(--success); }
 @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes toastOut { to { opacity: 0; transform: translateY(10px); } }
 
@@ -994,7 +1008,7 @@ dialog.modal[open] > form { display: flex; flex-direction: column; flex: 1 1 aut
    الطباعة
    -------------------------------------------------------------------------- */
 @media print {
-  .sidebar, .topbar, .page-actions, .section-nav, .filters, .bulkbar, .pager, .no-print, .toasts { display: none !important; }
+  .sidebar, .topbar, .page-actions, .section-nav, .filters, .bulkbar, .pager, .no-print, .toasts, .net-bar { display: none !important; }
   .main { margin: 0 !important; }
   .content { padding: 0 !important; max-width: none; }
   body { background: #fff; color: #000; }

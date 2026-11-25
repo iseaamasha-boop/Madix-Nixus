@@ -47,6 +47,70 @@
   });
 
   // ------------------------------------------------------------------------
+  // drops Connection: شريط Small أعلى Screen ما دام Server Unavailable, والطلبات تنتظر عودته then تُعاد Automatically
+  // بمفتاح Deny Frequency نفسه, فلا تُنفَّذ operations twice (لا Sale and no Payment مكررة)
+  // ------------------------------------------------------------------------
+  function uid() {
+    var c = window.crypto || window.msCrypto;
+    if (c && c.randomUUID) { return c.randomUUID().replace(/-/g, ''); }
+    var a = new Uint8Array(16);
+    if (c && c.getRandomValues) { c.getRandomValues(a); } else { for (var i = 0; i < 16; i++) { a[i] = Math.floor(Math.random() * 256); } }
+    return Array.prototype.map.call(a, function (b) { return (b < 16 ? '0' : '') + b.toString(16); }).join('');
+  }
+  var net = (function () {
+    var down = false, bar = null, hideTimer = null, pingTimer = null, waiters = [];
+    function show(back) {
+      if (!doc.body) { return; }
+      if (!bar) {
+        bar = doc.createElement('div');
+        bar.className = 'net-bar';
+        bar.setAttribute('role', 'status');
+        bar.setAttribute('aria-live', 'polite');
+        doc.body.appendChild(bar);
+      }
+      clearTimeout(hideTimer);
+      bar.classList.toggle('is-back', back);
+      bar.innerHTML = back ? icon('wifi') + '<span>Back online</span>' : icon('wifi-off') + '<span>Connection lost</span>';
+      void bar.offsetWidth;
+      bar.classList.add('is-visible');
+      if (back) { hideTimer = setTimeout(function () { bar.classList.remove('is-visible'); }, 2200); }
+    }
+    function ping() {
+      clearTimeout(pingTimer);
+      if (!down) { return; }
+      fetch(base + '/health', { cache: 'no-store', credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function (r) { if (r.status >= 500) { throw new Error('down'); } up(); })
+        .catch(function () { pingTimer = setTimeout(ping, 4000); });
+    }
+    function goDown() {
+      if (down) { return; }
+      down = true;
+      show(false);
+      pingTimer = setTimeout(ping, navigator.onLine === false ? 4000 : 1500);
+    }
+    function up() {
+      clearTimeout(pingTimer);
+      if (!down) { return; }
+      down = false;
+      show(true);
+      var w = waiters; waiters = [];
+      w.forEach(function (f) { f(); });
+    }
+    function whenUp(fn) { if (down) { waiters.push(fn); } else { fn(); } }
+    window.addEventListener('offline', goDown);
+    window.addEventListener('online', function () { if (down) { ping(); } });
+    doc.addEventListener('DOMContentLoaded', function () { if (navigator.onLine === false) { goDown(); } });
+    return { down: goDown, up: up, whenUp: whenUp, isDown: function () { return down; } };
+  })();
+  /** انتظار عودة Connection, بحد أقصى ms */
+  function waitUp(ms) {
+    return new Promise(function (resolve, reject) {
+      var t = setTimeout(function () { reject(new Error('offline')); }, Math.max(0, ms));
+      net.whenUp(function () { clearTimeout(t); resolve(); });
+    });
+  }
+
+  // ------------------------------------------------------------------------
   // الطلبات
   // ------------------------------------------------------------------------
   function api(url, opts) {
@@ -56,6 +120,9 @@
     var body = null;
     if (method !== 'GET') {
       headers['X-CSRF-Token'] = csrf;
+      // Key Deny Frequency: one لهذه Operation, يبقى نفسه in Every Redo attempts
+      var field = opts.form && opts.form.querySelector ? opts.form.querySelector('input[name="_idem"]') : null;
+      headers['Idempotency-Key'] = opts.key || (field && field.value) || uid();
       if (opts.form) {
         body = opts.form instanceof FormData ? opts.form : new FormData(opts.form);
       } else {
@@ -63,7 +130,24 @@
         body = JSON.stringify(opts.data || {});
       }
     }
-    return fetch(url, { method: method, headers: headers, body: body, credentials: 'same-origin' })
+    // بلا رد from Server (drops): انتظار عودة Connection then الطلب نفسه from New, until 2 minutes للتعديل and 30 seconds للقراءة
+    var deadline = Date.now() + (opts.wait || (method === 'GET' ? 30000 : 120000));
+    function send() {
+      return fetch(url, { method: method, headers: headers, body: body, credentials: 'same-origin' })
+        .then(function (res) {
+          if (net.isDown()) { net.up(); }
+          // الطلب نفسه ما زال In progress on Server (Redo سابقة لم تنتهِ): انتظار قصير then Result المحفوظة
+          if (res.status === 409 && Date.now() < deadline && res.headers.get('Retry-After')) {
+            return new Promise(function (r) { setTimeout(r, 1500); }).then(send);
+          }
+          return res;
+        }, function (err) {
+          if (opts.retry === false || Date.now() >= deadline) { throw err; }
+          net.down();
+          return waitUp(deadline - Date.now()).then(send, function () { throw err; });
+        });
+    }
+    return send()
       .then(function (res) {
         return res.text().then(function (text) {
           var data;
@@ -445,6 +529,34 @@
     e.preventDefault();
     confirmDialog(el.getAttribute('data-confirm'), { danger: el.getAttribute('data-confirm-type') !== 'primary' }).then(function (yes) {
       if (yes) { el.dataset.confirmed = '1'; el.click(); }
+    });
+  });
+
+  // النماذج: Key Deny Frequency لكل نموذج in هذه Page (Redo الإرسال or Redo التحميل yet drops لا تكرر Operation),
+  // والإرسال بلا Call ينتظر عودته then يتم Automatically
+  on(doc, 'submit', 'form', function (e, form) {
+    if (e.defaultPrevented || String(form.getAttribute('method') || '').toLowerCase() !== 'post') { return; }
+    var target;
+    try { target = new URL(form.action, window.location.href); } catch (err) { return; }
+    if (target.origin !== window.location.origin) { return; }
+    var input = form.querySelector('input[name="_idem"]');
+    if (!input) {
+      input = doc.createElement('input');
+      input.type = 'hidden'; input.name = '_idem';
+      form.appendChild(input);
+    }
+    if (!input.value) { input.value = uid(); }
+    if (navigator.onLine !== false && !net.isDown()) { return; }
+    e.preventDefault();
+    net.down();
+    var btn = e.submitter && e.submitter.form === form ? e.submitter : null;
+    if (btn) { btn.classList.add('is-loading'); }
+    if (form.dataset.waitingNet === '1') { return; }
+    form.dataset.waitingNet = '1';
+    net.whenUp(function () {
+      form.dataset.waitingNet = '';
+      if (btn) { btn.classList.remove('is-loading'); }
+      if (form.requestSubmit) { form.requestSubmit(btn || undefined); } else { form.submit(); }
     });
   });
 
@@ -965,8 +1077,11 @@
       clearTimeout(timer);
       if (!keys().length || doc.hidden || busy) { return; }
       busy = true;
+      var answered = false;
       fetch(base + '/live?k=' + encodeURIComponent(keys().join(',')), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
         .then(function (r) {
+          answered = true;
+          if (net.isDown()) { net.up(); }
           if (r.status === 401) { window.location.href = base + '/login'; }
           return r.json();
         })
@@ -976,7 +1091,10 @@
             (subs[k] || []).forEach(function (fn) { try { fn(data[k], d); } catch (e) { /* جزء one لا يوقف الباقي */ } });
           });
         })
-        .catch(function () { /* بلا Call: المحاولة التالية in موعدها or عند عودة Connection */ })
+        .catch(function () {
+          // بلا Call: الشريط يظهر, والتحديث يُعاد فور عودة Connection
+          if (!answered) { net.down(); net.whenUp(tick); }
+        })
         .then(function () { busy = false; schedule(every); });
     }
     doc.addEventListener('visibilitychange', function () { if (doc.hidden) { clearTimeout(timer); } else { tick(); } });
@@ -1063,8 +1181,11 @@
     doc.dispatchEvent(new CustomEvent('live:loaded', { detail: box }));
   }
   function loadLive(box) {
+    var answered = false;
     return fetch(box.getAttribute('data-live-tab'), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
       .then(function (r) {
+        answered = true;
+        if (net.isDown()) { net.up(); }
         if (r.status === 401) { window.location.href = base + '/login'; }
         return r.json();
       })
@@ -1072,11 +1193,13 @@
       .catch(function () {
         // بلا Call: تبقى Backup الظاهرة, وتُعاد المحاولة عند عودة Connection
         box.setAttribute('data-retry', '1');
+        if (!answered) { net.down(); net.whenUp(retryLive); }
       });
   }
-  window.addEventListener('online', function () {
+  function retryLive() {
     $$('[data-live-tab][data-retry]').forEach(function (b) { b.removeAttribute('data-retry'); loadLive(b); });
-  });
+  }
+  window.addEventListener('online', retryLive);
 
   doc.addEventListener('DOMContentLoaded', function () {
     $$('[data-live-tab]').forEach(loadLive);
@@ -1098,6 +1221,6 @@
   window.SN = {
     api: api, toast: toast, confirm: confirmDialog, openModal: openModal, closeModal: closeModal,
     esc: esc, icon: icon, fmtBytes: fmtBytes, fmtRate: fmtRate, fmtDuration: fmtDuration, fmtNum: fmtNum,
-    chart: makeChart, chartWhenSeen: chartWhenSeen, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
+    chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
   };
 })();

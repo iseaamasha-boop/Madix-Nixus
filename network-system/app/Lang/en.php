@@ -5273,4 +5273,7 @@ return [
     'لمدة متواصلة' => 'For a continuous',
     'تحديد سرعة من يتجاوز الحد تلقائياً' => 'Automatically limit whoever exceeds the threshold',
     'تحميل ضخم يبطّئ البرج' => 'A huge download slowing the tower',
+    'انقطع الاتصال' => 'Connection lost',
+    'عاد الاتصال' => 'Back online',
+    'هذا الطلب أُرسل من قبل وما زال قيد التنفيذ.' => 'This request was already sent and is still being processed.',
 ];

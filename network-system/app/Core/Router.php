@@ -158,6 +158,19 @@ final class Router
             Session::release();
         }
 
+        // مفتاح منع التكرار: يُقرأ ثم يُزال من بيانات النموذج فلا يصل إلى أي إجراء
+        $idem = Idempotency::key($request);
+        unset($request->post[Idempotency::FIELD]);
+        $exec = fn (): Response => $this->execute($route, $request, $params);
+        if ($idem !== null && !in_array($request->method, ['GET', 'HEAD'], true) && ($actor = self::actor($o)) !== null) {
+            return Idempotency::run($request, $idem, $actor, $exec);
+        }
+        return $exec();
+    }
+
+    private function execute(array $route, Request $request, array $params): Response
+    {
+        $o = $route['options'];
         [$class, $method] = $route['handler'];
         $controller = new $class();
         try {
@@ -179,6 +192,20 @@ final class Router
             return Response::json($result);
         }
         return new Response((string) $result);
+    }
+
+    /** صاحب الطلب لنطاق مفتاح منع التكرار: مسؤول المنصة أو موظف الشبكة (من الجلسة أو رمز التطبيق) */
+    private static function actor(array $o): ?string
+    {
+        if (!empty($o['admin'])) {
+            $id = AdminAuth::id();
+            return $id !== null ? 'a' . $id : null;
+        }
+        if ($o['auth'] || !empty($o['token'])) {
+            $id = Auth::id();
+            return $id !== null ? 'u' . $id : null;
+        }
+        return null;
     }
 
     /**
