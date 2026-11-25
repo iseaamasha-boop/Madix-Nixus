@@ -18,7 +18,7 @@ const byKey = (r) => Object.fromEntries(r.pages.map((p) => [p.key, p]));
 const A = byKey(a);
 const B = b ? byKey(b) : {};
 
-const head = ['الصفحة', 'TTFB ms', 'SQL (عدد/ms)', 'LCP ms (نت عادي)', 'LCP ms (Lighthouse جوال)', 'Lighthouse', 'CLS', 'INP ms', 'JS KB', 'CSS KB', 'JS+CSS KB', 'الطلبات', 'التنقل ms'];
+const head = ['الصفحة', 'TTFB ms', 'TTFB بلا كاش ms', 'SQL (عدد/ms)', 'LCP ms (نت عادي)', 'LCP ms (Lighthouse جوال)', 'Lighthouse', 'CLS', 'INP ms', 'JS KB', 'CSS KB', 'JS+CSS KB', 'الطلبات', 'التنقل ms'];
 const rows = [head, head.map(() => '---')];
 for (const key of Object.keys(A)) {
   const x = A[key];
@@ -29,6 +29,7 @@ for (const key of Object.keys(A)) {
   rows.push([
     x.name,
     pair(x.ttfb, y.ttfb, 1),
+    pair(x.ttfbCold !== undefined ? x.ttfbCold : x.ttfb, y.ttfbCold, 1),
     b ? sql(x) + ' → ' + sql(y) : sql(x),
     pair(x.lcp, y.lcp),
     pair(lh(x, 'lcp'), lh(y, 'lcp')),

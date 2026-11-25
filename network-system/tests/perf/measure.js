@@ -49,12 +49,15 @@ function median(a) { const s = a.slice().sort((x, y) => x - y); return s.length 
 function round(n, d = 0) { const k = Math.pow(10, d); return Math.round(n * k) / k; }
 
 /** طلب GET خام لقياس زمن أول بايت (اتصال مفتوح مسبقاً) */
-function timedGet(agent, url, cookie) {
+function timedGet(agent, url, cookie, nocache) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
     const mod = u.protocol === 'https:' ? https : http;
     const t0 = process.hrtime.bigint();
-    const req = mod.request(u, { method: 'GET', agent, rejectUnauthorized: false, headers: { Cookie: cookie || '', 'Accept-Encoding': 'gzip, br', Accept: 'text/html' } }, (res) => {
+    const headers = { Cookie: cookie || '', 'Accept-Encoding': 'gzip, br', Accept: 'text/html' };
+    // بلا كاش: أسوأ حالة (تعمل فقط مع app.timing في ملف إعداد الخادم)
+    if (nocache) { headers['X-Mnx-Cache'] = 'off'; }
+    const req = mod.request(u, { method: 'GET', agent, rejectUnauthorized: false, headers }, (res) => {
       let first = 0;
       let bytes = 0;
       res.on('data', (c) => { if (!first) { first = Number(process.hrtime.bigint() - t0) / 1e6; } bytes += c.length; });
@@ -236,10 +239,16 @@ async function lighthouseRun(url, cookie) {
       const s = sqlOf(r.headers);
       if (s) { sqls.push(s); }
     }
+    // الصفحة نفسها بلا كاش الخادم (أول فتح بعد تغيّر البيانات)
+    const cold = [];
+    for (let i = 0; i < Math.min(RUNS, 5); i++) {
+      cold.push((await timedGet(agent, url, cookies[p.ctx], true)).ttfb);
+    }
     const b = await browserLoad(ctxs[p.ctx], url);
     const row = {
       key: p.key, name: p.name, path: p.path, status,
       ttfb: round(median(ttfbs), 1), ttfbMin: round(Math.min.apply(null, ttfbs), 1), ttfbMax: round(Math.max.apply(null, ttfbs), 1),
+      ttfbCold: round(median(cold), 1), ttfbColdMax: round(Math.max.apply(null, cold), 1),
       sqlN: sqls.length ? median(sqls.map((s) => s.n)) : null, sqlMs: sqls.length ? round(median(sqls.map((s) => s.ms)), 1) : null,
       htmlKB: round(b.htmlBytes / 1024, 1), jsKB: round(b.by.js / 1024, 1), cssKB: round(b.by.css / 1024, 1), fontKB: round(b.by.font / 1024, 1), imgKB: round(b.by.img / 1024, 1),
       requests: b.requests, fcp: round(b.fcp), lcp: round(b.lcp), cls: round(b.cls, 3), inp: round(b.inp), load: round(b.load),
@@ -253,7 +262,7 @@ async function lighthouseRun(url, cookie) {
       try { row.lh = await lighthouseRun(url, cookies[p.ctx]); } catch (e) { row.lh = { error: String(e.message || e) }; }
     }
     results.push(row);
-    process.stderr.write(p.key + ' ttfb=' + row.ttfb + ' sql=' + row.sqlN + '/' + row.sqlMs + ' lcp=' + row.lcp + ' cls=' + row.cls + ' inp=' + row.inp
+    process.stderr.write(p.key + ' ttfb=' + row.ttfb + ' cold=' + row.ttfbCold + '/' + row.ttfbColdMax + ' sql=' + row.sqlN + '/' + row.sqlMs + ' lcp=' + row.lcp + ' cls=' + row.cls + ' inp=' + row.inp
       + ' js=' + row.jsKB + ' css=' + row.cssKB + ' req=' + row.requests + (row.navClick != null ? ' nav=' + row.navClick + '/' + row.navHover : '')
       + (row.lh ? ' lh=' + JSON.stringify(row.lh) : '') + (row.errors.length ? ' ERR=' + row.errors.length : '') + '\n');
   }

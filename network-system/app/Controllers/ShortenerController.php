@@ -21,8 +21,7 @@ final class ShortenerController extends Controller
         [$batches, $stats, $lengths] = \App\Core\Cache::remember('shortener.stats', [], ['cards', 'batches', 'categories'], static fn (): array => [
             DB::rows(
                 "SELECT b.id, b.name, c.name AS category_name, b.source,
-                        COUNT(k.id) AS total, SUM(k.short_code IS NOT NULL) AS with_short,
-                        MAX(CHAR_LENGTH(k.username)) AS max_len
+                        COUNT(k.id) AS total, SUM(k.short_code IS NOT NULL) AS with_short
                  FROM batches b JOIN categories c ON c.id = b.category_id LEFT JOIN cards k ON k.batch_id = b.id
                  WHERE b.source <> 'custom'
                  GROUP BY b.id ORDER BY b.id DESC LIMIT 200"

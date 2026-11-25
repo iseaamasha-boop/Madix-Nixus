@@ -445,6 +445,7 @@ CREATE TABLE IF NOT EXISTS cards (
   KEY idx_cards_state (status, is_disabled),
   KEY idx_cards_cat_state (category_id, status, is_disabled),
   KEY idx_cards_active_login (status, is_disabled, last_login_at),
+  KEY idx_cards_batch_stats (batch_id, status, is_disabled, first_login_at, printed_at, short_code),
   KEY idx_cards_status (status),
   KEY idx_cards_distributor (distributor_id),
   KEY idx_cards_sale (sale_id),

@@ -104,6 +104,9 @@ final class SubscriberController extends Controller
             $cols = [];
             $colParams = [];
             foreach (array_keys(self::STATES) as $i => $state) {
+                if ($state === 'online') {
+                    continue;
+                }
                 [$st, $sp] = self::stateSql($state, $now);
                 $cols[] = 'COALESCE(SUM(1 = 1' . $st . '), 0) AS c' . $i;
                 array_push($colParams, ...$sp);
@@ -111,6 +114,12 @@ final class SubscriberController extends Controller
             $row = DB::row('SELECT ' . implode(', ', $cols) . " FROM subscribers s WHERE $baseWhere", array_merge($colParams, $baseParams));
             $out = [];
             foreach (array_keys(self::STATES) as $i => $state) {
+                if ($state === 'online') {
+                    // EXISTS داخل SUM يُنفَّذ لكل مشترك على كل الجلسات المفتوحة؛ في WHERE يصبح ربطاً سريعاً بالفهرس
+                    [$st, $sp] = self::stateSql('online', $now);
+                    $out[$state] = (int) DB::value("SELECT COUNT(*) FROM subscribers s WHERE $baseWhere$st", array_merge($baseParams, $sp));
+                    continue;
+                }
                 $out[$state] = (int) $row['c' . $i];
             }
             return $out;

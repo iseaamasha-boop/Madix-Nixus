@@ -12,7 +12,7 @@ use Throwable;
 final class Migrator
 {
     /** نسخة البنية التي تتوقعها الشيفرة الحالية */
-    public const VERSION = 16;
+    public const VERSION = 17;
 
     private static bool $checked = false;
 
@@ -168,6 +168,10 @@ final class Migrator
                 self::addIndex('router_metrics', 'idx_metrics_time_online', '(created_at, online, router_id, active_hotspot, active_ppp)');
                 self::addIndex('subscriber_transactions', 'idx_st_type_created', '(type, created_at, amount)');
                 self::addIndex('cards', 'idx_cards_active_login', '(status, is_disabled, last_login_at)');
+                break;
+            case 17:
+                // إحصاءات الدفعات والأرقام المختصرة تُقرأ من الفهرس وحده بدل كل صفوف الكروت
+                self::addIndex('cards', 'idx_cards_batch_stats', '(batch_id, status, is_disabled, first_login_at, printed_at, short_code)');
                 break;
         }
     }

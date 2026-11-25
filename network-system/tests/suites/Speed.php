@@ -148,7 +148,8 @@ return [
     'new indexes exist on a fresh network' => static function (Env $env): void {
         $t = $env->tenant('a');
         $pdo = $env->db($t['db']);
-        foreach (['router_metrics' => 'idx_metrics_time_online', 'subscriber_transactions' => 'idx_st_type_created', 'cards' => 'idx_cards_active_login'] as $table => $idx) {
+        foreach (['router_metrics' => 'idx_metrics_time_online', 'subscriber_transactions' => 'idx_st_type_created', 'cards' => 'idx_cards_active_login', 'cards ' => 'idx_cards_batch_stats'] as $table => $idx) {
+            $table = trim($table);
             T::eq(1, (int) $pdo->query("SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '$table' AND INDEX_NAME = '$idx'")->fetchColumn(), $idx);
         }
     },

@@ -53,6 +53,10 @@ final class Cache
         if (!self::$enabled || !Config::installed()) {
             return $fn();
         }
+        // أداة قياس السرعة تقيس الصفحة بلا كاش أيضاً (أسوأ حالة)، فقط حين يكون قياس الوقت مفعّلاً في ملف الإعداد
+        if (Config::get('app.timing') === true && ($_SERVER['HTTP_X_MNX_CACHE'] ?? '') === 'off') {
+            return $fn();
+        }
         self::flushPending();
         [$file, $gens] = self::locate($name, $params, $tables, $scoped);
         $raw = @file_get_contents($file);
