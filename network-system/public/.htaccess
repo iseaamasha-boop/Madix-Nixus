@@ -6,10 +6,10 @@ Options -Indexes
     # نسخ مضغوطة مسبقاً بجانب الملفات النصية (يبنيها التثبيت والتحديث): brotli ثم gzip، فلا يُضغط الملف مع كل طلب
     RewriteCond %{HTTP:Accept-Encoding} \bbr\b
     RewriteCond %{REQUEST_FILENAME}.br -f
-    RewriteRule ^(assets/.+\.(?:css|js|svg|json))$ $1.br [E=no-gzip:1,E=no-brotli:1,E=madix_enc:br,L]
+    RewriteRule ^(assets/.+\.(?:css|js|svg|json))$ $1.br [L]
     RewriteCond %{HTTP:Accept-Encoding} \bgzip\b
     RewriteCond %{REQUEST_FILENAME}.gz -f
-    RewriteRule ^(assets/.+\.(?:css|js|svg|json))$ $1.gz [E=no-gzip:1,E=no-brotli:1,E=madix_enc:gzip,L]
+    RewriteRule ^(assets/.+\.(?:css|js|svg|json))$ $1.gz [L]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L,QSA]
 </IfModule>
@@ -31,6 +31,13 @@ Options -Indexes
         Header set Content-Encoding gzip
     </FilesMatch>
 </IfModule>
+<IfModule mod_env.c>
+    # النسخة المضغوطة مسبقاً لا تُضغط مرة ثانية (المتغير يُضبط على الملف نفسه بعد التحويل الداخلي إليه)
+    <FilesMatch "\.(css|js|svg|json)\.(br|gz)$">
+        SetEnv no-gzip 1
+        SetEnv no-brotli 1
+    </FilesMatch>
+</IfModule>
 <IfModule mod_mime.c>
     # نوع الملف الأصلي للنسخة المضغوطة
     <FilesMatch "\.css\.(br|gz)$">
@@ -46,4 +53,5 @@ Options -Indexes
         ForceType application/json
     </FilesMatch>
     RemoveEncoding .gz .br
+    RemoveLanguage .br
 </IfModule>

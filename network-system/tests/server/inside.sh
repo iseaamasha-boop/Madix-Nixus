@@ -34,6 +34,10 @@ assets_ok() {
     echo "$h" | grep -qi '^content-type: text/css' || { echo "$h"; die "brotli app.css has the wrong type"; }
     h=$(curl -s -D - -o /dev/null -H 'Accept-Encoding: gzip' "http://127.0.0.1/assets/js/app.js?v=1")
     echo "$h" | grep -qi '^content-encoding: gzip' || { echo "$h"; die "app.js not served as gzip"; }
+    # المحتوى بعد فك الضغط مطابق للملف تماماً (لا ضغط مزدوج)
+    curl -s -H 'Accept-Encoding: br' "http://127.0.0.1/assets/css/app.css?v=1" | brotli -d | cmp -s - $APP/public/assets/css/app.css || die "brotli app.css does not decode to the file"
+    curl -s -H 'Accept-Encoding: gzip, deflate, br, zstd' "http://127.0.0.1/assets/js/app.js?v=1" | brotli -d | cmp -s - $APP/public/assets/js/app.js || die "app.js for a browser does not decode to the file"
+    curl -s -H 'Accept-Encoding: gzip' "http://127.0.0.1/assets/js/app.js?v=1" | gunzip | cmp -s - $APP/public/assets/js/app.js || die "gzip app.js does not decode to the file"
     curl -s "http://127.0.0.1/assets/css/app.css" | head -c 300 | grep -q '/\*' && die "app.css is not minified"
     return 0
 }
