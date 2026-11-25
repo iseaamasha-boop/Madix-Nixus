@@ -1290,18 +1290,19 @@ dialog.modal::backdrop { animation: fade-in var(--dur-4) ease; }
    التصميم العام: حركة ظهور العناصر، الكثافة، الزوايا، القائمة الجانبية
    ========================================================================== */
 .mx { animation-duration: var(--motion-speed, 200ms); animation-timing-function: cubic-bezier(.2, .8, .25, 1); animation-fill-mode: backwards; animation-delay: calc(var(--i, 0) * var(--motion-stagger, 20ms)); }
+/* البداية بشفافية جزئية لا كاملة: المحتوى ظاهر من أول رسم للصفحة والحركة لمسة فوقه (لا يتأخر ظهور المحتوى) */
 [data-motion="rise"] .mx { animation-name: mx-rise; }
 [data-motion="drop"] .mx { animation-name: mx-drop; }
 [data-motion="fade"] .mx { animation-name: mx-fade; }
 [data-motion="zoom"] .mx { animation-name: mx-zoom; }
 [data-motion="slide"] .mx { animation-name: mx-slide; }
-@keyframes mx-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes mx-drop { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
-@keyframes mx-fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes mx-zoom { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
-@keyframes mx-slide { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+@keyframes mx-rise { from { opacity: .4; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes mx-drop { from { opacity: .4; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+@keyframes mx-fade { from { opacity: .4; } to { opacity: 1; } }
+@keyframes mx-zoom { from { opacity: .4; transform: scale(.94); } to { opacity: 1; transform: none; } }
+@keyframes mx-slide { from { opacity: .4; transform: translateX(14px); } to { opacity: 1; transform: none; } }
 [dir="ltr"] [data-motion="slide"] .mx { animation-name: mx-slide-ltr; }
-@keyframes mx-slide-ltr { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@keyframes mx-slide-ltr { from { opacity: .4; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .mx { animation: none !important; } }
 
 [data-density="compact"] .content { padding: 16px; }
@@ -1586,11 +1587,11 @@ mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: c
 @media (max-width: 960px) {
   .sidebar { width: min(88vw, 300px); border-inline-end: 0; border-start-end-radius: 22px; border-end-end-radius: 22px; overflow: hidden; }
   .sidebar-close { display: inline-grid; }
-  .sidebar-open .backdrop { animation: mx-fade .26s ease both; }
+  .sidebar-open .backdrop { animation: fade-in .26s ease both; }
 }
 .sidebar-hidden .sidebar { border-inline-end: 0; border-start-end-radius: 22px; border-end-end-radius: 22px; overflow: hidden; }
 .sidebar-hidden .sidebar-close { display: inline-grid; }
-.sidebar-hidden.sidebar-open .backdrop { animation: mx-fade .26s ease both; }
+.sidebar-hidden.sidebar-open .backdrop { animation: fade-in .26s ease both; }
 
 /* الكثافة */
 [data-density="compact"] .sidebar .nav-link { padding: 2px 8px; min-height: 36px; }

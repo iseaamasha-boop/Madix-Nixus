@@ -370,7 +370,7 @@ final class Theme
             // (إعادة الرسم بعد وصول الخط تؤخر «أكبر رسم» وقد تزحزح التخطيط). إن تعذّر الحفظ تُطبَّق فوراً كما كانت
             . 'Promise.all(L.map(function(f){return f.load()})).then(function(){var s=false;try{localStorage.setItem(K,V);s=localStorage.getItem(K)===V}catch(e){}'
             . 'if(!s){L.forEach(function(f){d.fonts.add(f)})}if(B){add(B)}},all)}'
-            . 'function idle(){(window.requestIdleCallback||function(f){setTimeout(f,200)})(go,{timeout:3000})}'
+            . 'function idle(){setTimeout(function(){(window.requestIdleCallback||function(f){setTimeout(f,200)})(go,{timeout:3000})},1500)}'
             . 'function painted(){var p=window.performance&&performance.getEntriesByType?performance.getEntriesByType("paint"):[];for(var i=0;i<p.length;i++){if(p[i].name==="first-contentful-paint"){return true}}return false}'
             . 'addEventListener("load",function(){if(painted()||!window.PerformanceObserver){idle();return}'
             . 'try{var o=new PerformanceObserver(function(l){if(l.getEntries().some(function(e){return e.name==="first-contentful-paint"})){o.disconnect();idle()}});o.observe({type:"paint",buffered:true})}catch(e){idle()}})})();</script>';
