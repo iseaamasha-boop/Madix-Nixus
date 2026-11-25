@@ -187,6 +187,8 @@ final class Kernel
             $response->headers['Connection'] = 'close';
             $response->headers['Content-Length'] = (string) strlen($response->body);
         }
+        // تسجيل تغيّر البيانات قبل إرسال الرد: الصفحة التالية (بعد التحويل) لا تقرأ أرقاماً قديمة من الكاش
+        Cache::flushPending();
         $response->send();
         if (self::$after) {
             Session::release();
