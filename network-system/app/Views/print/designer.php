@@ -35,6 +35,8 @@ $config = [
 ];
 ?>
 <link rel="stylesheet" href="<?= e(asset('css/print.css')) ?>">
+<?php /* الكروت المطبوعة بخط Plex دائماً (لا يتبع خط التصميم) */ ?>
+<style><?= \App\Core\Theme::fontFaces('plex') ?></style>
 <div class="designer" id="designer">
   <div class="stack">
     <div class="panel">

@@ -26,6 +26,8 @@ $ph = rtrim(rtrim(number_format((float) $template['paper_height'], 2, '.', ''), 
 </script>
 <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
 <link rel="stylesheet" href="<?= e(asset('css/print.css')) ?>">
+<?php /* الكروت المطبوعة بخط Plex دائماً (لا يتبع خط التصميم) */ ?>
+<style><?= \App\Core\Theme::fontFaces('plex') ?></style>
 <style>@page { size: <?= e($pw) ?>mm <?= e($ph) ?>mm; margin: 0; }</style>
 </head>
 <body class="print-body">

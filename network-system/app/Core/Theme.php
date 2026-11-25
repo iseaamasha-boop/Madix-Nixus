@@ -268,18 +268,21 @@ final class Theme
             . ' data-page-fx="' . ($t['page_fx'] === '1' ? '1' : '0') . '" data-haptics="' . ($t['haptics'] === '1' ? '1' : '0') . '"';
     }
 
+    /** نطاقا الحروف: العربية، واللاتينية والأرقام */
+    private const RANGE_AR = 'U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC';
+    private const RANGE_LATIN = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+20AA, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
+
     /** تعريفات @font-face لخط معيّن */
     public static function fontFaces(string $key, ?array $only = null): string
     {
-        if ($key === 'plex' || !isset(self::FONTS[$key])) {
+        if (!isset(self::FONTS[$key])) {
             return '';
         }
         [, $family, $file, $weights] = self::FONTS[$key];
         $css = '';
         foreach ($only !== null ? array_intersect($weights, $only) : $weights as $w) {
-            foreach (['arabic' => 'U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0898-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC',
-                'latin' => 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD'] as $sub => $range) {
-                $css .= '@font-face{font-family:"' . $family . '";font-weight:' . $w . ';font-style:normal;font-display:swap;src:url("' . asset('fonts/' . $file . '-' . $sub . '-' . $w . '-normal.woff2') . '") format("woff2");unicode-range:' . $range . '}';
+            foreach (['arabic' => self::RANGE_AR, 'latin' => self::RANGE_LATIN] as $sub => $range) {
+                $css .= self::face($family, (int) $w, asset('fonts/' . $file . '-' . $sub . '-' . $w . '-normal.woff2'), $range);
             }
         }
         return $css;
@@ -292,12 +295,77 @@ final class Theme
             return '';
         }
         [, $family, $file] = self::FONTS_LATIN[$key];
-        $range = 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+20AA, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD';
         $css = '';
         foreach ($only ?? [400, 500, 600, 700] as $w) {
-            $css .= '@font-face{font-family:"' . $family . '";font-weight:' . $w . ';font-style:normal;font-display:swap;src:url("' . asset('fonts/' . $file . '-latin-' . $w . '-normal.woff2') . '") format("woff2");unicode-range:' . $range . '}';
+            $css .= self::face($family, (int) $w, asset('fonts/' . $file . '-latin-' . $w . '-normal.woff2'), self::RANGE_LATIN);
         }
         return $css;
+    }
+
+    private static function face(string $family, int $weight, string $url, string $range): string
+    {
+        return '@font-face{font-family:"' . $family . '";font-weight:' . $weight . ';font-style:normal;font-display:swap;src:url("' . $url . '") format("woff2");unicode-range:' . $range . '}';
+    }
+
+    /**
+     * ملفات الخط المختار: [العائلة، الوزن، الرابط، النطاق] لكل ملف.
+     * @return array{0: array, 1: int} القائمة، وموضع الخط الأساسي فيها (العربي العادي، أو اللاتيني في الواجهة الإنجليزية)
+     */
+    public static function fontFiles(?array $t = null): array
+    {
+        $t ??= self::current();
+        [, $family, $file, $weights] = self::FONTS[$t['font']];
+        $latin = $t['font_latin'] !== 'auto' ? self::FONTS_LATIN[$t['font_latin']] : null;
+        $list = [];
+        $primary = 0;
+        $en = Lang::isEn();
+        foreach ($weights as $w) {
+            if ((int) $w === 400 && !$en) {
+                $primary = count($list);
+            }
+            $list[] = [$family, (int) $w, asset('fonts/' . $file . '-arabic-' . $w . '-normal.woff2'), self::RANGE_AR];
+            if ($latin === null) {
+                if ((int) $w === 400 && $en) {
+                    $primary = count($list);
+                }
+                $list[] = [$family, (int) $w, asset('fonts/' . $file . '-latin-' . $w . '-normal.woff2'), self::RANGE_LATIN];
+            }
+        }
+        if ($latin !== null) {
+            foreach ([400, 500, 600, 700] as $w) {
+                if ($w === 400 && $en) {
+                    $primary = count($list);
+                }
+                $list[] = [$latin[1], $w, asset('fonts/' . $latin[2] . '-latin-' . $w . '-normal.woff2'), self::RANGE_LATIN];
+            }
+        }
+        return [$list, $primary];
+    }
+
+    /**
+     * تحميل الخط بلا تأخير لظهور الصفحة:
+     *  - الخط الأساسي (العادي) يُحمَّل مسبقاً (preload) ويُستخدم من أول رسم، بـ font-display: swap.
+     *  - بقية الأوزان في الزيارة الأولى تُحمَّل بعد اكتمال الصفحة وتُطبَّق دفعة واحدة، فلا تزاحم الصفحة على الإنترنت البطيء.
+     *  - بعدها هي في ذاكرة المتصفح: تُعرَّف من أول الصفحة فيظهر كل شيء بخطه مباشرة.
+     */
+    public static function fonts(?array $t = null): string
+    {
+        [$files, $primary] = self::fontFiles($t);
+        $main = $files[$primary];
+        $rest = array_values(array_filter($files, static fn ($i) => $i !== $primary, ARRAY_FILTER_USE_KEY));
+        $version = substr(md5(json_encode($files)), 0, 12);
+        $json = json_encode($rest, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG);
+        // علامة MADIX وسطر الحقوق بخط Plex دائماً: إن كان خط التصميم غيره يُعرَّف Plex ويُحمَّل فقط حين يظهر نص به
+        $brandFaces = ($t ?? self::current())['font'] !== 'plex' ? json_encode(self::fontFaces('plex'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) : '""';
+        return '<link rel="preload" href="' . e($main[2]) . '" as="font" type="font/woff2" crossorigin>'
+            . '<style id="font-main">' . self::face($main[0], $main[1], $main[2], $main[3]) . '</style>'
+            . '<script>(function(){var F=' . $json . ',B=' . $brandFaces . ',K="mnx-fonts",V="' . $version . '",d=document;'
+            . 'function css(){var c="";F.forEach(function(f){c+="@font-face{font-family:\""+f[0]+"\";font-weight:"+f[1]+";font-style:normal;font-display:swap;src:url(\""+f[2]+"\") format(\"woff2\");unicode-range:"+f[3]+"}"});return c}'
+            . 'function add(c){var s=d.createElement("style");s.textContent=c;d.head.appendChild(s)}function all(){add(css()+B)}'
+            . 'var on=false;try{on=localStorage.getItem(K)===V}catch(e){}if(on){all();return}'
+            . 'addEventListener("load",function(){if(!window.FontFace||!d.fonts){all();return}'
+            . 'var L=F.map(function(f){return new FontFace(f[0],"url(\""+f[2]+"\") format(\"woff2\")",{weight:String(f[1]),unicodeRange:f[3],display:"swap"})});'
+            . 'Promise.all(L.map(function(f){return f.load()})).then(function(){L.forEach(function(f){d.fonts.add(f)});if(B){add(B)}try{localStorage.setItem(K,V)}catch(e){}},all)})})();</script>';
     }
 
     /** وسم style بالمتغيرات والخط المختار */
@@ -305,10 +373,9 @@ final class Theme
     {
         $t ??= self::current();
         $family = self::FONTS[$t['font']][1];
-        $css = self::fontFaces($t['font']);
+        $css = '';
         if ($t['font_latin'] !== 'auto') {
             // الخط العالمي أولاً للحروف اللاتينية والأرقام، ثم الخط العربي لما سواها
-            $css .= self::latinFaces($t['font_latin']);
             $family = self::FONTS_LATIN[$t['font_latin']][1] . '", "' . $family;
         }
         [, $light, $dark, $light2, $dark2] = self::PALETTES[$t['palette']];
@@ -324,7 +391,8 @@ final class Theme
         if ($t['page_fx'] === '1') {
             $css .= '@view-transition{navigation:auto}';
         }
-        return '<style id="theme-vars">' . $css . '</style>';
+        // ملفات الخط (التحميل المسبق والتأجيل) بعد متغيرات التصميم
+        return '<style id="theme-vars">' . $css . '</style>' . self::fonts($t);
     }
 
     private static function accent(string $hex, bool $dark): string
