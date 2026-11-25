@@ -588,6 +588,14 @@ MaxKeepAliveRequests 500
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml
 </IfModule>
+# brotli for pages and JSON when the browser accepts it (smaller than gzip); gzip for the others
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/javascript application/javascript application/json application/manifest+json image/svg+xml
+    BrotliCompressionQuality 5
+    <IfModule mod_setenvif.c>
+        SetEnvIfNoCase Accept-Encoding "\\bbr\\b" no-gzip=1
+    </IfModule>
+</IfModule>
 # page timing for "madix speed": server build time (first byte) and total, for every page but not /assets files
 <IfModule logio_module>
     LogIOTrackTTFB On
@@ -606,6 +614,7 @@ MaxKeepAliveRequests 500
 EOF
     quiet a2enconf madix
     quiet a2enmod rewrite headers expires deflate
+    quiet a2enmod brotli || true
     if [ -f /etc/apache2/mods-available/php"$PHPV".load ]; then
         quiet a2enmod php"$PHPV" || true
     fi
