@@ -211,6 +211,12 @@ final class Kernel
         }
     }
 
+    /** صفحة حساسة (الدخول، الحساب والتحقق بخطوتين، الإعدادات...): لا تُحفظ نتيجتها في أي مكان */
+    public static function sensitive(string $path): bool
+    {
+        return preg_match(self::NO_STORE, $path) === 1;
+    }
+
     public static function isStateless(string $path): bool
     {
         foreach (self::STATELESS as $prefix) {

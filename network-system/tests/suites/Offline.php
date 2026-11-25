@@ -74,6 +74,22 @@ return [
         T::eq('1', $b['headers']['x-idempotent-replay'] ?? '');
         T::eq($before + 1, $count($env, $sid));
     },
+    'results of sensitive pages are never stored' => static function (Env $env) use ($key): void {
+        $t = $env->tenant('a');
+        $h = $env->owner('a');
+        $h->get($t['path'] . '/account');
+        $k = $key();
+        $hdr = ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest', 'Content-Type' => 'application/json', 'X-CSRF-Token' => $h->csrf, 'Idempotency-Key' => $k];
+        $a = $h->request('POST', $t['path'] . '/account/theme', ['theme' => 'light'], $hdr);
+        $b = $h->request('POST', $t['path'] . '/account/theme', ['theme' => 'light'], $hdr);
+        T::status(200, $a);
+        T::status(200, $b);
+        T::ok(!isset($b['headers']['x-idempotent-replay']), 'not replayed from disk');
+        $dir = STORAGE_PATH . '/tenants/' . $t['slug'] . '/idem';
+        foreach (glob($dir . '/*') ?: [] as $f) {
+            T::notContains('"theme"', (string) file_get_contents($f), 'nothing kept from the account page');
+        }
+    },
     'mobile app: header key, and parallel duplicates run once' => static function (Env $env) use ($count, $sub, $key): void {
         $t = $env->tenant('a');
         $sid = $sub($env);

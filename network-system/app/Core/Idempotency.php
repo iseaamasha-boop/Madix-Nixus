@@ -70,7 +70,8 @@ final class Idempotency
             @unlink($file);
             throw $e;
         }
-        if ($response->status >= 500 || strlen($response->body) > self::MAX_BODY) {
+        // خطأ في الخادم: يُسمح بإعادة المحاولة. الصفحات الحساسة (رموز الاسترجاع، المفاتيح، كلمات المرور) لا تُحفظ نتيجتها
+        if ($response->status >= 500 || strlen($response->body) > self::MAX_BODY || Kernel::sensitive($request->path)) {
             @unlink($file);
             return $response;
         }
