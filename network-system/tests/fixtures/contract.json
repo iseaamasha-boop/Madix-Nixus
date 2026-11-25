@@ -1,0 +1,842 @@
+{
+    "app.alerts": {
+        "has_more": "bool",
+        "items": {
+            "[0]": {
+                "created_at": "string",
+                "id": "number",
+                "level": "string",
+                "message": "null",
+                "read": "bool",
+                "title": "string",
+                "type": "string"
+            }
+        },
+        "ok": "bool",
+        "page": "number",
+        "total": "number",
+        "unread": "number"
+    },
+    "app.batches": {
+        "has_more": "bool",
+        "items": {
+            "[0]": {
+                "available": "number",
+                "cards": "number",
+                "category": "string",
+                "color": "string",
+                "created_at": "string",
+                "employee": "string",
+                "id": "number",
+                "name": "string",
+                "source": "string"
+            }
+        },
+        "ok": "bool",
+        "page": "number",
+        "total": "number"
+    },
+    "app.card": {
+        "can": {
+            "actions": "bool",
+            "delete": "bool",
+            "password": "bool"
+        },
+        "card": {
+            "batch": "string",
+            "batch_id": "number",
+            "block_reason": "string",
+            "bound_mac": "string",
+            "category": "string",
+            "category_id": "number",
+            "color": "string",
+            "created_at": "string",
+            "data_left": "null",
+            "data_limit": "null",
+            "disabled": "bool",
+            "distributor": "string",
+            "expires_at": "string",
+            "first_login": "string",
+            "id": "number",
+            "last_device": "null",
+            "last_ip": "string",
+            "last_login": "string",
+            "last_mac": "string",
+            "last_router": "string",
+            "notes": "null",
+            "online": "number",
+            "password": "string",
+            "price": "number",
+            "printed": "bool",
+            "sale_price": "number",
+            "short_code": "null",
+            "sold_at": "string",
+            "status": "string",
+            "time_left": "number",
+            "time_limit": "number",
+            "until_expiry": "number",
+            "used_bytes": "number",
+            "used_seconds": "number",
+            "username": "string",
+            "validity": "number"
+        },
+        "ok": "bool",
+        "sessions": {
+            "[0]": {
+                "bytes_in": "number",
+                "bytes_out": "number",
+                "card_id": "number",
+                "category": "null",
+                "device": "null",
+                "id": "number",
+                "ip": "string",
+                "mac": "string",
+                "owner": "null",
+                "router": "string",
+                "router_id": "number",
+                "service": "string",
+                "started_at": "string",
+                "sub_id": "null",
+                "uptime": "number",
+                "username": "string"
+            }
+        }
+    },
+    "app.cards": {
+        "counts": {
+            "active": "number",
+            "depleted": "number",
+            "expired": "number",
+            "new": "number",
+            "sold": "number"
+        },
+        "has_more": "bool",
+        "items": {
+            "[0]": {
+                "batch": "string",
+                "batch_id": "number",
+                "category": "string",
+                "category_id": "number",
+                "color": "string",
+                "created_at": "string",
+                "disabled": "bool",
+                "distributor": "null",
+                "expires_at": "null",
+                "first_login": "null",
+                "id": "number",
+                "last_login": "null",
+                "password": "string",
+                "printed": "bool",
+                "short_code": "null",
+                "status": "string",
+                "used_bytes": "number",
+                "used_seconds": "number",
+                "username": "string"
+            }
+        },
+        "ok": "bool",
+        "page": "number",
+        "total": "number"
+    },
+    "app.cards.lookup": {
+        "items": "[]",
+        "match": {
+            "id": "number",
+            "type": "string"
+        },
+        "ok": "bool"
+    },
+    "app.cards.options": {
+        "charsets": {
+            "[0]": {
+                "key": "string",
+                "label": "string"
+            }
+        },
+        "defaults": {
+            "charset": "string",
+            "password_length": "number",
+            "password_mode": "string",
+            "username_length": "number"
+        },
+        "max": "number",
+        "ok": "bool",
+        "short_max": "number",
+        "short_min": "number"
+    },
+    "app.categories": {
+        "items": {
+            "[0]": {
+                "active": "bool",
+                "available": "number",
+                "color": "string",
+                "data_limit": "null",
+                "id": "number",
+                "name": "string",
+                "price": "number",
+                "rate": "string",
+                "time_limit": "number",
+                "validity": "number"
+            }
+        },
+        "ok": "bool"
+    },
+    "app.dashboard": {
+        "alerts": {
+            "[0]": {
+                "created_at": "string",
+                "id": "number",
+                "level": "string",
+                "message": "null",
+                "read": "bool",
+                "title": "string",
+                "type": "string"
+            }
+        },
+        "kpi": {
+            "activated_today": "number",
+            "cards_active": "number",
+            "cards_available": "number",
+            "cards_sold": "number",
+            "collected_today": "number",
+            "debts": "number",
+            "financial": "bool",
+            "online": "number",
+            "online_hotspot": "number",
+            "online_ppp": "number",
+            "routers_online": "number",
+            "routers_total": "number",
+            "sales_today": "number",
+            "subs_active": "number",
+            "subs_expired": "number",
+            "subs_expiring": "number",
+            "subs_total": "number"
+        },
+        "ok": "bool",
+        "online24": {
+            "[0]": {
+                "hour": "string",
+                "value": "number"
+            }
+        },
+        "routers": {
+            "[0]": {
+                "area": "null",
+                "cpu": "number",
+                "host": "null",
+                "hotspot": "number",
+                "id": "number",
+                "last_error": "null",
+                "last_seen": "string",
+                "memory": "number",
+                "model": "null",
+                "name": "string",
+                "ppp": "number",
+                "rx": "null",
+                "status": "string",
+                "tx": "null",
+                "uptime": "null",
+                "version": "null"
+            }
+        },
+        "sales7": {
+            "[0]": {
+                "date": "string",
+                "value": "number"
+            }
+        },
+        "unread": "number"
+    },
+    "app.devices": {
+        "items": {
+            "[0]": {
+                "created_at": "string",
+                "current": "bool",
+                "id": "number",
+                "last_ip": "string",
+                "last_used_at": "string",
+                "name": "string",
+                "platform": "string"
+            }
+        },
+        "ok": "bool"
+    },
+    "app.distributors": {
+        "items": {
+            "[0]": {
+                "area": "string",
+                "balance": "number",
+                "id": "number",
+                "name": "string",
+                "phone": "string",
+                "sold": "number"
+            }
+        },
+        "ok": "bool"
+    },
+    "app.info": {
+        "api": "number",
+        "network": {
+            "accent": "string",
+            "currency": "string",
+            "logo": "string",
+            "name": "string",
+            "phone": "string",
+            "primary": "string"
+        },
+        "ok": "bool",
+        "platform": "bool",
+        "tenant": "string",
+        "version": "string"
+    },
+    "app.info.platform": {
+        "api": "number",
+        "network": {
+            "accent": "string",
+            "currency": "string",
+            "logo": "string",
+            "name": "string",
+            "phone": "string",
+            "primary": "string"
+        },
+        "ok": "bool",
+        "platform": "bool",
+        "tenant": "null",
+        "version": "string"
+    },
+    "app.inventory": {
+        "categories": {
+            "[0]": {
+                "key": "string",
+                "label": "string"
+            }
+        },
+        "items": "[]",
+        "ok": "bool",
+        "summary": {
+            "faulty": "number",
+            "installed": "number",
+            "items": "number",
+            "low": "number",
+            "value": "number"
+        }
+    },
+    "app.login": {
+        "network": {
+            "accent": "string",
+            "currency": "string",
+            "logo": "string",
+            "name": "string",
+            "phone": "string",
+            "primary": "string"
+        },
+        "ok": "bool",
+        "token": "string",
+        "user": {
+            "id": "number",
+            "is_owner": "bool",
+            "name": "string",
+            "permissions": {
+                "[0]": "string"
+            },
+            "username": "string"
+        }
+    },
+    "app.me": {
+        "alerts": "number",
+        "network": {
+            "accent": "string",
+            "currency": "string",
+            "logo": "string",
+            "name": "string",
+            "phone": "string",
+            "primary": "string"
+        },
+        "ok": "bool",
+        "user": {
+            "id": "number",
+            "is_owner": "bool",
+            "name": "string",
+            "permissions": {
+                "[0]": "string"
+            },
+            "username": "string"
+        }
+    },
+    "app.reports": {
+        "by_category": "[]",
+        "cards_activated": "number",
+        "cards_generated": "number",
+        "collected": "number",
+        "financial": "bool",
+        "from": "string",
+        "label": "string",
+        "ok": "bool",
+        "period": "string",
+        "sales_count": "number",
+        "sales_qty": "number",
+        "sales_total": "number",
+        "series": {
+            "[0]": {
+                "key": "string",
+                "value": "number"
+            }
+        },
+        "sessions": "number",
+        "sub_payments": "number",
+        "subs_new": "number",
+        "subs_renewed": "number",
+        "top_categories": "[]",
+        "traffic": "number"
+    },
+    "app.router": {
+        "can": {
+            "disconnect": "bool",
+            "reboot": "bool"
+        },
+        "metrics": {
+            "[0]": {
+                "cpu": "number",
+                "time": "string",
+                "users": "number"
+            }
+        },
+        "ok": "bool",
+        "router": {
+            "architecture": "string",
+            "area": "string",
+            "cpu": "number",
+            "cpu_count": "number",
+            "hdd_free": "number",
+            "hdd_total": "number",
+            "host": "string",
+            "hotspot": "number",
+            "id": "number",
+            "identity": "string",
+            "last_error": "null",
+            "last_seen": "string",
+            "memory": "number",
+            "memory_total": "number",
+            "model": "string",
+            "name": "string",
+            "ppp": "number",
+            "rx": "number",
+            "serial": "null",
+            "status": "string",
+            "status_since": "string",
+            "temperature": "number",
+            "tx": "number",
+            "uptime": "number",
+            "version": "string",
+            "voltage": "number",
+            "wan": "null"
+        },
+        "sessions": {
+            "[0]": {
+                "bytes_in": "number",
+                "bytes_out": "number",
+                "card_id": "number",
+                "category": "null",
+                "device": "null",
+                "id": "number",
+                "ip": "string",
+                "mac": "string",
+                "owner": "null",
+                "router": "null",
+                "router_id": "number",
+                "service": "string",
+                "started_at": "string",
+                "sub_id": "null",
+                "uptime": "number",
+                "username": "string"
+            }
+        }
+    },
+    "app.routers": {
+        "items": {
+            "[0]": {
+                "area": "string",
+                "cpu": "number",
+                "host": "string",
+                "hotspot": "number",
+                "id": "number",
+                "last_error": "null",
+                "last_seen": "string",
+                "memory": "number",
+                "model": "string",
+                "name": "string",
+                "ppp": "number",
+                "rx": "number",
+                "status": "string",
+                "tx": "number",
+                "uptime": "number",
+                "version": "string"
+            }
+        },
+        "ok": "bool"
+    },
+    "app.sale": {
+        "can": {
+            "cancel": "bool"
+        },
+        "cards": {
+            "[0]": {
+                "batch": "null",
+                "batch_id": "number",
+                "category": "string",
+                "category_id": "number",
+                "color": "string",
+                "created_at": "string",
+                "disabled": "bool",
+                "distributor": "null",
+                "expires_at": "string",
+                "first_login": "string",
+                "id": "number",
+                "last_login": "string",
+                "password": "string",
+                "printed": "bool",
+                "short_code": "null",
+                "status": "string",
+                "used_bytes": "number",
+                "used_seconds": "number",
+                "username": "string"
+            }
+        },
+        "ok": "bool",
+        "sale": {
+            "category": "string",
+            "color": "string",
+            "created_at": "string",
+            "customer": "null",
+            "discount": "number",
+            "distributor": "string",
+            "employee": "string",
+            "id": "number",
+            "notes": "string",
+            "paid": "number",
+            "quantity": "number",
+            "status": "string",
+            "total": "number",
+            "type": "string",
+            "unit_price": "number"
+        }
+    },
+    "app.sales": {
+        "has_more": "bool",
+        "items": {
+            "[0]": {
+                "category": "string",
+                "color": "string",
+                "created_at": "string",
+                "customer": "null",
+                "discount": "number",
+                "distributor": "string",
+                "employee": "string",
+                "id": "number",
+                "notes": "string",
+                "paid": "number",
+                "quantity": "number",
+                "status": "string",
+                "total": "number",
+                "type": "string",
+                "unit_price": "number"
+            }
+        },
+        "ok": "bool",
+        "page": "number",
+        "today_qty": "number",
+        "today_total": "number",
+        "total": "number"
+    },
+    "app.sales.options": {
+        "categories": {
+            "[0]": {
+                "available": "number",
+                "color": "string",
+                "id": "number",
+                "name": "string",
+                "price": "number"
+            }
+        },
+        "distributors": {
+            "[0]": {
+                "balance": "number",
+                "id": "number",
+                "name": "string"
+            }
+        },
+        "ok": "bool"
+    },
+    "app.sales.store": {
+        "message": "string",
+        "ok": "bool",
+        "redirect": "string"
+    },
+    "app.sessions": {
+        "has_more": "bool",
+        "hotspot": "number",
+        "items": {
+            "[0]": {
+                "bytes_in": "number",
+                "bytes_out": "number",
+                "card_id": "number",
+                "category": "string",
+                "device": "null",
+                "id": "number",
+                "ip": "string",
+                "mac": "string",
+                "owner": "null",
+                "router": "string",
+                "router_id": "number",
+                "service": "string",
+                "started_at": "string",
+                "sub_id": "null",
+                "uptime": "number",
+                "username": "string"
+            }
+        },
+        "ok": "bool",
+        "page": "number",
+        "ppp": "number",
+        "total": "number"
+    },
+    "app.sms": {
+        "areas": {
+            "[0]": {
+                "id": "number",
+                "name": "string"
+            }
+        },
+        "configured": "bool",
+        "ok": "bool",
+        "placeholders": {
+            "[0]": "string"
+        },
+        "plans": {
+            "[0]": {
+                "id": "number",
+                "name": "string"
+            }
+        },
+        "routers": {
+            "[0]": {
+                "id": "number",
+                "name": "string"
+            }
+        },
+        "states": {
+            "[0]": {
+                "key": "string",
+                "label": "string"
+            }
+        },
+        "templates": "[]"
+    },
+    "app.sms.log": {
+        "has_more": "bool",
+        "items": "[]",
+        "ok": "bool",
+        "page": "number",
+        "total": "number"
+    },
+    "app.subscriber": {
+        "can": {
+            "delete": "bool",
+            "manage": "bool",
+            "payments": "bool",
+            "renew": "bool",
+            "status": "bool"
+        },
+        "methods": {
+            "[0]": {
+                "key": "string",
+                "label": "string"
+            }
+        },
+        "ok": "bool",
+        "plans": {
+            "[0]": {
+                "days": "number",
+                "id": "number",
+                "name": "string",
+                "price": "number"
+            }
+        },
+        "sessions": "[]",
+        "subscriber": {
+            "address": "string",
+            "area": "string",
+            "area_id": "number",
+            "balance": "number",
+            "block_reason": "string",
+            "bound_mac": "null",
+            "created_at": "string",
+            "days_left": "number",
+            "expires_at": "string",
+            "id": "number",
+            "last_device": "null",
+            "last_ip": "null",
+            "last_mac": "null",
+            "last_online": "string",
+            "lock_mac": "bool",
+            "name": "string",
+            "national_id": "null",
+            "notes": "null",
+            "online": "bool",
+            "password": "string",
+            "phone": "string",
+            "phone2": "null",
+            "plan": "string",
+            "plan_id": "number",
+            "plan_price": "number",
+            "router": "string",
+            "router_id": "number",
+            "service": "string",
+            "state": "string",
+            "static_ip": "null",
+            "status": "string",
+            "username": "string"
+        },
+        "transactions": {
+            "[0]": {
+                "amount": "number",
+                "created_at": "string",
+                "employee": "string",
+                "from": "string",
+                "id": "number",
+                "method": "string",
+                "notes": "null",
+                "plan": "string",
+                "to": "string",
+                "type": "string"
+            }
+        }
+    },
+    "app.subscribers": {
+        "counts": {
+            "active": "number",
+            "all": "number",
+            "debt": "number",
+            "expired": "number",
+            "expiring": "number",
+            "new": "number",
+            "online": "number",
+            "suspended": "number"
+        },
+        "has_more": "bool",
+        "items": {
+            "[0]": {
+                "area": "string",
+                "balance": "number",
+                "days_left": "number",
+                "expires_at": "string",
+                "id": "number",
+                "name": "string",
+                "online": "bool",
+                "phone": "string",
+                "plan": "string",
+                "plan_id": "number",
+                "router": "string",
+                "service": "string",
+                "state": "string",
+                "status": "string",
+                "username": "string"
+            }
+        },
+        "ok": "bool",
+        "page": "number",
+        "total": "number"
+    },
+    "app.subscribers.options": {
+        "areas": {
+            "[0]": {
+                "id": "number",
+                "name": "string"
+            }
+        },
+        "methods": {
+            "[0]": {
+                "key": "string",
+                "label": "string"
+            }
+        },
+        "ok": "bool",
+        "plans": {
+            "[0]": {
+                "days": "number",
+                "id": "number",
+                "name": "string",
+                "price": "number",
+                "service": "string"
+            }
+        },
+        "routers": {
+            "[0]": {
+                "id": "number",
+                "name": "string"
+            }
+        }
+    },
+    "app.subscribers.renew": {
+        "message": "string",
+        "ok": "bool",
+        "redirect": "string"
+    },
+    "hotspot.ads": {
+        "ads": "[]",
+        "interval": "number",
+        "ok": "bool"
+    },
+    "hotspot.info": {
+        "categories": {
+            "[0]": {
+                "color": "string",
+                "data": "string",
+                "name": "string",
+                "price": "number",
+                "price_text": "string",
+                "speed": "string",
+                "time": "string",
+                "validity": "string"
+            }
+        },
+        "currency": "string",
+        "network": "string",
+        "ok": "bool",
+        "phone": "string",
+        "whatsapp": "string"
+    },
+    "hotspot.login.fail": {
+        "error": "string",
+        "message": "string",
+        "ok": "bool"
+    },
+    "hotspot.login.local": {
+        "info": "null",
+        "ok": "bool",
+        "password": "string",
+        "provisioned": "bool",
+        "type": "string",
+        "username": "string"
+    },
+    "hotspot.login.ok": {
+        "info": {
+            "category": "string",
+            "expires_at": "null",
+            "remaining_data": "null",
+            "remaining_time": "number",
+            "speed": "string",
+            "used_data": "number",
+            "used_time": "number"
+        },
+        "ok": "bool",
+        "password": "string",
+        "provisioned": "bool",
+        "type": "string",
+        "username": "string"
+    },
+    "hotspot.status": {
+        "message": "string",
+        "ok": "bool"
+    }
+}
