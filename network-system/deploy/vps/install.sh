@@ -1181,7 +1181,8 @@ health_check() {
 # versions from the content of each file (unchanged files stay cached in browsers across updates)
 # and brotli/gzip copies next to CSS, JavaScript and SVG files, sent as they are instead of compressing on every request
 build_assets() {
-    if as_web php "$APP_DIR/cli/assets.php" build >>"$LOG_FILE" 2>&1; then
+    # as root: the system files belong to root and the web server only reads them
+    if php "$APP_DIR/cli/assets.php" build >>"$LOG_FILE" 2>&1; then
         ok "Static files: versions and compressed copies ready"
     else
         warn "Static files are served without compressed copies; see $LOG_FILE"

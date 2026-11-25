@@ -17,6 +17,9 @@ Options -Indexes
     <FilesMatch "\.(css|js|svg|woff2|png|jpg|jpeg|webp|gif|ico)$">
         Header set Cache-Control "public, max-age=604800"
     </FilesMatch>
+    <FilesMatch "\.(css|js|svg|json)$">
+        Header merge Vary Accept-Encoding
+    </FilesMatch>
     <FilesMatch "\.(css|js|svg|json)\.(br|gz)$">
         Header set Cache-Control "public, max-age=604800"
         Header append Vary Accept-Encoding
