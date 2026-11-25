@@ -12,7 +12,6 @@ $provider ??= Ai::provider();
 $hasGemini ??= Ai::hasKey('gemini');
 $geminiSavedAt ??= '';
 $geminiModel ??= '';
-$v->script('vendor/chart.umd.min.js');
 $usd = static fn ($x) => ltr('$' . number_format((float) $x, (float) $x < 1 ? 4 : 2));
 $features = ['test' => 'اختبار الاتصال', 'admin_chat' => 'مساعد المسؤول', 'weekly' => 'التقرير الأسبوعي', 'ticket_reply' => 'اقتراح رد تذكرة', 'chat' => 'المساعد الذكي', 'router_check' => 'فحص جهاز MikroTik', 'digest' => 'الملخص اليومي', 'import' => 'الاستيراد الذكي', 'bot' => 'بوت خدمة الزبائن'];
 $totalCost = array_sum(array_map(static fn ($u) => (float) $u['cost'], $usage));
@@ -131,7 +130,7 @@ $badge = ['ok' => 'badge-success', 'off' => 'badge-danger', 'no_key' => 'badge-w
     <form class="filters" method="get" action="<?= e(url('/admin/ai')) ?>#usage">
       <div class="field"><label for="ai-month">الشهر</label><input class="input" id="ai-month" type="month" name="month" value="<?= e($month) ?>" data-autosubmit></div>
     </form>
-    <div class="panel-body"><div class="chart-box"><canvas id="ai-chart"></canvas></div></div>
+    <div class="panel-body"><div class="chart-box"><canvas id="ai-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div>
     <div class="table-wrap"><table class="table">
       <thead><tr><th>الحساب</th><th>الرسائل</th><th>رموز الإدخال</th><th>رموز الإخراج</th><th>التكلفة</th></tr></thead>
       <tbody>
@@ -158,7 +157,7 @@ $badge = ['ok' => 'badge-success', 'off' => 'badge-danger', 'no_key' => 'badge-w
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var data = <?= json_encode($monthly) ?>;
-  SN.chart(document.getElementById('ai-chart'), {
+  SN.chartWhenSeen(document.getElementById('ai-chart'), {
     type: 'bar', labels: Object.keys(data),
     datasets: [{ label: 'الرسائل', data: Object.values(data).map(function (m) { return m.messages; }) }],
     yFormat: function (v) { return SN.fmtNum(v); }, tooltip: function (v) { return SN.fmtNum(v); }

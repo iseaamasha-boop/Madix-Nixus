@@ -3,7 +3,6 @@
 use App\Controllers\AdminController;
 
 $v->title = 'التحليلات';
-$v->script('vendor/chart.umd.min.js');
 $cur = $s['currency'];
 $money = static fn ($a) => ltr(number_format((float) $a, abs((float) $a - round((float) $a)) < 0.005 ? 0 : 2, '.', ',') . ' ' . $cur);
 $delta = $s['revenue_prev'] > 0 ? round(100 * ($s['revenue_month'] - $s['revenue_prev']) / $s['revenue_prev']) : null;
@@ -21,8 +20,8 @@ $sorts = ['' => 'آخر نشاط', 'subscribers' => 'المشتركون', 'paid'
 </div>
 
 <div class="grid grid-2 mb-3">
-  <div class="panel"><div class="panel-head"><h3><?= icon('chart-column') ?>الدخل الشهري</h3></div><div class="panel-body"><div class="chart-box"><canvas id="ch-revenue"></canvas></div></div></div>
-  <div class="panel"><div class="panel-head"><h3><?= icon('user-plus') ?>التسجيلات والتحوّل</h3></div><div class="panel-body"><div class="chart-box"><canvas id="ch-signups"></canvas></div></div></div>
+  <div class="panel"><div class="panel-head"><h3><?= icon('chart-column') ?>الدخل الشهري</h3></div><div class="panel-body"><div class="chart-box"><canvas id="ch-revenue" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div></div>
+  <div class="panel"><div class="panel-head"><h3><?= icon('user-plus') ?>التسجيلات والتحوّل</h3></div><div class="panel-body"><div class="chart-box"><canvas id="ch-signups" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div></div>
 </div>
 
 <div class="panel mb-3">
@@ -67,11 +66,11 @@ $sorts = ['' => 'آخر نشاط', 'subscribers' => 'المشتركون', 'paid'
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var rev = <?= json_encode($s['revenue']) ?>, sign = <?= json_encode($s['signups']) ?>, act = <?= json_encode($s['activated']) ?>;
-  SN.chart(document.getElementById('ch-revenue'), {
+  SN.chartWhenSeen(document.getElementById('ch-revenue'), {
     type: 'bar', labels: Object.keys(rev), datasets: [{ label: 'الدخل', data: Object.values(rev) }],
     yFormat: function (v) { return SN.fmtNum(v); }, tooltip: function (v) { return SN.fmtNum(v) + ' <?= e($cur) ?>'; }
   });
-  SN.chart(document.getElementById('ch-signups'), {
+  SN.chartWhenSeen(document.getElementById('ch-signups'), {
     type: 'bar', labels: Object.keys(sign),
     datasets: [{ label: 'تسجيلات جديدة', data: Object.values(sign) }, { label: 'تحوّلت إلى مدفوع', data: Object.values(act) }],
     yFormat: function (v) { return SN.fmtNum(v); }, tooltip: function (v) { return SN.fmtNum(v); }

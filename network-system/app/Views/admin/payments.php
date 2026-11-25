@@ -6,7 +6,6 @@
 use App\Core\Platform;
 
 $v->title = 'المدفوعات';
-$v->script('vendor/chart.umd.min.js');
 $cur = Platform::setting('platform.currency');
 $amount = static fn ($a) => ltr(number_format((float) $a, abs((float) $a - round((float) $a)) < 0.005 ? 0 : 2, '.', ',') . ' ' . $cur);
 ?>
@@ -18,7 +17,7 @@ $amount = static fn ($a) => ltr(number_format((float) $a, abs((float) $a - round
 
 <div class="panel mb-3">
   <div class="panel-head"><h3><?= icon('chart-column') ?>الإيرادات خلال 12 شهراً</h3></div>
-  <div class="panel-body"><div class="chart-box"><canvas id="revenue-chart"></canvas></div></div>
+  <div class="panel-body"><div class="chart-box"><canvas id="revenue-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div>
 </div>
 
 <div class="panel">
@@ -53,7 +52,7 @@ $amount = static fn ($a) => ltr(number_format((float) $a, abs((float) $a - round
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var data = <?= json_encode($series) ?>;
-  SN.chart(document.getElementById('revenue-chart'), {
+  SN.chartWhenSeen(document.getElementById('revenue-chart'), {
     type: 'bar', labels: Object.keys(data), datasets: [{ label: 'الإيرادات', data: Object.values(data) }],
     yFormat: function (v) { return SN.fmtNum(v); }, tooltip: function (v) { return SN.fmtNum(v) + ' <?= e($cur) ?>'; }
   });

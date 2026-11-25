@@ -720,6 +720,31 @@
     var r = parseInt(h.substr(1, 2), 16), g = parseInt(h.substr(3, 2), 16), b = parseInt(h.substr(5, 2), 16);
     return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
   }
+  // رسم عند الظهور: مكتبة الرسوم (data-lib on Board) لا تُحمَّل and no تُرسم until تقترب Board from Screen,
+  // فلا تؤخر Open Page on Mobile حيث الرسوم أسفلها
+  var chartLib = { wait: [], loading: false };
+  function loadChartLib(src, cb) {
+    if (window.Chart) { cb(); return; }
+    chartLib.wait.push(cb);
+    if (chartLib.loading || !src) { return; }
+    chartLib.loading = true;
+    var s = doc.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.onload = function () { var w = chartLib.wait; chartLib.wait = []; w.forEach(function (f) { f(); }); };
+    s.onerror = function () { chartLib.loading = false; };
+    doc.head.appendChild(s);
+  }
+  function chartWhenSeen(canvas, config) {
+    if (!canvas) { return; }
+    var draw = function () { loadChartLib(canvas.getAttribute('data-lib'), function () { makeChart(canvas, config); }); };
+    if (!('IntersectionObserver' in window)) { draw(); return; }
+    var io = new IntersectionObserver(function (entries) {
+      if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); draw(); }
+    }, { rootMargin: '200px 0px' });
+    io.observe(canvas.parentNode || canvas);
+  }
+
   doc.addEventListener('themechange', function () {
     charts.slice().forEach(function (ch) {
       var canvas = ch.canvas, cfg = ch._snConfig;
@@ -1073,6 +1098,6 @@
   window.SN = {
     api: api, toast: toast, confirm: confirmDialog, openModal: openModal, closeModal: closeModal,
     esc: esc, icon: icon, fmtBytes: fmtBytes, fmtRate: fmtRate, fmtDuration: fmtDuration, fmtNum: fmtNum,
-    chart: makeChart, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
+    chart: makeChart, chartWhenSeen: chartWhenSeen, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
   };
 })();

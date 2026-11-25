@@ -3,7 +3,6 @@
 use App\Controllers\ReportController;
 
 $v->title = 'التقارير';
-$v->script('vendor/chart.umd.min.js');
 $query = ['type' => $type] + ($preset !== '' ? ['preset' => $preset] : ['from' => $from, 'to' => $to]);
 $v->actions = '<a class="btn btn-primary" href="' . e(url('/reports/print', $query)) . '">' . icon('printer') . 'طباعة التقرير</a>';
 $cell = ReportController::cell(...);
@@ -48,7 +47,7 @@ $numeric = ReportController::NUMERIC;
 <?php if (!empty($report['chart']['labels'])): ?>
 <div class="panel mb-3">
   <div class="panel-head"><h3><?= icon('chart-column') ?><?= e($types[$type][0]) ?></h3><span class="mini-stat"><?= ltr(e($from)) ?> — <?= ltr(e($to)) ?></span></div>
-  <div class="panel-body"><div class="chart-box is-lg"><canvas id="report-chart"></canvas></div></div>
+  <div class="panel-body"><div class="chart-box is-lg"><canvas id="report-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div>
 </div>
 <?php endif; ?>
 
@@ -133,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
     bytes: function (v) { return SN.fmtBytes(v); },
     num: function (v) { return SN.fmtNum(v); }
   }[cfg.format] || function (v) { return SN.fmtNum(v); };
-  SN.chart(document.getElementById('report-chart'), {
+  SN.chartWhenSeen(document.getElementById('report-chart'), {
     type: cfg.type, labels: cfg.labels, datasets: cfg.datasets, xTicks: 12,
     yFormat: function (v) { return fmt(v); }, tooltip: function (v) { return fmt(v); }
   });

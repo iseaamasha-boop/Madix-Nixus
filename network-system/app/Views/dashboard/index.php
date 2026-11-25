@@ -4,7 +4,6 @@ use App\Services\Notifier;
 
 $v->title = 'لوحة التحكم';
 $v->subtitle = 'نظرة شاملة على الشبكة — ' . date('Y-m-d');
-$v->script('vendor/chart.umd.min.js');
 $v->actions = '<a class="btn" href="' . e(url('/sessions')) . '">' . icon('activity') . 'المتصلون الآن</a>'
     . (can('cards.generate') ? '<a class="btn btn-primary" href="' . e(url('/cards/generate')) . '">' . icon('wand-sparkles') . 'توليد كروت</a>' : '');
 $hourLabels = array_map(static fn ($r) => substr($r['h'], 11, 5), $online24);
@@ -80,7 +79,7 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
   <div class="panel">
     <div class="panel-head"><h2><?= icon('chart-line') ?>المتصلون خلال 24 ساعة</h2></div>
     <div class="panel-body">
-      <?php if ($online24): ?><div class="chart-box"><canvas id="online-chart"></canvas></div>
+      <?php if ($online24): ?><div class="chart-box"><canvas id="online-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div>
       <?php else: ?><div class="empty"><?= icon('chart-line') ?><div>تظهر البيانات بعد أول مزامنة لأجهزة MikroTik.</div></div><?php endif; ?>
     </div>
   </div>
@@ -105,7 +104,7 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
 <div class="grid grid-main-side mb-3">
   <div class="panel">
     <div class="panel-head"><h2><?= icon('chart-column') ?><?= $financial ? 'المبيعات والتفعيلات خلال 30 يوماً' : 'تفعيل الكروت خلال 30 يوماً' ?></h2></div>
-    <div class="panel-body"><div class="chart-box"><canvas id="days-chart"></canvas></div></div>
+    <div class="panel-body"><div class="chart-box"><canvas id="days-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div>
   </div>
   <div class="panel">
     <div class="panel-head"><h3><?= icon('layers') ?>مخزون الباقات</h3><a class="btn btn-ghost btn-sm" href="<?= e(url('/categories')) ?>">الباقات</a></div>
@@ -198,9 +197,9 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
 document.addEventListener('DOMContentLoaded', function () {
   var oc = document.getElementById('online-chart');
   if (oc) {
-    SN.chart(oc, { type: 'line', labels: <?= json_encode($hourLabels) ?>, datasets: [{ label: 'المتصلون', data: <?= json_encode($hourUsers) ?> }] });
+    SN.chartWhenSeen(oc, { type: 'line', labels: <?= json_encode($hourLabels) ?>, datasets: [{ label: 'المتصلون', data: <?= json_encode($hourUsers) ?> }] });
   }
-  SN.chart(document.getElementById('days-chart'), {
+  SN.chartWhenSeen(document.getElementById('days-chart'), {
     type: 'bar',
     labels: <?= json_encode($dayLabels) ?>,
     xTicks: 10,

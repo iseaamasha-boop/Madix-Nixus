@@ -27,6 +27,14 @@ return [
         T::contains('saveData', $r['body'], 'no prefetch with data saver');
         T::contains('/logout', $r['body']);
     },
+    'chart library loads only when a chart comes into view' => static function (Env $env): void {
+        $t = $env->tenant('a');
+        $r = $env->owner('a')->get($t['path'] . '/');
+        T::status(200, $r);
+        T::ok(preg_match('#<script src="[^"]*chart\.umd\.min\.js#', $r['body']) === 0, 'no chart script in the page head');
+        T::ok(preg_match('#<canvas id="days-chart" data-lib="[^"]+chart\.umd\.min\.js[^"]*">#', $r['body']) === 1, 'chart canvas carries the library');
+        T::contains('SN.chartWhenSeen(', $r['body']);
+    },
     'view pages allow instant back, sensitive pages are never stored' => static function (Env $env): void {
         $t = $env->tenant('a');
         $h = $env->owner('a');

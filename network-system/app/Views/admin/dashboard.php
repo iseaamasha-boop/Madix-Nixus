@@ -6,7 +6,6 @@ use App\Controllers\AdminController;
 use App\Core\Tenant;
 
 $v->title = 'الرئيسية';
-$v->script('vendor/chart.umd.min.js');
 $v->actions = '<a class="btn btn-primary" href="' . e(url('/admin/tenants/create')) . '">' . icon('plus') . 'حساب جديد</a>';
 $c = static fn (string $k) => (int) ($counts[$k] ?? 0);
 ?>
@@ -24,7 +23,7 @@ $c = static fn (string $k) => (int) ($counts[$k] ?? 0);
   <div class="stack">
     <div class="panel">
       <div class="panel-head"><h3><?= icon('chart-column') ?>الحسابات الجديدة خلال 30 يوماً</h3></div>
-      <div class="panel-body"><div class="chart-box"><canvas id="signups-chart"></canvas></div></div>
+      <div class="panel-body"><div class="chart-box"><canvas id="signups-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div>
     </div>
     <div class="panel">
       <div class="panel-head"><h3><?= icon('building') ?>أحدث الحسابات</h3><a class="btn btn-sm" href="<?= e(url('/admin/tenants')) ?>">الكل</a></div>
@@ -77,7 +76,7 @@ $c = static fn (string $k) => (int) ($counts[$k] ?? 0);
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var data = <?= json_encode($series) ?>;
-  SN.chart(document.getElementById('signups-chart'), {
+  SN.chartWhenSeen(document.getElementById('signups-chart'), {
     type: 'bar', labels: Object.keys(data).map(function (d) { return d.slice(5); }),
     datasets: [{ label: 'حسابات جديدة', data: Object.values(data) }], xTicks: 10,
     yFormat: function (v) { return SN.fmtNum(v); }, tooltip: function (v) { return SN.fmtNum(v); }
