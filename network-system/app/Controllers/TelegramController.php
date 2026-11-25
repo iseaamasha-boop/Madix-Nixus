@@ -13,6 +13,7 @@ use App\Core\Settings;
 use App\Services\Telegram;
 use App\Services\TelegramBot;
 use Throwable;
+use App\Support\ArabicSearch;
 
 final class TelegramController extends Controller
 {
@@ -79,8 +80,9 @@ final class TelegramController extends Controller
         $where = '1 = 1';
         $params = [];
         if ($q !== '') {
-            $where .= ' AND (s.full_name LIKE ? OR s.username LIKE ? OR s.phone LIKE ? OR l.chat_id = ?)';
-            array_push($params, DB::like($q), DB::like($q), DB::like($q), $q);
+            [$c1, $v1] = ArabicSearch::cond('s.full_name', $q);
+            $where .= ' AND (' . $c1 . ' OR s.username LIKE ? OR s.phone LIKE ? OR l.chat_id = ?)';
+            array_push($params, $v1, DB::like($q), DB::like($q), $q);
         }
         $total = (int) DB::value("SELECT COUNT(*) FROM telegram_links l JOIN subscribers s ON s.id = l.subscriber_id WHERE $where", $params);
         $pager = Paginator::fromRequest($request, $total, 50);

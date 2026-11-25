@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Core\DB;
 use App\Core\Settings;
 use Throwable;
+use App\Support\ArabicSearch;
 
 /**
  * بوت تيليجرام: الأوامر، التقارير المجدولة، واستقبال الرسائل (Webhook أو سحب دوري).
@@ -257,8 +258,9 @@ final class TelegramBot
         if ($q === '') {
             return 'أرسل: /sub الاسم أو الهاتف أو اسم المستخدم';
         }
+        [$c1, $v1] = ArabicSearch::cond('s.full_name', $q);
         $rows = DB::rows('SELECT s.*, p.name AS plan FROM subscribers s JOIN plans p ON p.id = s.plan_id
-                          WHERE s.username = ? OR s.phone = ? OR s.full_name LIKE ? ORDER BY s.full_name LIMIT 5', [$q, $q, DB::like($q)]);
+                          WHERE s.username = ? OR s.phone = ? OR ' . $c1 . ' ORDER BY s.full_name LIMIT 5', [$q, $q, $v1]);
         if (!$rows) {
             return 'لا يوجد مشترك مطابق.';
         }

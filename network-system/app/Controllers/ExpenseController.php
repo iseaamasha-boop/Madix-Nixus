@@ -11,6 +11,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Support\Spreadsheet;
 use App\Services\Finance;
+use App\Support\ArabicSearch;
 
 /**
  * المصاريف والشركاء: تسجيل مصاريف الشبكة شهراً بشهر، وصافي ربح الشهر وحصة كل شريك بنسبته.
@@ -38,8 +39,9 @@ final class ExpenseController extends Controller
             $f['category'] = '';
         }
         if ($f['q'] !== '') {
-            $where .= ' AND x.description LIKE ?';
-            $params[] = DB::like($f['q']);
+            [$c1, $v1] = ArabicSearch::cond('x.description', $f['q']);
+            $where .= ' AND ' . $c1;
+            $params[] = $v1;
         }
         return [$where, $params, $f];
     }

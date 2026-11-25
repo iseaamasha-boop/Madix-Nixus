@@ -11,6 +11,7 @@ use App\Services\SalesService;
 use App\Services\SubscriberService;
 use App\Support\Spreadsheet;
 use RuntimeException;
+use App\Support\ArabicSearch;
 
 final class DistributorController extends Controller
 {
@@ -24,8 +25,9 @@ final class DistributorController extends Controller
                 FROM distributors d LEFT JOIN areas a ON a.id = d.area_id';
         $params = [];
         if ($q !== '') {
-            $sql .= ' WHERE d.name LIKE ? OR d.phone LIKE ?';
-            $params = [DB::like($q), DB::like(latin_digits($q))];
+            [$c1, $v1] = ArabicSearch::cond('d.name', $q);
+            $sql .= ' WHERE ' . $c1 . ' OR d.phone LIKE ?';
+            $params = [$v1, DB::like(latin_digits($q))];
         }
         $rows = DB::rows($sql . ' ORDER BY d.is_active DESC, d.name', $params);
         $totals = DB::row("SELECT COALESCE(SUM(CASE WHEN balance > 0 THEN balance ELSE 0 END), 0) AS due, COUNT(*) AS n FROM distributors");

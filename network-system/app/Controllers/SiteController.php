@@ -9,6 +9,7 @@ use App\Core\DB;
 use App\Core\Request;
 use App\Core\Response;
 use App\Services\Geo;
+use App\Support\ArabicSearch;
 
 final class SiteController extends Controller
 {
@@ -23,8 +24,10 @@ final class SiteController extends Controller
                 FROM sites s LEFT JOIN areas a ON a.id = s.area_id";
         $params = [];
         if ($q !== '') {
-            $sql .= ' WHERE s.name LIKE ? OR s.address LIKE ?';
-            $params = [DB::like($q), DB::like($q)];
+            [$c1, $v1] = ArabicSearch::cond('s.name', $q);
+            [$c2, $v2] = ArabicSearch::cond('s.address', $q);
+            $sql .= ' WHERE ' . $c1 . ' OR ' . $c2;
+            $params = [$v1, $v2];
         }
         return view('sites/index', [
             'sites' => DB::rows($sql . ' ORDER BY s.name', $params),

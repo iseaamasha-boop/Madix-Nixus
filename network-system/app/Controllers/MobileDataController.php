@@ -19,6 +19,7 @@ use App\Services\SmsService;
 use App\Services\SubscriberRules;
 use App\Services\SubscriberService;
 use App\Services\TweetSms;
+use App\Support\ArabicSearch;
 
 /**
  * واجهة تطبيق الجوال لبيانات الكروت والمشتركين والمبيعات والرسائل والمخزون.
@@ -530,8 +531,9 @@ final class MobileDataController extends Controller
         $params = [];
         $q = trim($request->str('q'));
         if ($q !== '') {
-            $where .= ' AND (i.name LIKE ? OR i.sku LIKE ?)';
-            array_push($params, DB::like($q), DB::like($q));
+            [$c1, $v1] = ArabicSearch::cond('i.name', $q);
+            $where .= ' AND (' . $c1 . ' OR i.sku LIKE ?)';
+            array_push($params, $v1, DB::like($q));
         }
         if ($request->str('category') !== '' && isset(Inventory::CATEGORIES[$request->str('category')])) {
             $where .= ' AND i.category = ?';

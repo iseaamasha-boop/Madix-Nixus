@@ -12,6 +12,7 @@ use App\Services\Geo;
 use App\Services\Inventory;
 use App\Support\Spreadsheet;
 use RuntimeException;
+use App\Support\ArabicSearch;
 
 final class InventoryController extends Controller
 {
@@ -25,8 +26,9 @@ final class InventoryController extends Controller
         $where = '1 = 1';
         $params = [];
         if ($f['q'] !== '') {
-            $where .= ' AND (i.name LIKE ? OR i.sku LIKE ?)';
-            array_push($params, DB::like($f['q']), DB::like($f['q']));
+            [$c1, $v1] = ArabicSearch::cond('i.name', $f['q']);
+            $where .= ' AND (' . $c1 . ' OR i.sku LIKE ?)';
+            array_push($params, $v1, DB::like($f['q']));
         }
         if (isset(Inventory::CATEGORIES[$f['category']])) {
             $where .= ' AND i.category = ?';
@@ -220,8 +222,9 @@ final class InventoryController extends Controller
         $where = '1 = 1';
         $params = [];
         if ($f['q'] !== '') {
-            $where .= ' AND (u.serial LIKE ? OR u.mac LIKE ? OR s.full_name LIKE ?)';
-            array_push($params, DB::like($f['q']), DB::like(strtoupper(str_replace('-', ':', $f['q']))), DB::like($f['q']));
+            [$c1, $v1] = ArabicSearch::cond('s.full_name', $f['q']);
+            $where .= ' AND (u.serial LIKE ? OR u.mac LIKE ? OR ' . $c1 . ')';
+            array_push($params, DB::like($f['q']), DB::like(strtoupper(str_replace('-', ':', $f['q']))), $v1);
         }
         if (isset(Inventory::UNIT_STATUS[$f['status']])) {
             $where .= ' AND u.status = ?';

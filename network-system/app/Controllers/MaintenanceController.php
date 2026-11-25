@@ -11,6 +11,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Services\Maintenance;
 use RuntimeException;
+use App\Support\ArabicSearch;
 
 /**
  * مهام الصيانة: القائمة، الإنشاء والتعديل والإسناد، الحالة، والقطع المصروفة من المخزون.
@@ -56,8 +57,10 @@ final class MaintenanceController extends Controller
             $f['type'] = '';
         }
         if ($f['q'] !== '') {
-            $where .= ' AND (t.title LIKE ? OR t.location LIKE ? OR t.id = ?)';
-            array_push($params, DB::like($f['q']), DB::like($f['q']), (int) ltrim($f['q'], '#'));
+            [$c1, $v1] = ArabicSearch::cond('t.title', $f['q']);
+            [$c2, $v2] = ArabicSearch::cond('t.location', $f['q']);
+            $where .= ' AND (' . $c1 . ' OR ' . $c2 . ' OR t.id = ?)';
+            array_push($params, $v1, $v2, (int) ltrim($f['q'], '#'));
         }
         $total = (int) DB::value("SELECT COUNT(*) FROM maintenance_tasks t WHERE $where", $params);
         $pager = Paginator::fromRequest($request, $total, 30);

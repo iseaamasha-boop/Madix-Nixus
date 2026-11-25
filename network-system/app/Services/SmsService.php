@@ -8,6 +8,7 @@ use App\Core\Crypto;
 use App\Core\DB;
 use App\Core\Settings;
 use Throwable;
+use App\Support\ArabicSearch;
 
 /**
  * الرسائل النصية للمشتركين: التجهيز والطابور والإرسال والرسائل التلقائية.
@@ -169,9 +170,10 @@ final class SmsService
             $where[] = 's.id IN (' . DB::in($ids) . ')';
             $params = $ids;
         } elseif (($q = trim(latin_digits($q))) !== '') {
-            $where[] = '(s.full_name LIKE ? OR s.username LIKE ? OR s.phone LIKE ? OR s.phone2 LIKE ?)';
+            [$c1, $v1] = ArabicSearch::cond('s.full_name', $q);
+            $where[] = '(' . $c1 . ' OR s.username LIKE ? OR s.phone LIKE ? OR s.phone2 LIKE ?)';
             $like = DB::like($q);
-            array_push($params, $like, $like, $like, $like);
+            array_push($params, $v1, $like, $like, $like);
         }
         [$scope, $sp] = Auth::routerScope('s.router_id', true);
         $rows = DB::rows(

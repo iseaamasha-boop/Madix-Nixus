@@ -62,6 +62,18 @@ return [
         $page = $e->get($t['path'] . '/search?q=' . rawurlencode('مومن'));
         T::notContains('/subscribers/' . $id . '"', $page['body'], 'full search page respects the scope too');
     },
+    'other lists use the same Arabic search (towers and sites)' => static function (Env $env): void {
+        $t = $env->tenant('a');
+        $pdo = $env->db($t['db']);
+        $pdo->prepare("INSERT INTO sites (name, type, address, created_at) VALUES (?, 'tower', ?, NOW())")->execute(['برج المِئذنة', 'شارع الإمام']);
+        $id = (int) $pdo->lastInsertId();
+        $h = $env->owner('a');
+        foreach (['المئذنه', 'الامام'] as $q) {
+            $r = $h->get($t['path'] . '/sites?q=' . rawurlencode($q));
+            T::status(200, $r);
+            T::contains('/sites/' . $id . '"', $r['body'], 'found by «' . $q . '»');
+        }
+    },
     'palette script loads on demand only' => static function (Env $env): void {
         $t = $env->tenant('a');
         $r = $env->owner('a')->get($t['path'] . '/subscribers');

@@ -15,6 +15,7 @@ use App\Core\Settings;
 use App\Core\Theme;
 use App\Core\Throttle;
 use App\Services\TwoFactor;
+use App\Support\ArabicSearch;
 
 /**
  * واجهة تطبيق الجوال (القراءة والدخول). الإجراءات تمر عبر متحكمات الموقع نفسها.
@@ -374,8 +375,9 @@ final class MobileController extends Controller
         $where = 's.stopped_at IS NULL' . $scope;
         $q = trim(latin_digits($request->str('q')));
         if ($q !== '') {
-            $where .= ' AND (s.username LIKE ? OR d.hostname LIKE ? OR sub.full_name LIKE ? OR s.mac = ? OR s.ip = ?)';
-            array_push($params, DB::like($q), DB::like($q), DB::like($q), normalize_mac($q) ?? $q, $q);
+            [$c1, $v1] = ArabicSearch::cond('sub.full_name', $q);
+            $where .= ' AND (s.username LIKE ? OR d.hostname LIKE ? OR ' . $c1 . ' OR s.mac = ? OR s.ip = ?)';
+            array_push($params, DB::like($q), DB::like($q), $v1, normalize_mac($q) ?? $q, $q);
         }
         if (in_array($request->str('service'), ['hotspot', 'ppp'], true)) {
             $where .= ' AND s.service = ?';
