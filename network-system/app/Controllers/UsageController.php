@@ -26,7 +26,8 @@ final class UsageController extends Controller
         return view('usage/index', [
             'days' => $days,
             'live' => $live,
-            'top' => UsageGuard::top($days, 30),
+            // أكثر المستهلكين من الكاش القصير: يُمسح مع كل تحديث للجلسات من المراقبة
+            'top' => \App\Core\Cache::remember('usage.top', [$days, date('Y-m-d H:i')], ['sessions', 'sessions~', 'subscribers', 'cards', 'speed_caps'], static fn () => UsageGuard::top($days, 30)),
             'caps' => UsageGuard::activeCaps(),
             'threshold' => UsageGuard::threshold(),
             'defaults' => UsageGuard::defaultCap(),

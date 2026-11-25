@@ -5,6 +5,7 @@ namespace App\Controllers;
 
 use App\Core\Audit;
 use App\Core\Auth;
+use App\Core\Cache;
 use App\Core\DB;
 use App\Core\HttpException;
 use App\Core\Paginator;
@@ -96,7 +97,25 @@ final class SubscriberController extends Controller
     {
         $f = $this->filters($request);
         [$where, $params] = self::listWhere($f);
-        $total = (int) DB::value("SELECT COUNT(*) FROM subscribers s WHERE $where", $params);
+        // عدد كل حالة (للتبويبات) باستعلام واحد بدل استعلام لكل حالة، ومنه مجموع القائمة الحالية؛ في الكاش القصير حتى تتغير البيانات
+        [$baseWhere, $baseParams] = self::listWhere($f, false);
+        $now = now();
+        $counts = Cache::remember('subscribers.counts', [$baseWhere, $baseParams, substr($now, 0, 16)], ['subscribers', 'sessions', 'plans'], static function () use ($baseWhere, $baseParams, $now): array {
+            $cols = [];
+            $colParams = [];
+            foreach (array_keys(self::STATES) as $i => $state) {
+                [$st, $sp] = self::stateSql($state, $now);
+                $cols[] = 'COALESCE(SUM(1 = 1' . $st . '), 0) AS c' . $i;
+                array_push($colParams, ...$sp);
+            }
+            $row = DB::row('SELECT ' . implode(', ', $cols) . " FROM subscribers s WHERE $baseWhere", array_merge($colParams, $baseParams));
+            $out = [];
+            foreach (array_keys(self::STATES) as $i => $state) {
+                $out[$state] = (int) $row['c' . $i];
+            }
+            return $out;
+        });
+        $total = array_key_exists($f['state'], $counts) ? $counts[$f['state']] : (int) DB::value("SELECT COUNT(*) FROM subscribers s WHERE $where", $params);
         $pager = Paginator::fromRequest($request, $total, 50);
         // أرقام الصفحة أولاً من الفهرس، ثم تفاصيلها واتصالها: لا جدول مؤقت لكل المشتركين ولا عدّ للجلسات لكل واحد منهم
         $ids = array_map('intval', DB::column("SELECT s.id FROM subscribers s WHERE $where ORDER BY s.id DESC" . $pager->limitSql(), $params));
@@ -110,13 +129,6 @@ final class SubscriberController extends Controller
         $online = $ids ? DB::pairs('SELECT subscriber_id, COUNT(*) FROM sessions WHERE stopped_at IS NULL AND subscriber_id IN (' . DB::in($ids) . ') GROUP BY subscriber_id', $ids) : [];
         foreach ($rows as $i => $row) {
             $rows[$i]['online'] = (int) ($online[$row['id']] ?? 0);
-        }
-        // عدد كل حالة لعرضه على التبويبات
-        [$baseWhere, $baseParams] = self::listWhere($f, false);
-        $counts = [];
-        foreach (array_keys(self::STATES) as $state) {
-            [$st, $sp] = self::stateSql($state, now());
-            $counts[$state] = (int) DB::value("SELECT COUNT(*) FROM subscribers s WHERE $baseWhere$st", array_merge($baseParams, $sp));
         }
         [$rScope, $rParams] = Auth::routerScope('id');
         return view('subscribers/index', [

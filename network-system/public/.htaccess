@@ -3,6 +3,13 @@ Options -Indexes
     RewriteEngine On
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+    # نسخ مضغوطة مسبقاً بجانب الملفات النصية (يبنيها التثبيت والتحديث): brotli ثم gzip، فلا يُضغط الملف مع كل طلب
+    RewriteCond %{HTTP:Accept-Encoding} \bbr\b
+    RewriteCond %{REQUEST_FILENAME}.br -f
+    RewriteRule ^(assets/.+\.(?:css|js|svg|json))$ $1.br [E=no-gzip:1,E=no-brotli:1,E=madix_enc:br,L]
+    RewriteCond %{HTTP:Accept-Encoding} \bgzip\b
+    RewriteCond %{REQUEST_FILENAME}.gz -f
+    RewriteRule ^(assets/.+\.(?:css|js|svg|json))$ $1.gz [E=no-gzip:1,E=no-brotli:1,E=madix_enc:gzip,L]
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L,QSA]
 </IfModule>
@@ -10,4 +17,30 @@ Options -Indexes
     <FilesMatch "\.(css|js|svg|woff2|png|jpg|jpeg|webp|gif|ico)$">
         Header set Cache-Control "public, max-age=604800"
     </FilesMatch>
+    <FilesMatch "\.(css|js|svg|json)\.(br|gz)$">
+        Header set Cache-Control "public, max-age=604800"
+        Header append Vary Accept-Encoding
+    </FilesMatch>
+    <FilesMatch "\.(css|js|svg|json)\.br$">
+        Header set Content-Encoding br
+    </FilesMatch>
+    <FilesMatch "\.(css|js|svg|json)\.gz$">
+        Header set Content-Encoding gzip
+    </FilesMatch>
+</IfModule>
+<IfModule mod_mime.c>
+    # نوع الملف الأصلي للنسخة المضغوطة
+    <FilesMatch "\.css\.(br|gz)$">
+        ForceType text/css
+    </FilesMatch>
+    <FilesMatch "\.js\.(br|gz)$">
+        ForceType text/javascript
+    </FilesMatch>
+    <FilesMatch "\.svg\.(br|gz)$">
+        ForceType image/svg+xml
+    </FilesMatch>
+    <FilesMatch "\.json\.(br|gz)$">
+        ForceType application/json
+    </FilesMatch>
+    RemoveEncoding .gz .br
 </IfModule>

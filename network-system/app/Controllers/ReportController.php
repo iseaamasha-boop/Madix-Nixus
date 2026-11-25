@@ -150,10 +150,29 @@ final class ReportController extends Controller
     // الصفحة والتصدير
     // ---------------------------------------------------------------------
 
+    /** الجداول التي يُبنى منها كل تقرير: أي تغيير فيها يُبطل نسخته المحفوظة في الكاش */
+    private const TABLES = [
+        'sales'       => ['sales', 'subscriber_transactions', 'distributor_payments', 'distributors', 'categories', 'subscribers', 'employees', 'plans'],
+        'profit'      => ['sales', 'subscriber_transactions', 'distributor_payments', 'expenses', 'partners', 'inventory_movements', 'inventory_items', 'maintenance_parts', 'categories'],
+        'cards'       => ['cards', 'categories', 'batches', 'sales', 'distributors'],
+        'usage'       => ['sessions', 'cards', 'subscribers', 'login_log', 'categories', 'plans', 'routers'],
+        'peak'        => ['sessions', 'login_log', 'router_metrics', 'routers'],
+        'subscribers' => ['subscribers', 'plans', 'subscriber_transactions', 'areas', 'routers'],
+        'routers'     => ['routers', 'router_metrics', 'outages', 'sessions', 'areas'],
+        'employees'   => ['employees', 'sales', 'subscriber_transactions', 'distributor_payments', 'audit_log'],
+        'inventory'   => ['inventory_items', 'inventory_units', 'inventory_movements'],
+    ];
+
+    /** التقرير من الكاش القصير (مفتاحه: النوع والفترة والتاريخ، وصلاحيات المستخدم ونطاق أجهزته) */
+    private function build(string $type): array
+    {
+        return \App\Core\Cache::remember('report.' . $type, [$this->from, $this->to, $this->group, date('Y-m-d H')], self::TABLES[$type] ?? ['*'], fn () => $this->{$type}());
+    }
+
     public function index(Request $request): Response
     {
         [$type, $preset] = $this->prepare($request);
-        $report = $this->{$type}();
+        $report = $this->build($type);
         return view('reports/index', [
             'types' => $this->available(), 'type' => $type, 'preset' => $preset,
             'from' => $this->from, 'to' => $this->to, 'report' => $report,

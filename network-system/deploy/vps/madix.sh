@@ -33,6 +33,10 @@ php_service() { local f; for f in /etc/apache2/conf-enabled/php*-fpm.conf; do [ 
 db_service() { if [ -f /etc/init.d/mariadb ] || [ -f /lib/systemd/system/mariadb.service ] || [ -f /usr/lib/systemd/system/mariadb.service ]; then echo mariadb; else echo mysql; fi; }
 app_url() { php -r '$c = require $argv[1]; echo $c["app"]["url"] ?? "";' "$APP_DIR/config/config.php"; }
 agent() { [ -f "$AGENT" ] && php "$AGENT" "$@" >/dev/null 2>&1 || true; }
+# new code or configuration in memory at once (OPcache): reload PHP-FPM, or Apache when PHP runs inside it
+reload_php() { local v; v=$(php_service); if [ -n "$v" ]; then svc reload "$v" >/dev/null 2>&1 || svc restart "$v" >/dev/null 2>&1 || true; fi; svc reload apache2 >/dev/null 2>&1 || true; }
+# saved results of the short cache (dashboard and report numbers) of the platform and every network
+clear_cache() { rm -rf "$APP_DIR/storage/cache/data"; local d; for d in "$APP_DIR"/storage/tenants/*/cache/data; do [ -d "$d" ] && rm -rf "$d"; done; return 0; }
 public_ip() { curl -4 -fsS --max-time 8 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}'; }
 
 databases() {
@@ -281,9 +285,12 @@ cmd_restore() {
     : >"$MAINT"
     fix_permissions
     sync_urls
+    clear_cache
+    # a backup from an earlier version: its databases are brought to the structure of this version
+    as_web php "$APP_DIR/cli/migrate.php" >/dev/null 2>&1 || true
     as_web php "$APP_DIR/cli/server.php" tunnel-export >/dev/null 2>&1 || true
     rm -f "$MAINT"
-    svc reload apache2 >/dev/null 2>&1 || true
+    reload_php
     as_web php "$APP_DIR/cli/cron.php" 20 >/dev/null 2>&1 || true
     agent tunnel
     echo "${G}Restored.${N} Address: $(app_url)"
@@ -406,7 +413,7 @@ cmd_ssl() {
     fi
     DOMAIN=$d
     sync_urls
-    svc reload apache2 >/dev/null 2>&1 || true
+    reload_php
     agent tunnel
     echo "${G}Ready:${N} https://$d"
 }
@@ -501,7 +508,7 @@ case "${1:-help}" in
     password) cmd_password "${2:-}" ;;
     tunnel|vpn) cmd_tunnel ;;
     logs)     cmd_logs ;;
-    repair)   fix_permissions; rm -f "$MAINT"; svc reload apache2 >/dev/null 2>&1 || true; agent tick; echo "Done." ;;
+    repair)   fix_permissions; rm -f "$MAINT"; clear_cache; reload_php; agent tick; echo "Done." ;;
     restart)  svc restart "$(db_service)"; v=$(php_service); [ -n "$v" ] && svc restart "$v"; svc restart apache2; echo "Restarted." ;;
     update)   cmd_update "${2:-}" ;;
     speed)    php /usr/local/lib/madix/speed.php "${2:-24}" "$APP_DIR" ;;

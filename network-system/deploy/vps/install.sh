@@ -472,7 +472,7 @@ install_packages() {
     setup_swap
     apt_get update || die "Cannot reach the package servers. Check the server's internet connection."
     local pkgs=(apache2 libapache2-mod-php php-fpm php-cli php-mysql php-mbstring php-xml php-zip php-curl
-        php-intl php-gd php-bcmath curl ca-certificates unzip cron openssl tar gzip
+        php-intl php-gd php-bcmath curl ca-certificates unzip cron openssl tar gzip brotli
         util-linux procps iproute2 wireguard-tools unattended-upgrades)
     if dpkg -s mysql-server >/dev/null 2>&1; then
         ok "Using the installed MySQL server"
@@ -517,6 +517,8 @@ opcache.max_accelerated_files = 10000
 opcache.validate_timestamps = 1
 opcache.revalidate_freq = 2
 opcache.interned_strings_buffer = 16
+opcache.enable_file_override = 1
+opcache.max_wasted_percentage = 10
 realpath_cache_size = 4096K
 realpath_cache_ttl = 600
 EOF
@@ -609,13 +611,15 @@ EOF
     fi
 
     # Database (fewer connections on small servers: PHP never opens more than its workers)
-    local conns=200
-    [ "$mem_mb" -lt 2048 ] && conns=100
+    local conns=200 tables=2000 tmp=32
+    [ "$mem_mb" -lt 2048 ] && { conns=100; tables=800; tmp=16; }
     local cnf_dir=/etc/mysql/mariadb.conf.d
     [ -d "$cnf_dir" ] || cnf_dir=/etc/mysql/mysql.conf.d
     if [ -d "$cnf_dir" ]; then
         local cnf
-        cnf=$(printf '[mysqld]\nbind-address = 127.0.0.1\ninnodb_buffer_pool_size = %sM\nmax_connections = %s\ncharacter-set-server = utf8mb4\ncollation-server = utf8mb4_unicode_ci\n' "$pool" "$conns")
+        # every network has its own database (~60 tables each): enough open tables so they are not reopened on every page;
+        # report and dashboard GROUP BY temporary tables stay in memory
+        cnf=$(printf '[mysqld]\nbind-address = 127.0.0.1\ninnodb_buffer_pool_size = %sM\nmax_connections = %s\ncharacter-set-server = utf8mb4\ncollation-server = utf8mb4_unicode_ci\ntable_open_cache = %s\ntable_definition_cache = %s\ntmp_table_size = %sM\nmax_heap_table_size = %sM\n' "$pool" "$conns" "$tables" "$tables" "$tmp" "$tmp")
         if [ "$(cat "$cnf_dir/99-madix.cnf" 2>/dev/null)" != "$cnf" ]; then
             printf '%s\n' "$cnf" >"$cnf_dir/99-madix.cnf"
             DB_CNF_CHANGED=1
@@ -1174,6 +1178,37 @@ health_check() {
     fi
 }
 
+# versions from the content of each file (unchanged files stay cached in browsers across updates)
+# and brotli/gzip copies next to CSS, JavaScript and SVG files, sent as they are instead of compressing on every request
+build_assets() {
+    if as_web php "$APP_DIR/cli/assets.php" build >>"$LOG_FILE" 2>&1; then
+        ok "Static files: versions and compressed copies ready"
+    else
+        warn "Static files are served without compressed copies; see $LOG_FILE"
+    fi
+}
+
+# every network database (all accounts, whatever their status) to the new structure, while the maintenance page is up
+run_migrations() {
+    step "Database upgrade (all networks)"
+    if as_web php "$APP_DIR/cli/migrate.php" >>"$LOG_FILE" 2>&1; then
+        ok "All databases are up to date"
+    else
+        warn "Some databases were not upgraded now; they are upgraded on their next use. See $LOG_FILE"
+    fi
+}
+
+# new code in memory at once: OPcache of PHP-FPM is emptied by reloading it (PHP inside Apache: by reloading Apache)
+reload_php() {
+    if [ "${PHP_MODE:-}" = fpm ] || php_fpm_active; then
+        if svc reload php"$PHPV"-fpm || svc restart php"$PHPV"-fpm; then
+            ok "PHP reloaded (new code in memory)"
+            return 0
+        fi
+    fi
+    svc reload apache2 || true
+}
+
 install_tool() {
     [ -f "$STAGE/deploy/vps/madix.sh" ] && [ -f "$STAGE/deploy/vps/agent.php" ] || die "The system files are incomplete."
     mkdir -p /usr/local/lib/madix
@@ -1191,6 +1226,15 @@ maintenance() { # maintenance on|off
 }
 
 summary() {
+    if [ -n "${SUMMARY_TTY:-}" ]; then
+        summary_text >"$SUMMARY_TTY"
+    else
+        summary_text
+    fi
+    summary_save
+}
+
+summary_text() {
     local url
     url=$(php -r '$c = require $argv[1]; echo $c["app"]["url"] ?? "";' "$APP_DIR/config/config.php")
     {
@@ -1220,7 +1264,12 @@ summary() {
         printf '  Backups      : every night, %s\n' "$BACKUP_DIR"
         printf '  Commands     : madix doctor | status | backup | restore | ssl | help\n'
         printf '%s==============================================================%s\n' "$C_OK" "$C_OFF"
-    } >"${SUMMARY_TTY:-/dev/stdout}"
+    }
+}
+
+summary_save() {
+    local url
+    url=$(php -r '$c = require $argv[1]; echo $c["app"]["url"] ?? "";' "$APP_DIR/config/config.php")
     if [ "$ACTION" = install ]; then
         {
             echo "MADIX NEXUS — $(date '+%F %T')"
@@ -1283,6 +1332,7 @@ main() {
         set_timezone
         setup_database
         deploy_files
+        build_assets
         save_state
         configure_system
         configure_web
@@ -1304,9 +1354,12 @@ main() {
         install_tool
         maintenance on
         deploy_files
+        build_assets
         save_state
+        run_migrations
         configure_web
         configure_cron
+        reload_php
         maintenance off
         verify_php
         finish_update

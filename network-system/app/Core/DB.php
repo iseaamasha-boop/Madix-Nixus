@@ -14,6 +14,9 @@ final class DB
 {
     private static ?PDO $pdo = null;
     private static int $depth = 0;
+    /** عدد الاستعلامات ووقتها في هذا الطلب (لترويسة Server-Timing) */
+    private static int $count = 0;
+    private static float $time = 0.0;
 
     public static function pdo(): PDO
     {
@@ -52,9 +55,29 @@ final class DB
 
     public static function query(string $sql, array $params = []): PDOStatement
     {
+        $t = microtime(true);
         $stmt = self::pdo()->prepare($sql);
         $stmt->execute($params);
+        self::track($t);
+        // كتابة على جدول: النتائج المحفوظة في الكاش والمبنية منه تُهمل
+        $c = $sql[strspn($sql, " \t\r\n")] ?? '';
+        if ($c !== 'S' && $c !== 's' && $c !== '(') {
+            Cache::written($sql);
+        }
         return $stmt;
+    }
+
+    /** احتساب استعلام بدأ في اللحظة $started */
+    public static function track(float $started): void
+    {
+        self::$count++;
+        self::$time += microtime(true) - $started;
+    }
+
+    /** @return array{0:int,1:float} عدد الاستعلامات ومجموع وقتها بالميلي ثانية */
+    public static function stats(): array
+    {
+        return [self::$count, self::$time * 1000];
     }
 
     public static function row(string $sql, array $params = []): ?array

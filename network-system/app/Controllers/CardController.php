@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Audit;
+use App\Core\Cache;
 use App\Core\DB;
 use App\Core\HttpException;
 use App\Core\Paginator;
@@ -35,7 +36,9 @@ final class CardController extends Controller
     {
         $filters = $this->filters($request);
         [$where, $params] = CardQuery::fromArray($filters);
-        $total = (int) DB::value("SELECT COUNT(*) FROM cards c WHERE $where", $params);
+        // عدّاد كل حالة (والمجموع منها) بقراءة واحدة من الفهرس، محفوظ في الكاش القصير حتى تتغير الكروت
+        $counts = Cache::remember('cards.counts', [$where, $params], ['cards', 'categories'], static fn () => DB::pairs("SELECT c.status, COUNT(*) FROM cards c WHERE $where GROUP BY c.status", $params));
+        $total = (int) array_sum($counts);
         $pager = Paginator::fromRequest($request, $total, 50);
         // أرقام الصفحة أولاً من الفهرس، ثم تفاصيلها: لا ترتيب لكل الكروت لعرض خمسين منها
         $ids = array_map('intval', DB::column("SELECT c.id FROM cards c WHERE $where ORDER BY c.id DESC" . $pager->limitSql(), $params));
@@ -46,7 +49,6 @@ final class CardController extends Controller
              WHERE c.id IN (' . DB::in($ids) . ') ORDER BY c.id DESC',
             $ids
         ) : [];
-        $counts = DB::pairs("SELECT c.status, COUNT(*) FROM cards c WHERE $where GROUP BY c.status", $params);
         return view('cards/index', [
             'rows' => $rows, 'pager' => $pager, 'filters' => $filters, 'counts' => $counts, 'total' => $total,
             'categories' => DB::pairs('SELECT id, name FROM categories WHERE is_custom = 0 ORDER BY sort, name'),

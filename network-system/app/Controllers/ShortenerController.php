@@ -17,16 +17,19 @@ final class ShortenerController extends Controller
 {
     public function index(Request $request): Response
     {
-        $batches = DB::rows(
-            "SELECT b.id, b.name, c.name AS category_name, b.source,
-                    COUNT(k.id) AS total, SUM(k.short_code IS NOT NULL) AS with_short,
-                    MAX(CHAR_LENGTH(k.username)) AS max_len
-             FROM batches b JOIN categories c ON c.id = b.category_id LEFT JOIN cards k ON k.batch_id = b.id
-             WHERE b.source <> 'custom'
-             GROUP BY b.id ORDER BY b.id DESC LIMIT 200"
-        );
-        $stats = DB::row('SELECT COUNT(*) AS total, SUM(short_code IS NOT NULL) AS with_short FROM cards');
-        $lengths = DB::pairs('SELECT CHAR_LENGTH(short_code) AS l, COUNT(*) FROM cards WHERE short_code IS NOT NULL GROUP BY l ORDER BY l');
+        // إجماليات كل الكروت من الكاش القصير حتى تتغير الكروت أو الدفعات
+        [$batches, $stats, $lengths] = \App\Core\Cache::remember('shortener.stats', [], ['cards', 'batches', 'categories'], static fn (): array => [
+            DB::rows(
+                "SELECT b.id, b.name, c.name AS category_name, b.source,
+                        COUNT(k.id) AS total, SUM(k.short_code IS NOT NULL) AS with_short,
+                        MAX(CHAR_LENGTH(k.username)) AS max_len
+                 FROM batches b JOIN categories c ON c.id = b.category_id LEFT JOIN cards k ON k.batch_id = b.id
+                 WHERE b.source <> 'custom'
+                 GROUP BY b.id ORDER BY b.id DESC LIMIT 200"
+            ),
+            DB::row('SELECT COUNT(*) AS total, SUM(short_code IS NOT NULL) AS with_short FROM cards'),
+            DB::pairs('SELECT CHAR_LENGTH(short_code) AS l, COUNT(*) FROM cards WHERE short_code IS NOT NULL GROUP BY l ORDER BY l'),
+        ]);
         $categories = DB::pairs('SELECT id, name FROM categories WHERE is_custom = 0 ORDER BY sort, name');
         $lookup = null;
         if (($q = trim(latin_digits($request->str('lookup')))) !== '') {

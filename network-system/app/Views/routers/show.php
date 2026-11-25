@@ -57,6 +57,18 @@ if (!can('cards.import') && !can('subscribers.manage')) {
     <div class="panel-body">
       <div class="notice notice-danger"><?= icon('wifi-off') ?><div><div class="notice-title">تعذّر جلب البيانات من جهاز MikroTik</div><?= e($error) ?></div></div>
     </div>
+  <?php elseif (!empty($live) && isset($visibleTabs[$tab])): ?>
+    <?php /* بيانات الجهاز تُجلب بعد ظهور الصفحة؛ حتى تصل تظهر آخر نسخة محفوظة أو هيكل تحميل بنفس مقاسات الجدول */ ?>
+    <div class="live-tab" data-live-tab="<?= e($live) ?>" aria-busy="true"<?= $snapshot ? ' data-stale' : '' ?>>
+      <?php if ($snapshot): ?>
+        <div class="live-tab-age"><span class="spinner spinner-sm"></span><span><?= e(time_ago(date('Y-m-d H:i:s', (int) $snapshot['at']))) ?></span></div>
+        <?= str_replace('__CSRF__', e(csrf_token()), (string) $snapshot['html']) ?>
+      <?php else: ?>
+        <div class="panel-body live-tab-skeleton" aria-hidden="true">
+          <?php for ($i = 0; $i < 6; $i++): ?><div class="skeleton live-tab-row"></div><?php endfor; ?>
+        </div>
+      <?php endif; ?>
+    </div>
   <?php elseif (isset($visibleTabs[$tab])): ?>
     <?= $v->renderFile('routers/tabs/' . $tab, get_defined_vars()) ?>
   <?php endif; ?>

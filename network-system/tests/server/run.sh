@@ -26,9 +26,9 @@ trap 'rm -rf "$WORK"; docker rm -f madix-test-fresh madix-test-update >/dev/null
 
 if [ -z "$NEW" ]; then
     bash "$SYS/deploy/vps/build.sh" "$WORK/new.sh" >/dev/null
-    NEW=$WORK/new.sh
+else
+    cp "$NEW" "$WORK/new.sh"
 fi
-cp "$NEW" "$WORK/new.sh"
 cp "$SYS/tests/seed-demo.php" "$WORK/seed-demo.php"
 cp "$HERE/inside.sh" "$WORK/inside.sh"
 if [ -n "$PREV" ]; then cp "$PREV" "$WORK/prev.sh"; fi

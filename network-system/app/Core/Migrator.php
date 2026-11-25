@@ -12,7 +12,7 @@ use Throwable;
 final class Migrator
 {
     /** نسخة البنية التي تتوقعها الشيفرة الحالية */
-    public const VERSION = 15;
+    public const VERSION = 16;
 
     private static bool $checked = false;
 
@@ -22,33 +22,50 @@ final class Migrator
         self::$checked = false;
     }
 
-    public static function run(): void
+    /**
+     * ترحيل قاعدة السياق الحالي إلى نسخة الشيفرة.
+     * @param bool $wait انتظار انتهاء ترحيل يجري في عملية أخرى (أمر الترحيل عند التحديث) بدل تخطّيه (طلبات الويب)
+     * @return bool هل القاعدة الآن على النسخة المطلوبة
+     */
+    public static function run(bool $wait = false): bool
     {
-        if (self::$checked) {
-            return;
+        if (self::$checked && !$wait) {
+            return true;
         }
         self::$checked = true;
+        if ($wait) {
+            Settings::flush();
+        }
         $current = (int) Settings::get('app.schema_version', '1');
         if ($current >= self::VERSION) {
-            return;
+            return true;
         }
-        $lock = storage_path('locks/migrate.lock');
+        // قفل لكل قاعدة: ترحيل شبكة لا يوقف ترحيل شبكة أخرى
+        $lock = storage_path('locks/migrate-' . preg_replace('/[^A-Za-z0-9_]/', '', (string) Config::get('db.name', 'db')) . '.lock');
         if (!is_dir(dirname($lock))) {
             @mkdir(dirname($lock), 0775, true);
         }
         $fh = @fopen($lock, 'c');
-        if ($fh && !flock($fh, LOCK_EX | LOCK_NB)) {
+        if ($fh && !flock($fh, $wait ? LOCK_EX : LOCK_EX | LOCK_NB)) {
             // تحديث آخر يجري الآن في طلب موازٍ
             fclose($fh);
-            return;
+            return false;
         }
         try {
+            // قد تكون عملية أخرى أنهت الترحيل أثناء الانتظار
+            Settings::flush();
+            $current = (int) Settings::get('app.schema_version', '1');
             for ($v = $current + 1; $v <= self::VERSION; $v++) {
                 self::step($v);
                 Settings::set('app.schema_version', (string) $v);
             }
+            return true;
         } catch (Throwable $e) {
             log_message('migrate', 'migration failed: ' . $e->getMessage());
+            if ($wait) {
+                throw $e;
+            }
+            return false;
         } finally {
             if ($fh) {
                 flock($fh, LOCK_UN);
@@ -145,6 +162,12 @@ final class Migrator
                     'heavy_since' => 'DATETIME NULL', 'heavy_alerted' => 'TINYINT(1) NOT NULL DEFAULT 0',
                 ]);
                 self::createTables(['speed_caps']);
+                break;
+            case 16:
+                // السرعة: فهارس تغطي استعلامات لوحة التحكم والتقارير ومتابعة الكروت (إضافات فقط، تُبنى دون إيقاف القراءة والكتابة)
+                self::addIndex('router_metrics', 'idx_metrics_time_online', '(created_at, online, router_id, active_hotspot, active_ppp)');
+                self::addIndex('subscriber_transactions', 'idx_st_type_created', '(type, created_at, amount)');
+                self::addIndex('cards', 'idx_cards_active_login', '(status, is_disabled, last_login_at)');
                 break;
         }
     }

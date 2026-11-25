@@ -108,6 +108,16 @@ function asset(string $path): string
         }
     }
     if (!isset($versions[$rel])) {
+        // على الخادم: رقم الإصدار من محتوى الملف (يُبنى عند التثبيت والتحديث): ما لم يتغير يبقى في ذاكرة المتصفح بعد التحديث
+        static $manifest = null;
+        if ($manifest === null) {
+            $m = STORAGE_PATH . '/cache/assets.php';
+            $manifest = is_file($m) ? (array) (include $m) : [];
+        }
+        if (isset($manifest[$rel])) {
+            $versions[$rel] = $manifest[$rel];
+            return root_path() . '/assets/' . $rel . '?v=' . $versions[$rel];
+        }
         $file = PUBLIC_PATH . '/assets/' . $rel;
         $v = APP_VERSION;
         if (is_file($file)) {

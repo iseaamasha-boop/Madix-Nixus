@@ -40,15 +40,20 @@ final class BatchController extends Controller
         $ids = array_map(static fn ($r) => (int) $r['id'], $rows);
         $stats = [];
         if ($ids) {
-            foreach (DB::rows(
-                "SELECT batch_id, COUNT(*) AS cards, COALESCE(SUM(status = 'new' AND is_disabled = 0), 0) AS available,
-                        COALESCE(SUM(first_login_at IS NOT NULL), 0) AS used, COALESCE(SUM(printed_at IS NOT NULL), 0) AS printed,
-                        COALESCE(SUM(short_code IS NOT NULL), 0) AS short_codes
-                 FROM cards WHERE batch_id IN (" . DB::in($ids) . ') GROUP BY batch_id',
-                $ids
-            ) as $s) {
-                $stats[(int) $s['batch_id']] = $s;
-            }
+            // من الكاش القصير حتى تتغير الكروت (البيع، الطباعة، التفعيل، الأرقام المختصرة)
+            $stats = \App\Core\Cache::remember('batches.stats', [$ids], ['cards'], static function () use ($ids): array {
+                $out = [];
+                foreach (DB::rows(
+                    "SELECT batch_id, COUNT(*) AS cards, COALESCE(SUM(status = 'new' AND is_disabled = 0), 0) AS available,
+                            COALESCE(SUM(first_login_at IS NOT NULL), 0) AS used, COALESCE(SUM(printed_at IS NOT NULL), 0) AS printed,
+                            COALESCE(SUM(short_code IS NOT NULL), 0) AS short_codes
+                     FROM cards WHERE batch_id IN (" . DB::in($ids) . ') GROUP BY batch_id',
+                    $ids
+                ) as $s) {
+                    $out[(int) $s['batch_id']] = $s;
+                }
+                return $out;
+            });
         }
         foreach ($rows as $i => $row) {
             foreach (['cards', 'available', 'used', 'printed', 'short_codes'] as $k) {

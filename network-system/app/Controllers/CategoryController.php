@@ -16,18 +16,33 @@ final class CategoryController extends Controller
 {
     public function index(Request $request): Response
     {
-        $categories = DB::rows(
-            "SELECT c.*,
-                    COUNT(k.id) AS total,
-                    SUM(k.status = 'new' AND k.is_disabled = 0) AS available,
-                    SUM(k.status = 'sold') AS sold,
-                    SUM(k.status = 'active') AS active,
-                    SUM(k.status IN ('expired','depleted')) AS ended,
-                    (SELECT COUNT(*) FROM category_routers cr WHERE cr.category_id = c.id) AS router_limit
-             FROM categories c LEFT JOIN cards k ON k.category_id = c.id
-             WHERE c.is_custom = 0
-             GROUP BY c.id ORDER BY c.sort, c.price, c.name"
-        );
+        // أعداد كروت كل باقة بقراءة واحدة من الفهرس (الباقة، الحالة، التعطيل)، من الكاش القصير حتى تتغير الكروت
+        $counts = \App\Core\Cache::remember('categories.counts', [], ['cards'], static function (): array {
+            $out = [];
+            foreach (DB::rows('SELECT category_id, status, is_disabled, COUNT(*) AS n FROM cards GROUP BY category_id, status, is_disabled') as $g) {
+                $c = &$out[(int) $g['category_id']];
+                $c ??= ['total' => 0, 'available' => 0, 'sold' => 0, 'active' => 0, 'ended' => 0];
+                $n = (int) $g['n'];
+                $c['total'] += $n;
+                if ($g['status'] === 'new' && (int) $g['is_disabled'] === 0) {
+                    $c['available'] += $n;
+                } elseif ($g['status'] === 'sold' || $g['status'] === 'active') {
+                    $c[$g['status']] += $n;
+                } elseif ($g['status'] === 'expired' || $g['status'] === 'depleted') {
+                    $c['ended'] += $n;
+                }
+                unset($c);
+            }
+            return $out;
+        });
+        $categories = [];
+        foreach (DB::rows(
+            'SELECT c.*, (SELECT COUNT(*) FROM category_routers cr WHERE cr.category_id = c.id) AS router_limit
+             FROM categories c WHERE c.is_custom = 0 ORDER BY c.sort, c.price, c.name'
+        ) as $c) {
+            $k = $counts[(int) $c['id']] ?? ['total' => 0, 'available' => 0, 'sold' => 0, 'active' => 0, 'ended' => 0];
+            $categories[] = $c + array_map('strval', $k);
+        }
         return view('categories/index', compact('categories'));
     }
 

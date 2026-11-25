@@ -151,6 +151,13 @@ final class Router
             }
         }
 
+        // طلبات القراءة لا تكتب في الجلسة (إلا نادراً، فتُفتح من جديد عند الحاجة): تُغلق مبكراً فلا تنتظر طلبات
+        // الصفحة الأخرى بعضها (التحديثات الحية، تحميل أجزاء الصفحة، التحميل المسبق)
+        if (($request->method === 'GET' || $request->method === 'HEAD') && empty($o['token'])) {
+            Csrf::token();
+            Session::release();
+        }
+
         [$class, $method] = $route['handler'];
         $controller = new $class();
         try {

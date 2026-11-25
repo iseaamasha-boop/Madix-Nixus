@@ -211,6 +211,7 @@ CREATE TABLE IF NOT EXISTS router_metrics (
   PRIMARY KEY (id),
   KEY idx_metrics_router_time (router_id, created_at),
   KEY idx_metrics_time (created_at),
+  KEY idx_metrics_time_online (created_at, online, router_id, active_hotspot, active_ppp),
   CONSTRAINT fk_metrics_router FOREIGN KEY (router_id) REFERENCES routers (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -443,6 +444,7 @@ CREATE TABLE IF NOT EXISTS cards (
   KEY idx_cards_category_status (category_id, status),
   KEY idx_cards_state (status, is_disabled),
   KEY idx_cards_cat_state (category_id, status, is_disabled),
+  KEY idx_cards_active_login (status, is_disabled, last_login_at),
   KEY idx_cards_status (status),
   KEY idx_cards_distributor (distributor_id),
   KEY idx_cards_sale (sale_id),
@@ -578,6 +580,7 @@ CREATE TABLE IF NOT EXISTS subscriber_transactions (
   PRIMARY KEY (id),
   KEY idx_st_subscriber (subscriber_id, created_at),
   KEY idx_st_created (created_at),
+  KEY idx_st_type_created (type, created_at, amount),
   CONSTRAINT fk_st_subscriber FOREIGN KEY (subscriber_id) REFERENCES subscribers (id) ON DELETE CASCADE,
   CONSTRAINT fk_st_plan       FOREIGN KEY (plan_id)       REFERENCES plans (id) ON DELETE SET NULL,
   CONSTRAINT fk_st_employee   FOREIGN KEY (employee_id)   REFERENCES employees (id) ON DELETE SET NULL

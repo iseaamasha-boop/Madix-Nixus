@@ -928,7 +928,40 @@
     reader.readAsDataURL(file);
   });
 
+  // ------------------------------------------------------------------------
+  // أجزاء تُجلب yet ظهور Page (MikroTik device details الحية): Page لا تنتظر Device
+  // ------------------------------------------------------------------------
+  function fillLive(box, html) {
+    box.innerHTML = html;
+    box.removeAttribute('aria-busy');
+    box.removeAttribute('data-stale');
+    // السكربتات داخل Part الجديد تُنفَّذ كما لو كانت in Page نفسها
+    $$('script', box).forEach(function (old) {
+      var s = doc.createElement('script');
+      s.textContent = old.textContent;
+      old.parentNode.replaceChild(s, old);
+    });
+    syncConditional();
+    doc.dispatchEvent(new CustomEvent('live:loaded', { detail: box }));
+  }
+  function loadLive(box) {
+    return fetch(box.getAttribute('data-live-tab'), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      .then(function (r) {
+        if (r.status === 401) { window.location.href = base + '/login'; }
+        return r.json();
+      })
+      .then(function (d) { fillLive(box, d.html || ''); })
+      .catch(function () {
+        // بلا Call: تبقى Backup الظاهرة, وتُعاد المحاولة عند عودة Connection
+        box.setAttribute('data-retry', '1');
+      });
+  }
+  window.addEventListener('online', function () {
+    $$('[data-live-tab][data-retry]').forEach(function (b) { b.removeAttribute('data-retry'); loadLive(b); });
+  });
+
   doc.addEventListener('DOMContentLoaded', function () {
+    $$('[data-live-tab]').forEach(loadLive);
     syncConditional();
     var flash = doc.getElementById('flash-data');
     if (flash) {

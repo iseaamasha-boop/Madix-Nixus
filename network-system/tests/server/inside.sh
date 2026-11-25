@@ -23,6 +23,21 @@ pages_ok() {
     done
 }
 
+# الملفات الثابتة: أرقام إصدار من المحتوى، ونسخ brotli/gzip تُرسل بنوعها الصحيح، وملفات مصغّرة
+assets_ok() {
+    [ -f $APP/storage/cache/assets.php ] || die "no asset manifest"
+    [ -f $APP/public/assets/css/app.css.br ] || die "no brotli copy of app.css"
+    [ -f $APP/public/assets/js/app.js.gz ] || die "no gzip copy of app.js"
+    local h
+    h=$(curl -s -D - -o /dev/null -H 'Accept-Encoding: br' "http://127.0.0.1/assets/css/app.css?v=1")
+    echo "$h" | grep -qi '^content-encoding: br' || { echo "$h"; die "app.css not served as brotli"; }
+    echo "$h" | grep -qi '^content-type: text/css' || { echo "$h"; die "brotli app.css has the wrong type"; }
+    h=$(curl -s -D - -o /dev/null -H 'Accept-Encoding: gzip' "http://127.0.0.1/assets/js/app.js?v=1")
+    echo "$h" | grep -qi '^content-encoding: gzip' || { echo "$h"; die "app.js not served as gzip"; }
+    curl -s "http://127.0.0.1/assets/css/app.css" | head -c 300 | grep -q '/\*' && die "app.css is not minified"
+    return 0
+}
+
 apt-get update -qq >/dev/null
 apt-get install -y -qq curl ca-certificates >/dev/null
 
@@ -34,6 +49,7 @@ fresh)
     seed net-a
     seed net-b
     pages_ok
+    assets_ok
     subs=$(db "SELECT COUNT(*) FROM mnx_net_a.subscribers")
     [ "$subs" = 300 ] || die "subscribers after seed: $subs"
     step "backup"
@@ -70,7 +86,7 @@ update)
     madix update /root/madix-nexus-vps.sh >/tmp/update.out 2>&1 || { cat /tmp/update.out; die "update failed"; }
     new=$(version)
     [ "$new" != "$old" ] || die "version did not change ($old)"
-    grep -q 'Backup before update' /tmp/update.out || die "no backup step in update"
+    grep -q 'Backup before update' /tmp/update.out || { cat /tmp/update.out; die "no backup step in update"; }
     [ "$(db "SELECT COUNT(*) FROM mnx_net_a.cards")" = "$before_cards" ] || die "cards changed"
     [ "$(db "SELECT COUNT(*) FROM mnx_net_a.sales")" = "$before_sales" ] || die "sales changed"
     [ "$(db "SELECT COUNT(*) FROM mnx_net_a.subscriber_transactions")" = "$before_tx" ] || die "transactions changed"
@@ -82,6 +98,9 @@ update)
     done
     db "UPDATE madix_platform.tenants SET status = 'active' WHERE slug = 'net-b'"
     pages_ok
+    assets_ok
+    grep -q 'PHP reloaded' /tmp/update.out || { cat /tmp/update.out; die "PHP-FPM was not reloaded after the update"; }
+    grep -q 'All databases are up to date' /tmp/update.out || { cat /tmp/update.out; die "migration step missing"; }
     step "update twice is safe"
     madix update /root/madix-nexus-vps.sh >/tmp/update2.out 2>&1 || { cat /tmp/update2.out; die "second update failed"; }
     pages_ok

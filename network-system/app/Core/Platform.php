@@ -286,30 +286,38 @@ final class Platform
 
     public static function row(string $sql, array $params = []): ?array
     {
+        $t = microtime(true);
         $st = self::pdo()->prepare($sql);
         $st->execute($params);
+        DB::track($t);
         $r = $st->fetch();
         return $r === false ? null : $r;
     }
 
     public static function exec(string $sql, array $params = []): int
     {
+        $t = microtime(true);
         $st = self::pdo()->prepare($sql);
         $st->execute($params);
+        DB::track($t);
         return $st->rowCount();
     }
 
     public static function rows(string $sql, array $params = []): array
     {
+        $t = microtime(true);
         $st = self::pdo()->prepare($sql);
         $st->execute($params);
+        DB::track($t);
         return $st->fetchAll();
     }
 
     public static function value(string $sql, array $params = []): mixed
     {
+        $t = microtime(true);
         $st = self::pdo()->prepare($sql);
         $st->execute($params);
+        DB::track($t);
         $v = $st->fetchColumn();
         return $v === false ? null : $v;
     }

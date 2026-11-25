@@ -927,7 +927,40 @@
     reader.readAsDataURL(file);
   });
 
+  // ------------------------------------------------------------------------
+  // أجزاء تُجلب بعد ظهور الصفحة (بيانات جهاز MikroTik الحية): الصفحة لا تنتظر الجهاز
+  // ------------------------------------------------------------------------
+  function fillLive(box, html) {
+    box.innerHTML = html;
+    box.removeAttribute('aria-busy');
+    box.removeAttribute('data-stale');
+    // السكربتات داخل الجزء الجديد تُنفَّذ كما لو كانت في الصفحة نفسها
+    $$('script', box).forEach(function (old) {
+      var s = doc.createElement('script');
+      s.textContent = old.textContent;
+      old.parentNode.replaceChild(s, old);
+    });
+    syncConditional();
+    doc.dispatchEvent(new CustomEvent('live:loaded', { detail: box }));
+  }
+  function loadLive(box) {
+    return fetch(box.getAttribute('data-live-tab'), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      .then(function (r) {
+        if (r.status === 401) { window.location.href = base + '/login'; }
+        return r.json();
+      })
+      .then(function (d) { fillLive(box, d.html || ''); })
+      .catch(function () {
+        // بلا اتصال: تبقى النسخة الظاهرة، وتُعاد المحاولة عند عودة الاتصال
+        box.setAttribute('data-retry', '1');
+      });
+  }
+  window.addEventListener('online', function () {
+    $$('[data-live-tab][data-retry]').forEach(function (b) { b.removeAttribute('data-retry'); loadLive(b); });
+  });
+
   doc.addEventListener('DOMContentLoaded', function () {
+    $$('[data-live-tab]').forEach(loadLive);
     syncConditional();
     var flash = doc.getElementById('flash-data');
     if (flash) {

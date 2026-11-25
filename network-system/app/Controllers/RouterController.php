@@ -5,12 +5,14 @@ namespace App\Controllers;
 
 use App\Core\Audit;
 use App\Core\Auth;
+use App\Core\Cache;
 use App\Core\Crypto;
 use App\Core\DB;
 use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
+use App\Core\View;
 use App\MikroTik\Gateway;
 use App\MikroTik\MikroTikException;
 use App\Services\Geo;
@@ -263,12 +265,28 @@ final class RouterController extends Controller
         } elseif ($tab === 'tasks') {
             $data['rows'] = DB::rows('SELECT * FROM router_tasks WHERE router_id = ? ORDER BY id DESC LIMIT 200', [$id]);
         } else {
+            // تبويبات بيانات الجهاز الحية: الصفحة لا تنتظر الاتصال بجهاز MikroTik. تظهر فوراً بآخر نسخة محفوظة (أو بهيكل تحميل)،
+            // ويجلب المتصفح النسخة الحديثة من الرابط نفسه مع fragment=1 ويضعها مكانها
+            $query = $request->query;
+            unset($query['fragment']);
+            ksort($query);
+            $snap = ['router.tab', [$id, $tab, $query], ['routers']];
+            if ($request->str('fragment') !== '1') {
+                $data['live'] = url('/routers/' . $id, ['fragment' => 1] + $query);
+                $data['snapshot'] = Cache::get($snap[0], $snap[1], $snap[2]);
+                return view('routers/show', $data);
+            }
             Session::release();
             try {
                 // بيانات الجهاز تحل محل القيم الافتراضية (rows الفارغة)؛ «+=» كان يُبقي الفارغة فتظهر التبويبات بلا بيانات
                 $data = array_replace($data, $this->loadTab($router, $tab));
+                $html = (new View())->renderFile('routers/tabs/' . $tab, $data);
+                // النسخة المحفوظة مشتركة بين من لهم الصلاحيات نفسها: رمز CSRF الخاص بالمستخدم لا يُحفظ فيها
+                Cache::put($snap[0], $snap[1], ['html' => str_replace(csrf_token(), '__CSRF__', $html), 'at' => time()], 86400, $snap[2]);
+                return json_response(['ok' => true, 'html' => $html, 'at' => time()]);
             } catch (MikroTikException $e) {
-                $data['error'] = $e->friendly();
+                // رد ناجح يحمل رسالة الخطأ: لا خطأ شبكة في المتصفح، والصفحة تعرض السبب مكان البيانات
+                return json_response(['ok' => false, 'message' => $e->friendly(), 'html' => (new View())->renderFile('routers/tab-error', ['error' => $e->friendly()])]);
             }
         }
         return view('routers/show', $data);

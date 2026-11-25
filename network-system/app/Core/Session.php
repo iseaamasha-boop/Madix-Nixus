@@ -89,9 +89,14 @@ final class Session
         if (is_prefetch()) {
             return $default;
         }
-        $v = $_SESSION[$key] ?? $default;
+        if (!array_key_exists($key, $_SESSION ?? [])) {
+            return $default;
+        }
+        $v = $_SESSION[$key];
+        // الجلسة قد تكون أُغلقت مبكراً (طلبات القراءة): تُفتح من جديد ليُحفظ الحذف
+        self::resume();
         unset($_SESSION[$key]);
-        return $v;
+        return $v ?? $default;
     }
 
     public static function regenerate(): void
@@ -126,7 +131,11 @@ final class Session
         $_SESSION['_errors'] = $errors;
     }
 
-    /** إعادة فتح الجلسة بعد إغلاقها مبكراً (لحفظ الرسائل مثلاً) */
+    /**
+     * إعادة فتح الجلسة بعد إغلاقها مبكراً (لحفظ الرسائل مثلاً).
+     * تُقرأ من جديد من ملفها: ما كتبه هذا الطلب حُفظ عند الإغلاق، وما غيّره طلب موازٍ بعده (الخروج مثلاً) يبقى كما هو،
+     * ثم يُطبَّق التعديل المطلوب وحده.
+     */
     public static function resume(): void
     {
         // الطلبات بلا جلسة (واجهات التطبيق) تبقى بلا جلسة
@@ -135,10 +144,8 @@ final class Session
         }
         if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE && !headers_sent()) {
             $data = $_SESSION ?? [];
-            @session_start();
-            // القيم في الذاكرة هي الأحدث لهذا الطلب
-            foreach ($data as $k => $v) {
-                $_SESSION[$k] = $v;
+            if (@session_start() === false) {
+                $_SESSION = $data;
             }
         }
     }

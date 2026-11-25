@@ -3548,3 +3548,11 @@ body:has(.app-footer) .toasts { bottom: calc(20px + var(--footbar-h) + env(safe-
   .bot-thread-wrap, .bot-settings { grid-template-columns: minmax(0, 1fr); }
   .bot-try { position: static; }
 }
+
+/* ---------------- بيانات جهاز MikroTik الحية: الصفحة تظهر فوراً والبيانات تصل بعدها ---------------- */
+.live-tab { position: relative; min-height: 120px; }
+.live-tab[data-stale] > :not(.live-tab-age) { opacity: .55; transition: opacity .2s ease; }
+.live-tab-age { display: flex; align-items: center; gap: 8px; padding: 12px 16px 0; color: var(--muted); font-size: 13px; }
+.live-tab-row { height: 38px; margin-bottom: 10px; }
+.live-tab-row:nth-child(odd) { width: 92%; }
+.spinner-sm { width: 14px; height: 14px; border-width: 2px; }

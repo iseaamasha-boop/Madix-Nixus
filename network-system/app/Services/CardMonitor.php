@@ -100,7 +100,8 @@ final class CardMonitor
         return match ($sort) {
             'expiring' => 'c.expires_at IS NULL, c.expires_at ASC, c.id DESC',
             'first'    => 'c.first_login_at DESC, c.id DESC',
-            default    => 'c.last_login_at IS NULL, c.last_login_at DESC, c.id DESC',
+            // ترتيب تنازلي يضع الفارغ في الآخر أصلاً في MySQL: الترتيب نفسه، ويقرأ من الفهرس (status, is_disabled, last_login_at)
+            default    => 'c.last_login_at DESC, c.id DESC',
         };
     }
 
@@ -169,10 +170,16 @@ final class CardMonitor
     public static function activeRows(array $f, string $limitSql): array
     {
         [$where, $params] = self::activeWhere($f);
+        // أرقام الصفحة أولاً من الفهرس (بلا ربط الجداول ولا عدّ الجلسات لكل الكروت النشطة)، ثم تفاصيل الخمسين فقط
+        $order = self::activeOrder((string) ($f['sort'] ?? ''));
+        $ids = array_map('intval', DB::column("SELECT c.id FROM cards c WHERE $where ORDER BY $order" . $limitSql, $params));
+        if (!$ids) {
+            return [];
+        }
         $rows = DB::rows(
             'SELECT ' . self::CARD_COLUMNS . ', (SELECT COUNT(*) FROM sessions s WHERE s.card_id = c.id AND s.stopped_at IS NULL) AS online_count
-             ' . self::CARD_JOINS . " WHERE $where ORDER BY " . self::activeOrder((string) ($f['sort'] ?? '')) . $limitSql,
-            $params
+             ' . self::CARD_JOINS . ' WHERE c.id IN (' . DB::in($ids) . ") ORDER BY $order",
+            $ids
         );
         return array_map([self::class, 'withRemaining'], $rows);
     }
@@ -180,9 +187,14 @@ final class CardMonitor
     public static function endedRows(array $f, string $limitSql): array
     {
         [$where, $params] = self::endedWhere($f);
+        $order = 'c.ended_at IS NULL, c.ended_at DESC, c.id DESC';
+        $ids = array_map('intval', DB::column("SELECT c.id FROM cards c WHERE $where ORDER BY $order" . $limitSql, $params));
+        if (!$ids) {
+            return [];
+        }
         $rows = DB::rows(
-            'SELECT ' . self::CARD_COLUMNS . ' ' . self::CARD_JOINS . " WHERE $where ORDER BY c.ended_at IS NULL, c.ended_at DESC, c.id DESC" . $limitSql,
-            $params
+            'SELECT ' . self::CARD_COLUMNS . ' ' . self::CARD_JOINS . ' WHERE c.id IN (' . DB::in($ids) . ") ORDER BY $order",
+            $ids
         );
         return array_map([self::class, 'withRemaining'], $rows);
     }
@@ -228,7 +240,7 @@ final class CardMonitor
     public static function counts(): array
     {
         [$scope, $params] = Auth::routerScope('router_id', true);
-        return [
+        return \App\Core\Cache::remember('monitor.counts', [date('Y-m-d H:i')], ['cards', 'sessions', 'login_log'], static fn (): array => [
             'active' => (int) DB::value("SELECT COUNT(*) FROM cards WHERE status = 'active' AND is_disabled = 0"),
             'online' => (int) DB::value(
                 "SELECT COUNT(DISTINCT s.card_id) FROM sessions s JOIN cards c ON c.id = s.card_id
@@ -240,7 +252,7 @@ final class CardMonitor
                    AND reason IN ('not_found','wrong_password') AND subscriber_id IS NULL$scope",
                 array_merge([date('Y-m-d H:i:s', time() - 86400)], $params)
             ),
-        ];
+        ]);
     }
 
     // ---------------------------------------------------------------------

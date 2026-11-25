@@ -64,10 +64,10 @@ final class CardMonitorController extends Controller
             'wrong' => CardMonitor::wrongWhere($filters),
             default => CardMonitor::activeWhere($filters),
         };
-        $total = (int) DB::value(
+        $total = (int) \App\Core\Cache::remember('monitor.total', [$tab, $where, $params, date('Y-m-d H:i')], $tab === 'wrong' ? ['login_log'] : ['cards', 'sessions'], static fn () => DB::value(
             $tab === 'wrong' ? "SELECT COUNT(*) FROM login_log l WHERE $where" : "SELECT COUNT(*) FROM cards c WHERE $where",
             $params
-        );
+        ));
         $pager = Paginator::fromRequest($request, $total, 50);
         $rows = match ($tab) {
             'ended' => CardMonitor::endedRows($filters, $pager->limitSql()),

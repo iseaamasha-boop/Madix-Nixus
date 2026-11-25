@@ -21,6 +21,15 @@ find "$WORK" -mindepth 1 -maxdepth 1 ! -name sys -exec mv {} "$WORK/sys/" \;
 rm -rf "$WORK/sys/tests" "$WORK/sys/deploy/vps/dist"
 rm -f "$WORK/sys"/config/config*.php
 
+# الملفات الثابتة في نسخة التثبيت مصغّرة (التعليقات والمسافات فقط)؛ المستودع يبقى بملفاته المقروءة
+php "$ROOT/network-system/cli/assets.php" minify "$WORK/sys/public/assets"
+# كل ملف JavaScript بعد التصغير ما زال صالحاً
+if command -v node >/dev/null 2>&1; then
+    find "$WORK/sys/public/assets" -name '*.js' ! -path '*/vendor/*' -print0 | while IFS= read -r -d '' f; do
+        node --check "$f" 2>/dev/null || { echo "minified JavaScript is broken: ${f#$WORK/sys/}" >&2; exit 1; }
+    done
+fi
+
 tar --sort=name --mtime='@0' --owner=0 --group=0 --numeric-owner -C "$WORK/sys" -cf - . | gzip -9n >"$WORK/payload.tgz"
 SHA=$(sha256sum "$WORK/payload.tgz" | awk '{print $1}')
 

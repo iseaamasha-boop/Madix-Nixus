@@ -174,6 +174,12 @@ final class Kernel
             ErrorHandler::report($e);
         }
         self::secureHeaders($response, $request);
+        // وقت بناء الصفحة وعدد استعلاماتها (لأداة قياس السرعة)، عند تفعيله في ملف الإعداد: 'app' => ['timing' => true]
+        if (Config::get('app.timing') === true) {
+            [$qn, $qms] = DB::stats();
+            $app = isset($_SERVER['REQUEST_TIME_FLOAT']) ? (microtime(true) - (float) $_SERVER['REQUEST_TIME_FLOAT']) * 1000 : 0.0;
+            $response->headers['Server-Timing'] = sprintf('app;dur=%.1f, db;dur=%.1f;desc="%d"', $app, $qms, $qn);
+        }
         if (self::$after) {
             $response->headers['Connection'] = 'close';
             $response->headers['Content-Length'] = (string) strlen($response->body);
