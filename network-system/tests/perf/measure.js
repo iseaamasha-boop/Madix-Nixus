@@ -194,6 +194,22 @@ async function navTime(ctx, fromUrl, toPath, hover) {
   return round(shown.origin + shown.fcp - t0);
 }
 
+async function seedCookies(port, url, cookie) {
+  if (!cookie) return;
+  const info = await (await fetch('http://127.0.0.1:' + port + '/json/version')).json();
+  const ws = new WebSocket(info.webSocketDebuggerUrl);
+  await new Promise((ok, fail) => { ws.onopen = ok; ws.onerror = fail; });
+  const cookies = cookie.split(/;\s*/).filter(Boolean).map((kv) => {
+    const i = kv.indexOf('=');
+    return { name: kv.slice(0, i), value: kv.slice(i + 1), url };
+  });
+  await new Promise((ok, fail) => {
+    ws.onmessage = (m) => { const d = JSON.parse(m.data); if (d.id === 1) { d.error ? fail(new Error(d.error.message)) : ok(); } };
+    ws.send(JSON.stringify({ id: 1, method: 'Storage.setCookies', params: { cookies } }));
+  });
+  ws.close();
+}
+
 async function lighthouseRun(url, cookie) {
   // مكتبتا Lighthouse وchrome-launcher من مجلد التثبيت المحدد بالمتغير LH_DIR (node_modules) أو من المسارات العادية
   const { pathToFileURL } = require('url');
@@ -205,7 +221,10 @@ async function lighthouseRun(url, cookie) {
     chromeFlags: ['--headless=new', '--no-sandbox', '--ignore-certificate-errors', '--no-proxy-server'],
   });
   try {
-    const r = await lighthouse(url, { port: chrome.port, output: 'json', logLevel: 'error', onlyCategories: ['performance'], extraHeaders: cookie ? { Cookie: cookie } : undefined });
+    // الجلسة في مخزن ملفات تعريف الارتباط في المتصفح نفسه (لا ترويسة إضافية): طلبات fetch من الصفحة ترسلها كما في الاستخدام الحقيقي.
+    // كل قياس في متصفح جديد بملف تعريف فارغ، فالذاكرة المؤقتة باردة رغم تعطيل مسح التخزين
+    await seedCookies(chrome.port, url, cookie);
+    const r = await lighthouse(url, { port: chrome.port, output: 'json', logLevel: 'error', onlyCategories: ['performance'], disableStorageReset: !!cookie });
     const a = r.lhr.audits;
     return {
       score: Math.round((r.lhr.categories.performance.score || 0) * 100),

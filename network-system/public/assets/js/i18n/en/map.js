@@ -96,6 +96,16 @@
     });
   }
 
+  // Subscribers (until 5000) in طبقة رسم واحدة (canvas) بدل عنصر لكل subscriber: Map تفتح وتتحرك بلا تقطيع.
+  // ألوان Status نفسها, ونافذة Subscriber تُبنى عند opened it only. وضع التحريك يستخدم علامات قابلة للسحب للظاهر منهم only.
+  var subCanvas = L.canvas({ padding: 0.3 });
+  var SUB_COLOR = { 'is-active': '#16a34a', 'is-expiring': '#f59e0b', 'is-expired': '#dc2626', 'is-new': '#94a3b8' };
+  function subStyle(s) {
+    var cls = (SUB_STATE[s.state] || SUB_STATE.active)[2];
+    return { renderer: subCanvas, radius: s.online ? 7 : 6, weight: s.online ? 3 : 2, color: s.online ? 'rgba(22, 163, 74, .45)' : '#ffffff', opacity: 1, fillColor: SUB_COLOR[cls] || SUB_COLOR['is-active'], fillOpacity: 1 };
+  }
+  var subDrag = false;      // العلامات الحالية قابلة للسحب (وضع التحريك)
+
   function siteIcon(s) { return SNGeo.icon((cfg.siteTypes[s.type] || {}).icon || 'map-pin', 'mk-site', 34); }
   function routerIcon(r) { return SNGeo.icon('router', 'mk-router ' + (ROUTER_STATUS[r.status] || ROUTER_STATUS.unknown)[2], 28); }
   function subIcon(s) { return SNGeo.dot((SUB_STATE[s.state] || SUB_STATE.active)[2] + (s.online ? ' is-online' : '')); }
@@ -119,11 +129,33 @@
       m.setStyle(LINK_STYLE[l.type] || LINK_STYLE.other);
       m.setPopupContent(linkPopup(l));
     });
-    sync('subscribers', data.subscribers, function (s) {
-      var m = L.marker([s.lat, s.lng], { icon: subIcon(s), draggable: mode === 'move' }).bindPopup(subPopup(s));
-      bindDrag(m, 'subscriber', s.id);
-      return m;
-    }, function (m, s) { m.setLatLng([s.lat, s.lng]); m.setIcon(subIcon(s)); m.setPopupContent(subPopup(s)); });
+    var moving = mode === 'move';
+    if (moving !== subDrag) {
+      // تبديل نوع العلامات: تُبنى from New
+      groups.subscribers.clearLayers();
+      markers.subscribers = {};
+      subDrag = moving;
+    }
+    var subs = data.subscribers;
+    if (moving) {
+      var bounds = map.getBounds().pad(0.2);
+      subs = subs.filter(function (s) { return bounds.contains([s.lat, s.lng]); }).slice(0, 400);
+    }
+    sync('subscribers', subs, function (s) {
+      var m;
+      if (moving) {
+        m = L.marker([s.lat, s.lng], { icon: subIcon(s), draggable: true });
+        bindDrag(m, 'subscriber', s.id);
+      } else {
+        m = L.circleMarker([s.lat, s.lng], subStyle(s));
+      }
+      m._sub = s;
+      return m.bindPopup(function (layer) { return subPopup(layer._sub); });
+    }, function (m, s) {
+      m._sub = s;
+      m.setLatLng([s.lat, s.lng]);
+      if (moving) { m.setIcon(subIcon(s)); } else { m.setStyle(subStyle(s)); }
+    });
     sync('sites', data.sites, function (s) {
       var m = L.marker([s.lat, s.lng], { icon: siteIcon(s), draggable: mode === 'move', zIndexOffset: 200 }).bindPopup(sitePopup(s));
       m.on('click', function () { if (mode === 'link') { pickLinkEnd(s); } });
@@ -207,6 +239,9 @@
   function load() {
     return SN.api(cfg.dataUrl, { silent: true }).then(function (d) {
       data = d;
+      // أول Open: ضبط حدود Show before الرسم, فتُرسم العلامات once on مستوى التكبير النهائي
+      var fit = firstLoad && !cfg.savedView && !/[?&]focus=/.test(window.location.search);
+      if (fit) { fitAll(); }
       render();
       var un = d.unplaced || {};
       var box = document.querySelector('[data-unplaced]');
@@ -219,7 +254,7 @@
       }
       if (firstLoad) {
         firstLoad = false;
-        if (!focusTarget() && !cfg.savedView) { fitAll(); }
+        if (!fit && !focusTarget() && !cfg.savedView) { fitAll(); }
       }
     }).catch(function () {});
   }
@@ -240,13 +275,15 @@
     return reveal({ site: 'sites', router: 'routers', sub: 'subscribers' }[f[1]], parseInt(f[2], 10));
   }
 
+  map.on('moveend', function () { if (subDrag) { render(); } });
+
   function fitAll() {
     var pts = [];
     data.sites.forEach(function (s) { pts.push([s.lat, s.lng]); });
     data.routers.forEach(function (r) { pts.push([r.lat, r.lng]); });
     data.subscribers.forEach(function (s) { pts.push([s.lat, s.lng]); });
-    if (pts.length > 1) { map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 }); }
-    else if (pts.length === 1) { map.setView(pts[0], 15); }
+    if (pts.length > 1) { map.fitBounds(pts, { padding: [40, 40], maxZoom: 16, animate: false }); }
+    else if (pts.length === 1) { map.setView(pts[0], 15, { animate: false }); }
   }
 
   // ------------------------------------------------------------------------
@@ -303,6 +340,8 @@
         if (mk.dragging) { if (mode === 'move') { mk.dragging.enable(); } else { mk.dragging.disable(); } }
       });
     });
+    // Subscribers: علامات قابلة للسحب in وضع التحريك only, ورسم سريع in غيره
+    if ((mode === 'move') !== subDrag) { render(); }
     if (mode !== 'link') { markLinkFrom(null); }
     var hint = {
       add: 'Tap the map where the new site is.', router: 'Tap the map where the device is.',
