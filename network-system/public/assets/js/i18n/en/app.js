@@ -29,7 +29,7 @@
   }
 
   // ------------------------------------------------------------------------
-  // Mode الفاتح/الداكن: Light دائماً ما لم يختر User الداكن, and no يتبع إعداد Device
+  // Light mode/الداكن: Light دائماً ما لم يختر User الداكن, and no يتبع إعداد Device
   // ------------------------------------------------------------------------
   function applyTheme(pref) {
     var t = pref === 'dark' ? 'dark' : 'light';
@@ -441,6 +441,8 @@
     });
     doc.addEventListener('keydown', function (e) {
       if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || (e.code !== 'KeyK' && e.key !== 'k' && e.key !== 'K')) { return; }
+      // panel Commands (إن found) تتولى Ctrl K
+      if (doc.querySelector('meta[name="palette-src"]')) { return; }
       e.preventDefault();
       if (getComputedStyle(side).visibility === 'hidden') { doc.body.classList.add('sidebar-open'); }
       requestAnimationFrame(function () { search.focus(); search.select(); });
@@ -715,6 +717,66 @@
     });
   }
   doc.addEventListener('change', syncConditional);
+
+  // ------------------------------------------------------------------------
+  // panel Commands (Ctrl K): Pages and Actions والبحث in Every شيء from مكان one.
+  // الإطار وخانة الكتابة يُبنيان هنا فوراً (تفتح panel المفاتيح on Phone بلا انتظار), ومنطق Results in js/palette.js
+  // يُحمَّل عند أول Open only
+  // ------------------------------------------------------------------------
+  var palette = (function () {
+    var meta = doc.querySelector('meta[name="palette-src"]');
+    if (!meta) { return null; }
+    var dlg = null, input = null, loading = false;
+    function build() {
+      dlg = doc.createElement('dialog');
+      dlg.className = 'cmdk';
+      dlg.setAttribute('aria-label', 'Search');
+      dlg.innerHTML = '<div class="cmdk-box"><div class="cmdk-head">' + icon('search') +
+        '<input type="search" class="cmdk-input" placeholder="Search pages, subscribers, cards, MikroTik devices..." aria-label="Search" autocomplete="off" spellcheck="false" enterkeyhint="go" role="combobox" aria-expanded="true" aria-controls="cmdk-list">' +
+        '<button type="button" class="cmdk-close icon-btn" aria-label="Close">' + icon('x') + '</button></div>' +
+        '<div class="cmdk-list" id="cmdk-list" role="listbox"></div></div>';
+      doc.body.appendChild(dlg);
+      input = dlg.querySelector('.cmdk-input');
+      dlg.addEventListener('click', function (e) { if (e.target === dlg || e.target.closest('.cmdk-close')) { close(); } });
+      dlg.addEventListener('close', function () { doc.documentElement.classList.remove('cmdk-open'); });
+    }
+    function load() {
+      if (window.SNPalette || loading) { return; }
+      loading = true;
+      var s = doc.createElement('script');
+      s.src = meta.content;
+      s.async = true;
+      s.onload = function () { if (window.SNPalette) { window.SNPalette.init(dlg, { search: meta.getAttribute('data-search') || '' }); } };
+      s.onerror = function () { loading = false; };
+      doc.head.appendChild(s);
+    }
+    function open(text) {
+      if (!dlg) { build(); }
+      if (!dlg.open) {
+        if (typeof dlg.showModal === 'function') { dlg.showModal(); } else { dlg.setAttribute('open', ''); }
+        doc.documentElement.classList.add('cmdk-open');
+      }
+      if (typeof text === 'string') { input.value = text; }
+      input.focus();
+      input.select();
+      load();
+      if (window.SNPalette) { window.SNPalette.refresh(); }
+    }
+    function close() { if (dlg && dlg.open) { if (typeof dlg.close === 'function') { dlg.close(); } else { dlg.removeAttribute('open'); } } }
+    doc.addEventListener('keydown', function (e) {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || (e.code !== 'KeyK' && e.key !== 'k' && e.key !== 'K')) { return; }
+      e.preventDefault();
+      if (dlg && dlg.open) { close(); } else { open(); }
+    });
+    // خانة البحث in Top bar تفتح Board (on Phone: زر البحث)
+    var top = doc.querySelector('[data-global-search]');
+    if (top) {
+      top.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+      top.addEventListener('click', function (e) { e.preventDefault(); open(top.value); });
+      top.addEventListener('focus', function () { top.blur(); open(top.value); });
+    }
+    return { open: open, close: close };
+  })();
 
   // البحث العام
   on(doc, 'keydown', '[data-global-search]', function (e, el) {
@@ -1221,6 +1283,6 @@
   window.SN = {
     api: api, toast: toast, confirm: confirmDialog, openModal: openModal, closeModal: closeModal,
     esc: esc, icon: icon, fmtBytes: fmtBytes, fmtRate: fmtRate, fmtDuration: fmtDuration, fmtNum: fmtNum,
-    chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
+    chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, palette: palette, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
   };
 })();

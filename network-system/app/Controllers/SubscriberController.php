@@ -18,6 +18,7 @@ use App\Services\LoginRegistry;
 use App\Services\RouterTasks;
 use App\Services\SubscriberRules;
 use App\Services\SubscriberService;
+use App\Support\ArabicSearch;
 use App\Support\Spreadsheet;
 use RuntimeException;
 
@@ -54,9 +55,11 @@ final class SubscriberController extends Controller
         if ($f['q'] !== '') {
             $q = latin_digits(trim($f['q']));
             $mac = normalize_mac($q);
-            $sql .= ' AND (s.full_name LIKE ? OR s.phone LIKE ? OR s.phone2 LIKE ? OR s.username LIKE ? OR s.static_ip = ? OR s.last_ip = ?'
+            // الاسم بالبحث العربي الذكي (صور الهمزة والتاء المربوطة والياء والتشكيل)
+            [$nameCond, $nameVal] = ArabicSearch::cond('s.full_name', $q);
+            $sql .= ' AND (' . $nameCond . ' OR s.phone LIKE ? OR s.phone2 LIKE ? OR s.username LIKE ? OR s.static_ip = ? OR s.last_ip = ?'
                 . ($mac ? ' OR s.bound_mac = ? OR s.last_mac = ?' : '') . ')';
-            array_push($params, DB::like($q), DB::like($q), DB::like($q), DB::like($q), $q, $q);
+            array_push($params, $nameVal, DB::like($q), DB::like($q), DB::like($q), $q, $q);
             if ($mac) {
                 array_push($params, $mac, $mac);
             }
