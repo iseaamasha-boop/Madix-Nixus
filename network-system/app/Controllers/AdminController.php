@@ -77,7 +77,8 @@ final class AdminController extends Controller
     {
         AdminAuth::logout();
         Session::resume();
-        return redirect('/admin/login');
+        Session::forgetTag('mnx_atag');
+        return redirect('/admin/login')->withHeader('Clear-Site-Data', '"cache", "prefetchCache"');
     }
 
     // ------------------------------------------------------------------

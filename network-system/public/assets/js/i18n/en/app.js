@@ -929,6 +929,99 @@
   });
 
   // ------------------------------------------------------------------------
+  // التحديثات المباشرة (Numbers والرسوم ومن الموجود): Every جزء يسجّل مفتاحه, وتُطلب كلها معاً بطلب one,
+  // and no طلبات ما دام التبويب مخفياً; عند العودة إليه or عودة Connection تُحدَّث فوراً
+  // ------------------------------------------------------------------------
+  var live = (function () {
+    var subs = {}, timer = null, every = 30000, busy = false;
+    function keys() { return Object.keys(subs); }
+    function schedule(ms) { clearTimeout(timer); timer = setTimeout(tick, ms); }
+    function tick() {
+      clearTimeout(timer);
+      if (!keys().length || doc.hidden || busy) { return; }
+      busy = true;
+      fetch(base + '/live?k=' + encodeURIComponent(keys().join(',')), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+        .then(function (r) {
+          if (r.status === 401) { window.location.href = base + '/login'; }
+          return r.json();
+        })
+        .then(function (d) {
+          var data = (d && d.data) || {};
+          Object.keys(data).forEach(function (k) {
+            (subs[k] || []).forEach(function (fn) { try { fn(data[k], d); } catch (e) { /* جزء one لا يوقف الباقي */ } });
+          });
+        })
+        .catch(function () { /* بلا Call: المحاولة التالية in موعدها or عند عودة Connection */ })
+        .then(function () { busy = false; schedule(every); });
+    }
+    doc.addEventListener('visibilitychange', function () { if (doc.hidden) { clearTimeout(timer); } else { tick(); } });
+    window.addEventListener('online', tick);
+    window.addEventListener('pageshow', function (e) { if (e.persisted) { tick(); } });
+    return {
+      on: function (key, fn, opts) {
+        (subs[key] = subs[key] || []).push(fn);
+        if (opts && opts.every) { every = Math.max(5000, Math.min(every, opts.every)); }
+        schedule(opts && opts.now ? 0 : every);
+      },
+      refresh: tick
+    };
+  })();
+
+  // ------------------------------------------------------------------------
+  // اختيار from قائمة كبيرة بالبحث in Server (Subscribers مثلاً): لا تُحمَّل Menu كلها in Page
+  //   <input type="hidden" id="x-id" name="..."> <input data-remote-select="Link البحث" data-remote-target="x-id">
+  // ------------------------------------------------------------------------
+  on(doc, 'input', '[data-remote-select]', function (e, input) {
+    var target = doc.getElementById(input.getAttribute('data-remote-target'));
+    if (target) { target.value = ''; }
+    clearTimeout(input._rsTimer);
+    var q = input.value.trim();
+    var list = input._rsList;
+    if (!list) {
+      list = input._rsList = doc.createElement('div');
+      list.className = 'rs-list';
+      list.setAttribute('role', 'listbox');
+      input.parentNode.style.position = 'relative';
+      input.parentNode.appendChild(list);
+      list.addEventListener('mousedown', function (ev) {
+        var b = ev.target.closest('[data-rs-id]');
+        if (!b) { return; }
+        ev.preventDefault();
+        if (target) { target.value = b.getAttribute('data-rs-id'); }
+        input.value = b.getAttribute('data-rs-label');
+        list.hidden = true;
+      });
+      input.addEventListener('blur', function () { setTimeout(function () { list.hidden = true; }, 120); });
+      input.addEventListener('keydown', function (ev) {
+        var items = $$('[data-rs-id]', list), cur = items.indexOf($('.is-active', list));
+        if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+          ev.preventDefault();
+          if (!items.length) { return; }
+          var next = ev.key === 'ArrowDown' ? Math.min(items.length - 1, cur + 1) : Math.max(0, cur - 1);
+          items.forEach(function (it, i) { it.classList.toggle('is-active', i === next); });
+        } else if (ev.key === 'Enter' && cur >= 0) {
+          ev.preventDefault();
+          items[cur].dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        } else if (ev.key === 'Escape') {
+          list.hidden = true;
+        }
+      });
+    }
+    if (q.length < 2) { list.hidden = true; return; }
+    input._rsTimer = setTimeout(function () {
+      var seq = input._rsSeq = (input._rsSeq || 0) + 1;
+      api(input.getAttribute('data-remote-select') + '?q=' + encodeURIComponent(q), { silent: true }).then(function (d) {
+        if (seq !== input._rsSeq) { return; }
+        list.innerHTML = (d.items || []).map(function (it) {
+          return '<button type="button" class="rs-item" role="option" data-rs-id="' + esc(it.id) + '" data-rs-label="' + esc(it.label) + '">'
+            + '<span>' + esc(it.label) + '</span>' + (it.sub ? '<small dir="ltr">' + esc(it.sub) + '</small>' : '') + '</button>';
+        }).join('') || '<div class="rs-empty">—</div>';
+        list.hidden = false;
+      }).catch(function () {});
+    }, 220);
+  });
+
+  // ------------------------------------------------------------------------
   // أجزاء تُجلب yet ظهور Page (MikroTik device details الحية): Page لا تنتظر Device
   // ------------------------------------------------------------------------
   function fillLive(box, html) {
@@ -980,6 +1073,6 @@
   window.SN = {
     api: api, toast: toast, confirm: confirmDialog, openModal: openModal, closeModal: closeModal,
     esc: esc, icon: icon, fmtBytes: fmtBytes, fmtRate: fmtRate, fmtDuration: fmtDuration, fmtNum: fmtNum,
-    chart: makeChart, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional
+    chart: makeChart, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
   };
 })();

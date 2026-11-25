@@ -209,9 +209,8 @@ document.addEventListener('DOMContentLoaded', function () {
         ['label' => 'التفعيلات', 'data' => array_map(static fn ($d) => $d['activations'], array_values($days))],
     ])), JSON_UNESCAPED_UNICODE) ?>
   });
-  function refresh() {
-    if (document.hidden) { return; }
-    SN.api(SN.base + '/dashboard/data', { silent: true }).then(function (d) {
+  // الأرقام الحية من التحديث المجمّع (يتوقف والتبويب مخفي)
+  SN.live.on('dashboard', function (d) {
       ['online', 'online_hs', 'online_ppp', 'routers_online'].forEach(function (k) {
         var el = document.querySelector('[data-k="' + k + '"]'); if (el) { el.textContent = SN.fmtNum(d[k]); }
       });
@@ -223,8 +222,6 @@ document.addEventListener('DOMContentLoaded', function () {
         var u = li.querySelector('[data-r="users"]'); if (u) { u.textContent = SN.fmtNum((+r.active_hotspot || 0) + (+r.active_ppp || 0)); }
         var c = li.querySelector('[data-r="cpu"]'); if (c && r.cpu_load !== null) { c.textContent = r.cpu_load; }
       });
-    }).catch(function () {});
-  }
-  setInterval(refresh, 30000);
+  }, { every: 30000 });
 });
 </script>

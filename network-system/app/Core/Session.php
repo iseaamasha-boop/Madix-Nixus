@@ -150,6 +150,36 @@ final class Session
         }
     }
 
+    /**
+     * علامة الجلسة الحالية (ليست سراً: بصمة من معرّف الجلسة ومفتاح النظام) في وسم meta وفي ملف تعريف ارتباط يقرؤه المتصفح.
+     * صفحة مستعادة بزر الرجوع بعد الخروج أو بعد دخول مستخدم آخر لا تطابق علامتها الملف الحالي، فتُطلب من الخادم من جديد.
+     */
+    public static function tag(string $cookie = 'mnx_tag'): string
+    {
+        $id = PHP_SAPI === 'cli' ? '' : (string) session_id();
+        if ($id === '') {
+            return '';
+        }
+        $tag = substr(hash_hmac('sha256', $id, (string) Config::get('app.key', '')), 0, 16);
+        if (($_COOKIE[$cookie] ?? '') !== $tag && !headers_sent()) {
+            setcookie($cookie, $tag, ['path' => self::cookiePath($cookie), 'secure' => (bool) Request::current()?->isHttps(), 'httponly' => false, 'samesite' => 'Lax']);
+        }
+        return $tag;
+    }
+
+    /** حذف علامة الجلسة (عند الخروج) */
+    public static function forgetTag(string $cookie = 'mnx_tag'): void
+    {
+        if (PHP_SAPI !== 'cli' && !headers_sent()) {
+            setcookie($cookie, '', ['expires' => time() - 3600, 'path' => self::cookiePath($cookie), 'samesite' => 'Lax']);
+        }
+    }
+
+    private static function cookiePath(string $cookie): string
+    {
+        return $cookie === 'mnx_atag' ? '/' : (base_path() ?: '') . '/';
+    }
+
     /** إغلاق ملف الجلسة مبكراً للطلبات الطويلة كي لا تُقفل الطلبات الأخرى */
     public static function release(): void
     {

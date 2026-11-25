@@ -23,6 +23,6 @@ use App\Core\Theme;
   <div class="public-card"><?= $content ?></div>
   <?= $v->partial('madix-credit') ?>
 </main>
-<script src="<?= e(asset('js/app.js')) ?>"></script>
+<script src="<?= e(asset('js/app.js')) ?>" defer></script>
 </body>
 </html>

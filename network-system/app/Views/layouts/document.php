@@ -58,9 +58,9 @@ $back = $back ?? '/';
     </footer>
   </article>
 </div>
-<script src="<?= e(asset('js/app.js')) ?>"></script>
-<script src="<?= e(asset('js/app-bridge.js')) ?>"></script>
-<?php foreach ($v->scripts as $src): ?><script src="<?= e(asset($src)) ?>"></script>
+<script src="<?= e(asset('js/app.js')) ?>" defer></script>
+<script src="<?= e(asset('js/app-bridge.js')) ?>" defer></script>
+<?php foreach ($v->scripts as $src): ?><script src="<?= e(asset($src)) ?>" defer></script>
 <?php endforeach; ?>
 <script>
 (function () {

@@ -105,7 +105,7 @@ final class AdminBotController extends Controller
     public function show(Request $request, int $id): Response
     {
         $chat = $this->chatOr404($id);
-        if ((int) $chat['unread'] > 0 && $chat['handler'] === 'admin') {
+        if ((int) $chat['unread'] > 0 && $chat['handler'] === 'admin' && !is_prefetch()) {
             DB::update('platform_bot_chats', ['unread' => 0], 'id = ?', [$id]);
         }
         $messages = array_reverse(DB::rows('SELECT * FROM platform_bot_messages WHERE chat_id = ? ORDER BY id DESC LIMIT 200', [$id]));

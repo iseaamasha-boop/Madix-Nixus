@@ -95,6 +95,8 @@ final class AuthController extends Controller
         Auth::logout();
         Session::resume();
         flash('success', 'تم تسجيل الخروج.');
-        return redirect('/login');
+        Session::forgetTag('mnx_tag');
+        // ذاكرة المتصفح لهذا الموقع (والصفحات المحفوظة للرجوع) تُمسح: زر الرجوع لا يعرض بيانات بعد الخروج
+        return redirect('/login')->withHeader('Clear-Site-Data', '"cache", "prefetchCache"');
     }
 }

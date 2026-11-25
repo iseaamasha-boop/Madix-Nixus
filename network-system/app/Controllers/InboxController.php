@@ -71,7 +71,7 @@ final class InboxController extends Controller
     {
         $this->notFoundUnless(self::available());
         $chat = $this->chatOr404($id);
-        if ((int) $chat['unread'] > 0 && $chat['handler'] === 'network') {
+        if ((int) $chat['unread'] > 0 && $chat['handler'] === 'network' && !is_prefetch()) {
             Platform::update('platform_bot_chats', ['unread' => 0], 'id = ?', [$id]);
         }
         $messages = array_reverse(Platform::rows('SELECT * FROM platform_bot_messages WHERE chat_id = ? ORDER BY id DESC LIMIT 200', [$id]));

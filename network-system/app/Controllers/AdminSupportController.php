@@ -46,7 +46,7 @@ final class AdminSupportController extends Controller
     public function ticketShow(Request $request, int $id): Response
     {
         $t = $this->ticket($id);
-        if ((int) $t['admin_unread'] === 1) {
+        if ((int) $t['admin_unread'] === 1 && !is_prefetch()) {
             DB::update('support_tickets', ['admin_unread' => 0], 'id = ?', [$id]);
         }
         return view('admin/ticket', ['t' => $t, 'messages' => Support::thread($id), 'aiState' => \App\Services\Ai::status(null)], 'admin');

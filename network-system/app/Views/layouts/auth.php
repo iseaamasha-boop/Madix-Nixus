@@ -50,9 +50,9 @@ $flash = Config::installed() || PHP_SAPI !== 'cli' ? (Session::pull('_flash', []
 <?php if ($flash): ?>
 <script type="application/json" id="flash-data"><?= json_encode($flash, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
 <?php endif; ?>
-<script src="<?= e(asset('js/app.js')) ?>"></script>
+<script src="<?= e(asset('js/app.js')) ?>" defer></script>
 <?php foreach ($v->scripts as $script): ?>
-<script src="<?= e(asset($script)) ?>"></script>
+<script src="<?= e(asset($script)) ?>" defer></script>
 <?php endforeach; ?>
 </body>
 </html>

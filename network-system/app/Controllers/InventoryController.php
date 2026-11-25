@@ -204,9 +204,10 @@ final class InventoryController extends Controller
         ];
     }
 
+    /** المشترك يُختار بالبحث في الخادم (لا قائمة بكل المشتركين في الصفحة) */
     private function subscriberPairs(): array
     {
-        return DB::pairs('SELECT id, CONCAT(full_name, " · ", username) FROM subscribers ORDER BY full_name LIMIT 3000');
+        return [];
     }
 
     // ------------------------------------------------------------------

@@ -212,9 +212,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   render(data);
   function refresh() {
+    if (document.hidden) { return; }
     SN.api(base + '/status', { silent: true }).then(function (d) { data = d; skew = Math.round(Date.now() / 1000) - d.now; render(d); }).catch(function () {});
   }
   setInterval(refresh, 10000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) { refresh(); } });
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { refresh(); } });
   setInterval(function () { $('[data-srv-age]').textContent = data.time ? ago(data.time) : '—'; }, 1000);
 

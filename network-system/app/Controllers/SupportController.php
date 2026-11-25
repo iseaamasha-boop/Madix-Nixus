@@ -55,7 +55,7 @@ final class SupportController extends Controller
     public function show(Request $request, int $id): Response
     {
         $t = $this->ticket($id);
-        if ((int) $t['tenant_unread'] === 1) {
+        if ((int) $t['tenant_unread'] === 1 && !is_prefetch()) {
             Platform::update('support_tickets', ['tenant_unread' => 0], 'id = ?', [$id]);
         }
         return view('support/show', ['t' => $t, 'messages' => Support::thread($id)]);

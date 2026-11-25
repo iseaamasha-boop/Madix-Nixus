@@ -156,6 +156,10 @@ final class SettingsController extends Controller
             return null;
         }
         @chmod($dir . '/' . $name, 0644);
+        // نسخة WebP بجانبها للعرض في المتصفح (الأصل يبقى للهوتسبوت والطباعة)
+        if ($types[$info[2]] !== 'webp') {
+            \App\Support\Images::webp($dir . '/' . $name, $dir . '/' . preg_replace('/\.(png|jpg)$/', '.webp', $name));
+        }
         return $rel . '/' . $name;
     }
 

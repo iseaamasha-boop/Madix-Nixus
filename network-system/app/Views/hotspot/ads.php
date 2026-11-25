@@ -31,7 +31,7 @@ foreach ($ads as $a) {
           [$label, $badge] = HotspotAds::STATES[HotspotAds::state($a, $today)];
           $only = HotspotAds::routerIds($a); ?>
       <li class="ad-item">
-        <div class="ad-thumb"><?php if ($a['image']): ?><img src="<?= e(upload_url((string) $a['image'])) ?>" alt="" loading="lazy"><?php else: ?><?= icon('megaphone') ?><?php endif; ?></div>
+        <div class="ad-thumb"><?php if ($a['image']): ?><?= upload_img((string) $a['image'], 'alt="" loading="lazy" decoding="async" width="92" height="60"') ?><?php else: ?><?= icon('megaphone') ?><?php endif; ?></div>
         <div class="ad-main">
           <div class="ad-title"><?= e($a['title']) ?> <span class="badge <?= $badge ?>"><?= e($label) ?></span></div>
           <?php if ($a['advertiser'] || $a['body']): ?><div class="ad-sub"><?= $a['advertiser'] ? '<b>' . e($a['advertiser']) . '</b>' . ($a['body'] ? ' · ' : '') : '' ?><?= e(str_limit((string) $a['body'], 110)) ?></div><?php endif; ?>

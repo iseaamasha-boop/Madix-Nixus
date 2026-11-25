@@ -10,6 +10,9 @@ final class Kernel
     /** مسارات عامة بلا جلسة (واجهات الهوتسبوت وجهاز MikroTik والمهام المجدولة) */
     private const STATELESS = ['/api/hotspot', '/api/router', '/api/app', '/api/whatsapp', '/api/bot', '/api/rum', '/cron', '/hotspot/sdk', '/health'];
 
+    /** صفحات لا تُحفظ في المتصفح إطلاقاً: الدخول، والحساب (التحقق بخطوتين ورموز الاسترجاع)، والإعدادات، والتثبيت */
+    private const NO_STORE = '#^/(login|account|settings|install|signup|forgot|reset|verify|auth|admin/(login|account|security|settings|team|ai|mail|sms|bot|cookies|server|billing))(/|$)#';
+
     /** أقصى مدة لوضع الصيانة؛ بعدها يُتجاهل الملف حتى لا يبقى النظام مغلقاً إن تعطّل التحديث */
     private const MAINTENANCE_MAX = 900;
 
@@ -225,9 +228,14 @@ final class Kernel
             'Referrer-Policy'        => 'same-origin',
         ];
         if (!self::isStateless($request->path)) {
+            // صفحات العرض: «private, no-cache» تسمح بالرجوع للخلف الفوري (bfcache) وتمنع أي وسيط من حفظها، والمتصفح يسأل الخادم
+            // عند كل فتح عادي. صفحات الدخول والحساب والإعدادات وما فيه أسرار تبقى «no-store»، والخروج يمسح ذاكرة المتصفح
+            $view = in_array($request->method, ['GET', 'HEAD'], true) && $response->status === 200
+                && str_starts_with((string) ($response->headers['Content-Type'] ?? ''), 'text/html')
+                && !preg_match(self::NO_STORE, $request->path);
             $response->headers += [
                 'X-Frame-Options' => 'SAMEORIGIN',
-                'Cache-Control'   => 'no-store, private',
+                'Cache-Control'   => $view ? 'private, no-cache' : 'no-store, private',
             ];
             // بعد أي تعديل (طلب غير GET) تُحذف الصفحات المحمّلة مسبقاً، فلا تظهر صفحة من قبل التعديل
             if (!in_array($request->method, ['GET', 'HEAD'], true)) {

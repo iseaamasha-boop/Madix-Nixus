@@ -50,7 +50,7 @@ $v->script('js/inventory.js');
         </div>
         <div class="field col-6" data-show="out,return">
           <label for="im-sub">المشترك</label>
-          <select class="input" id="im-sub" name="subscriber_id"><option value="">—</option><?php foreach ($subscribers as $id => $name): ?><option value="<?= (int) $id ?>"><?= e($name) ?></option><?php endforeach; ?></select>
+          <input type="hidden" name="subscriber_id" id="im-sub-id"><input class="input" id="im-sub" type="search" data-remote-select="<?= e(url('/subscribers/lookup')) ?>" data-remote-target="im-sub-id" autocomplete="off" spellcheck="false">
         </div>
         <div class="field col-6" data-show="out">
           <label for="im-receiver">المستلم</label>

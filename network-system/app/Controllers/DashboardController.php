@@ -14,7 +14,8 @@ use App\Services\CronService;
 
 final class DashboardController extends Controller
 {
-    private function scheduleCron(): void
+    /** المهام المجدولة احتياطياً من اللوحة إن تأخرت (استضافات بلا Cron) */
+    public static function scheduleCron(): void
     {
         if (CronService::isStale(150)) {
             Kernel::afterResponse(static fn () => CronService::run(20.0, 'auto'));
@@ -29,7 +30,7 @@ final class DashboardController extends Controller
             Settings::set('onboarding.connect_seen', '1');
             return redirect('/routers/connect');
         }
-        $this->scheduleCron();
+        self::scheduleCron();
         [$rScope, $rParams] = Auth::routerScope('r.id');
         [$sScope, $sParams] = Auth::routerScope('s.router_id', true);
         $today = date('Y-m-d 00:00:00');
@@ -173,12 +174,18 @@ final class DashboardController extends Controller
     /** تحديث دوري للأرقام الحية */
     public function data(Request $request): Response
     {
-        $this->scheduleCron();
+        self::scheduleCron();
+        return json_response(self::liveData());
+    }
+
+    /** الأرقام الحية (للرابط القديم /dashboard/data وللتحديث المجمّع /live) */
+    public static function liveData(): array
+    {
         [$rScope, $rParams] = Auth::routerScope('r.id');
         [$sScope, $sParams] = Auth::routerScope('s.router_id', true);
         $sess = DB::row("SELECT COUNT(*) AS n, SUM(s.service = 'hotspot') AS hs, SUM(s.service = 'ppp') AS ppp FROM sessions s WHERE s.stopped_at IS NULL" . $sScope, $sParams);
         $routers = DB::rows('SELECT r.id, r.status, r.cpu_load, r.active_hotspot, r.active_ppp, r.rx_bps, r.tx_bps FROM routers r WHERE r.is_active = 1' . $rScope, $rParams);
-        return json_response([
+        return [
             'ok' => true,
             'online' => (int) $sess['n'],
             'online_hs' => (int) $sess['hs'],
@@ -188,6 +195,6 @@ final class DashboardController extends Controller
             'tx' => array_sum(array_column($routers, 'tx_bps')),
             'routers' => $routers,
             'time' => date('H:i:s'),
-        ]);
+        ];
     }
 }

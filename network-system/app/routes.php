@@ -190,6 +190,8 @@ return static function (Router $r): void {
     // ------------------------------------------------------------------
     $r->get('/', [DashboardController::class, 'index'], ['perm' => 'dashboard.view']);
     $r->get('/dashboard/data', [DashboardController::class, 'data'], ['perm' => 'dashboard.view']);
+    // التحديثات المباشرة المجمّعة (كل مفتاح بصلاحيته)
+    $r->get('/live', [\App\Controllers\LiveController::class, 'index']);
 
     // ------------------------------------------------------------------
     // أجهزة MikroTik
@@ -368,6 +370,7 @@ return static function (Router $r): void {
 
     $r->get('/subscribers', [SubscriberController::class, 'index'], ['perm' => 'subscribers.view']);
     $r->get('/subscribers/export', [SubscriberController::class, 'export'], ['perm' => 'subscribers.view']);
+    $r->get('/subscribers/lookup', [SubscriberController::class, 'lookup'], ['perm' => ['subscribers.view', 'inventory.manage']]);
     $r->get('/subscribers/create', [SubscriberController::class, 'create'], ['perm' => 'subscribers.manage']);
     $r->get('/subscribers/import-smart', [\App\Controllers\SmartImportController::class, 'index'], ['perm' => 'subscribers.manage']);
     $r->post('/subscribers/import-smart/parse', [\App\Controllers\SmartImportController::class, 'parse'], ['perm' => 'subscribers.manage']);

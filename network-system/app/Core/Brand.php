@@ -40,7 +40,7 @@ final class Brand
         $logo = self::networkLogo();
         $cls = trim('net-mark ' . $class);
         if ($logo !== '') {
-            return '<span class="' . e($cls) . ' has-logo"><img src="' . e(upload_url($logo)) . '" alt=""></span>';
+            return '<span class="' . e($cls) . ' has-logo">' . upload_img($logo, 'alt="" decoding="async"') . '</span>';
         }
         $name = self::networkName();
         $initial = mb_strtoupper(mb_substr(preg_replace('/[^\p{L}\p{N}]/u', '', $name) ?: 'N', 0, 1));

@@ -22,6 +22,7 @@ $initial = mb_substr(trim((string) $user['name']), 0, 1);
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
+<?= $v->partial('session-guard', ['cookie' => 'mnx_tag']) ?>
 <meta name="base-url" content="<?= e(base_path()) ?>">
 <meta name="icons-url" content="<?= e(asset('img/icons.svg')) ?>">
 <meta name="robots" content="noindex, nofollow">
@@ -202,10 +203,10 @@ $initial = mb_substr(trim((string) $user['name']), 0, 1);
 <script type="application/json" id="flash-data"><?= json_encode($flash, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
 <?php endif; ?>
 <?= $v->partial('speculation') ?>
-<script src="<?= e(asset('js/app.js')) ?>"></script>
-<script src="<?= e(asset('js/app-bridge.js')) ?>"></script>
+<script src="<?= e(asset('js/app.js')) ?>" defer></script>
+<script src="<?= e(asset('js/app-bridge.js')) ?>" defer></script>
 <?php foreach ($v->scripts as $script): ?>
-<script src="<?= e(asset($script)) ?>"></script>
+<script src="<?= e(asset($script)) ?>" defer></script>
 <?php endforeach; ?>
 </body>
 </html>

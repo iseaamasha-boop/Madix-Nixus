@@ -11,6 +11,7 @@ use App\Core\HttpException;
 use App\Core\Paginator;
 use App\Core\Request;
 use App\Core\Response;
+use App\Core\Session;
 use App\Core\Settings;
 use App\Services\Geo;
 use App\Services\LoginRegistry;
@@ -147,6 +148,21 @@ final class SubscriberController extends Controller
             'routers' => DB::pairs("SELECT id, name FROM routers WHERE 1 = 1$rScope ORDER BY name", $rParams),
             'request' => $request,
         ]);
+    }
+
+    /** بحث سريع عن مشترك لحقول الاختيار (20 نتيجة على الأكثر، ضمن نطاق أجهزة MikroTik المسموحة للموظف) */
+    public function lookup(Request $request): Response
+    {
+        Session::release();
+        $q = trim(latin_digits($request->str('q')));
+        if ($q === '' || mb_strlen($q) > 60) {
+            return json_response(['ok' => true, 'items' => []]);
+        }
+        [$where, $params] = self::listWhere(['q' => $q, 'plan' => '', 'area' => '', 'router' => '', 'state' => '', 'service' => ''], false);
+        $rows = DB::rows("SELECT s.id, s.full_name, s.username, s.phone FROM subscribers s WHERE $where ORDER BY s.full_name LIMIT 20", $params);
+        return json_response(['ok' => true, 'items' => array_map(static fn ($r) => [
+            'id' => (int) $r['id'], 'label' => $r['full_name'] . ' · ' . $r['username'], 'sub' => (string) ($r['phone'] ?? ''),
+        ], $rows)]);
     }
 
     public function export(Request $request): Response

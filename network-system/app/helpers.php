@@ -69,6 +69,28 @@ function upload_url(string $relative): string
     return root_path() . '/' . ltrim($relative, '/');
 }
 
+/** رابط نسخة WebP بجانب صورة مرفوعة (PNG/JPEG)، تُنشأ مرة واحدة عند أول حاجة؛ null إن تعذّر */
+function upload_webp(string $relative): ?string
+{
+    if (!preg_match('/\.(png|jpe?g)$/i', $relative)) {
+        return null;
+    }
+    $rel = ltrim($relative, '/');
+    $webp = (string) preg_replace('/\.(png|jpe?g)$/i', '.webp', $rel);
+    if (!is_file(PUBLIC_PATH . '/' . $webp) && !\App\Support\Images::webp(PUBLIC_PATH . '/' . $rel, PUBLIC_PATH . '/' . $webp)) {
+        return null;
+    }
+    return upload_url($webp);
+}
+
+/** صورة مرفوعة: WebP للمتصفحات التي تدعمه والأصل لغيرها (الغلاف لا يؤثر على التخطيط) */
+function upload_img(string $relative, string $attrs = 'alt=""'): string
+{
+    $img = '<img src="' . e(upload_url($relative)) . '" ' . $attrs . '>';
+    $webp = upload_webp($relative);
+    return $webp === null ? $img : '<picture class="pic"><source srcset="' . e($webp) . '" type="image/webp">' . $img . '</picture>';
+}
+
 /** مجلد الرفع للزبون الحالي والمسار النسبي المقابل */
 function upload_dir(): array
 {
