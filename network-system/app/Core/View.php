@@ -17,6 +17,8 @@ final class View
     public array $breadcrumbs = [];
     public string $actions = '';
     public array $scripts = [];
+    /** ملفات CSS خاصة بالصفحة (تُحمَّل في صفحاتها فقط بعد app.css) */
+    public array $styles = [];
     public string $nav = '';
     public string $bodyClass = '';
     public bool $wide = false;
@@ -63,5 +65,22 @@ final class View
         if (!in_array($path, $this->scripts, true)) {
             $this->scripts[] = $path;
         }
+    }
+
+    public function style(string $path): void
+    {
+        if (!in_array($path, $this->styles, true)) {
+            $this->styles[] = $path;
+        }
+    }
+
+    /** وسوم ملفات CSS الخاصة بالصفحة */
+    public function styleTags(): string
+    {
+        $out = '';
+        foreach ($this->styles as $path) {
+            $out .= '<link rel="stylesheet" href="' . e(asset($path)) . '">' . "\n";
+        }
+        return $out;
     }
 }

@@ -5,6 +5,7 @@
 use App\Core\Settings;
 use App\Services\CableDoctor;
 
+$v->style('css/pages/cables.css');
 $v->title = 'فحص الكابلات';
 $v->script('js/cables.js');
 $levelBadge = ['ok' => 'badge-success', 'warn' => 'badge-warning', 'bad' => 'badge-danger'];

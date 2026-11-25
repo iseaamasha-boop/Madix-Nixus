@@ -7,6 +7,7 @@ use App\Core\Platform;
 use App\Platform\PlatformMail;
 use App\Services\Mailer;
 
+$v->style('css/pages/admin.css');
 $v->title = 'البريد الإلكتروني';
 $v->script('js/tpl.js');
 $c = static fn (string $k) => old($k, (string) $config[$k]);

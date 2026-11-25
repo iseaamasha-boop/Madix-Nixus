@@ -2,6 +2,7 @@
 /** @var App\Core\View $v */
 use App\Services\Geo;
 
+$v->style('css/pages/map.css');
 $v->title = 'الأبراج والمواقع';
 $actions = '<a class="btn" href="' . e(url('/map')) . '">' . icon('map') . 'الخريطة</a>';
 if (can('map.manage')) {

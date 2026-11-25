@@ -2,6 +2,7 @@
 /** @var App\Core\View $v @var array $t */
 use App\Core\Theme;
 
+$v->style('css/pages/design.css');
 $v->title = 'التصاميم';
 $v->subtitle = 'اختر تصميماً جاهزاً أو خصّص كل تفصيلة، وشاهد النتيجة مباشرة قبل التطبيق على كل الأنظمة';
 $v->script('js/design.js');

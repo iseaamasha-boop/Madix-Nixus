@@ -10,6 +10,7 @@
  */
 use App\Services\Geo;
 
+$v->style('css/pages/map.css');
 $v->script('vendor/leaflet/leaflet.js');
 $v->script('js/geo.js');
 [$dLat, $dLng, $dZoom] = Geo::view();

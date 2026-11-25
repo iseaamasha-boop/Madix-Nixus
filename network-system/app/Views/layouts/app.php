@@ -36,6 +36,7 @@ $initial = mb_substr(trim((string) $user['name']), 0, 1);
 })();
 </script>
 <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
+<?= $v->styleTags() ?>
 <?= \App\Core\Theme::style() ?>
 <?= Brand::headTags() ?>
 </head>

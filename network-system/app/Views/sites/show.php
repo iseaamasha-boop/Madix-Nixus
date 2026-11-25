@@ -4,6 +4,7 @@ use App\Services\Geo;
 use App\Services\SubscriberRules;
 
 [$typeLabel, $typeIcon] = Geo::SITE_TYPES[$site['type']] ?? [$site['type'], 'map-pin'];
+$v->style('css/pages/map.css');
 $v->title = $site['name'];
 $v->breadcrumbs = [['الأبراج والمواقع', '/sites'], [$site['name'], null]];
 $actions = '<a class="btn" href="' . e(url('/map')) . '">' . icon('map') . 'الخريطة</a>';

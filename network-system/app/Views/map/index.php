@@ -2,6 +2,7 @@
 /** @var App\Core\View $v */
 use App\Services\Geo;
 
+$v->style('css/pages/map.css');
 $v->title = 'خريطة الشبكة';
 $v->wide = true;
 $v->script('vendor/leaflet/leaflet.js');

@@ -1,0 +1,95 @@
+/* MADIX NEXUS — استوديو التصميم (يُحمَّل في صفحاتها فقط؛ الرموز من app.css) */
+/* ---------------- صفحة التصاميم (لوحة المسؤول) ---------------- */
+.dz { display: flex; flex-direction: column; gap: 18px; }
+.dz-state { font-size: 12.5px; font-weight: 600; color: var(--primary); background: var(--primary-soft); padding: 4px 11px; border-radius: 999px; }
+.dz-presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: var(--space-3h); }
+.dz-preset {
+  position: relative; display: flex; flex-direction: column; gap: var(--space-2h); padding: 10px; text-align: start;
+  border: 1.5px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); color: var(--text);
+  font: inherit; cursor: pointer; transition: border-color var(--dur-3), box-shadow var(--dur-3), transform var(--dur-2);
+}
+.dz-preset:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.dz-preset:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.dz-preset.is-active { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-ring); }
+.dz-preset-text { display: flex; flex-direction: column; gap: 3px; padding: 0 4px 2px; }
+.dz-preset-text b { font-size: 14px; }
+.dz-preset-text small { color: var(--muted); font-size: 11.8px; line-height: 1.6; }
+.dz-check { position: absolute; top: 16px; inset-inline-start: 16px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: var(--on-primary); opacity: 0; transform: scale(.6); transition: opacity var(--dur-3), transform var(--dur-3); box-shadow: 0 4px 10px -4px rgba(0, 0, 0, .4); }
+.dz-check .icon { width: 14px; height: 14px; }
+.dz-preset.is-active .dz-check { opacity: 1; transform: none; }
+/* مصغّر التصميم */
+.dz-mini { display: flex; gap: 0; height: 112px; border-radius: calc(var(--radius) - 2px); overflow: hidden; background: var(--mz-bg); box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .08); padding: var(--mz-float); direction: rtl; }
+.dz-mini-side { flex: 0 0 26%; display: flex; flex-direction: column; gap: 5px; padding: 9px 7px; background: var(--mz-side); border-radius: calc(var(--mz-float) * 2); box-shadow: inset -1px 0 0 rgba(15, 23, 42, .07); }
+.dz-mini-side i { display: block; height: 7px; border-radius: 4px; background: var(--mz-on-side); }
+.dz-mini-side i:first-child { width: 60%; height: 9px; margin-bottom: 3px; }
+.dz-mini-side i.on { background: var(--mz-c1); box-shadow: 0 0 0 1px rgba(255, 255, 255, .5); }
+.dz-mini-main { flex: 1; display: flex; flex-direction: column; gap: var(--space-1h); padding: 0 7px 7px; min-width: 0; }
+.dz-mini-top { height: 14px; margin: 0 -7px; background: var(--mz-top); box-shadow: 0 1px 0 rgba(15, 23, 42, .06); }
+.dz-mini-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.dz-mini-cards i { height: 22px; border-radius: var(--mz-r); background: var(--mz-card); }
+.dz-mini-panel { flex: 1; display: flex; flex-direction: column; gap: 5px; padding: 7px; border-radius: var(--mz-r); background: var(--mz-card); }
+.dz-mini-panel b { width: 34%; height: 9px; border-radius: var(--mz-pill); background: var(--mz-btn); }
+.dz-mini-panel s { height: 5px; border-radius: 3px; background: rgba(15, 23, 42, .1); text-decoration: none; }
+.dz-mini-panel s + s { width: 70%; }
+/* الأقسام */
+.dz-layout { display: grid; grid-template-columns: minmax(330px, .82fr) minmax(0, 1.3fr); gap: 18px; align-items: start; }
+.dz-side-col { position: sticky; top: calc(var(--topbar-h) + 16px); display: flex; flex-direction: column; gap: var(--space-3); }
+.dz-preview-panel .panel-head { padding-block: 10px; }
+.dz-seg-sm label span { padding: 4px 9px; font-size: 12px; }
+.dz-seg-sm .icon { width: 14px; height: 14px; }
+.dz-stage { position: relative; overflow: hidden; height: 420px; border-end-start-radius: var(--radius-lg); border-end-end-radius: var(--radius-lg); background: repeating-conic-gradient(var(--surface-2) 0% 25%, var(--surface) 0% 50%) 50% / 18px 18px; }
+.dz-frame { position: absolute; top: 0; inset-inline-start: 0; transform-origin: top right; }
+[dir="ltr"] .dz-frame { transform-origin: top left; }
+.dz-frame iframe { display: block; width: 100%; height: 100%; border: 0; background: var(--bg); }
+.dz-stage.is-mobile .dz-frame { top: 0; }
+.dz-stage.is-mobile .dz-frame iframe { border-radius: 26px; box-shadow: 0 0 0 8px #0f172a, 0 20px 40px -18px rgba(0, 0, 0, .6); }
+.dz-stage.is-mobile { padding-top: 0; }
+.dz-loading { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--surface) 55%, transparent); opacity: 0; pointer-events: none; transition: opacity var(--dur-4); }
+.dz-loading.is-on { opacity: 1; }
+.dz-apply { display: flex; flex-direction: column; gap: var(--space-2); }
+.dz-apply p { margin: 0; text-align: center; }
+.dz-seg { flex-wrap: wrap; row-gap: 3px; }
+.dz-seg label { flex: 1 1 auto; }
+.dz-seg label span { white-space: nowrap; padding-inline: 10px; }
+.dz-dot { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .45), 0 6px 14px -6px rgba(0, 0, 0, .5); }
+/* أيقونات أنماط النظام */
+.dz-skin { position: relative; width: 74px; height: 46px; border-radius: var(--control-radius); background: #eef1f6; display: flex; align-items: center; justify-content: center; gap: var(--space-1h); padding: 8px; }
+.dz-skin i { flex: 1; height: 100%; border-radius: 6px; background: #fff; }
+.dz-skin.is-classic i { box-shadow: 0 1px 2px rgba(15, 23, 42, .1); border: 1px solid #e3e8ef; }
+.dz-skin.is-soft { background: color-mix(in srgb, var(--primary) 5%, #f5f6fa); }
+.dz-skin.is-soft i { border-radius: var(--control-radius); box-shadow: 0 5px 12px -5px rgba(15, 23, 42, .25); }
+.dz-skin.is-glass { background: radial-gradient(80% 80% at 100% 0%, color-mix(in srgb, var(--primary) 45%, transparent), transparent 70%), radial-gradient(70% 70% at 0% 100%, color-mix(in srgb, var(--accent-2) 40%, transparent), transparent 70%), #eef1f8; }
+.dz-skin.is-glass i { background: rgba(255, 255, 255, .55); border: 1px solid rgba(255, 255, 255, .85); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.dz-skin.is-elevated { background: #e7ebf2; }
+.dz-skin.is-elevated i { box-shadow: 0 6px 12px -4px rgba(15, 23, 42, .3); }
+.dz-skin.is-flat { background: #f3f5f8; }
+.dz-skin.is-flat i { border: 1px solid #dfe5ec; }
+.dz-skin.is-outline { background: #fff; box-shadow: inset 0 0 0 1px #e6e7eb; }
+.dz-skin.is-outline i { border: 1px solid #cfd3da; }
+[data-theme="dark"] .dz-skin { filter: brightness(.82); }
+/* أيقونات ألوان القائمة */
+.dz-side { width: 74px; height: 46px; border-radius: var(--control-radius); background: #f3f5f9; display: flex; flex-direction: column; gap: var(--space-1); padding: 6px; box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .08); }
+.dz-side i { display: block; width: 46%; height: 7px; border-radius: 4px; background: rgba(15, 23, 42, .14); }
+.dz-side i.on { background: var(--primary); }
+.dz-side.is-light { background: linear-gradient(to left, #fff 46%, #f3f5f9 46%); }
+.dz-side.is-dark { background: linear-gradient(to left, #0f172a 46%, #f3f5f9 46%); }
+.dz-side.is-brand { background: linear-gradient(to left, var(--brand) 46%, #f3f5f9 46%); }
+.dz-side.is-gradient { background: linear-gradient(to left, transparent 46%, #f3f5f9 46%), linear-gradient(165deg, var(--brand), var(--brand-2)); }
+.dz-side.is-glass { background: linear-gradient(to left, rgba(255, 255, 255, .6) 46%, transparent 46%), radial-gradient(90% 90% at 100% 0%, color-mix(in srgb, var(--primary) 35%, transparent), transparent 70%), #eef1f8; }
+.dz-side.is-minimal { background: #f3f5f9; }
+.dz-side.is-dark i, .dz-side.is-brand i, .dz-side.is-gradient i { background: rgba(255, 255, 255, .5); }
+.dz-side.is-dark i.on, .dz-side.is-brand i.on, .dz-side.is-gradient i.on { background: #fff; }
+[dir="ltr"] .dz-side.is-light { background: linear-gradient(to right, #fff 46%, #f3f5f9 46%); }
+[data-theme="dark"] .dz-side { filter: brightness(.85); }
+@media (max-width: 1100px) {
+  .dz-layout { grid-template-columns: minmax(0, 1fr); }
+  .dz-side-col { position: static; order: -1; }
+}
+@media (max-width: 640px) {
+  .dz-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2h); }
+  .dz-mini { height: 92px; }
+  .dz-preset { padding: 8px; }
+  .dz-preset-text small { display: none; }
+  .dz-preview-panel .panel-head { flex-direction: column; align-items: stretch; }
+  .dz-preview-panel .panel-tools { justify-content: space-between; }
+}

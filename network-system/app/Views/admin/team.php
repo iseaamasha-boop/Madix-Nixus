@@ -3,6 +3,7 @@
 use App\AdminPermissions;
 use App\Core\AdminAuth;
 
+$v->style('css/pages/admin.css');
 $v->title = 'فريق الإدارة';
 $v->actions = '<button type="button" class="btn btn-primary" data-modal-open="m-member" data-member="">' . icon('user-plus') . 'إضافة مسؤول</button>';
 $all = AdminPermissions::all();

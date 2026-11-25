@@ -1,0 +1,90 @@
+/* MADIX NEXUS — خريطة الشبكة ومنتقي الموقع (يُحمَّل في صفحاتها فقط؛ الرموز من app.css) */
+/* --------------------------------------------------------------------------
+   خريطة الشبكة
+   -------------------------------------------------------------------------- */
+.map-shell { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: var(--space-4); align-items: stretch; }
+.map-canvas { height: calc(100vh - 190px); min-height: 460px; overflow: hidden; border-radius: calc(var(--radius) + 2px); padding: 0; z-index: 0; }
+.map-canvas[data-mode="add"].leaflet-grab, .map-canvas[data-mode="link"].leaflet-grab, .map-canvas[data-mode="router"].leaflet-grab { cursor: crosshair; }
+/* أسماء الأجهزة والمواقع تحت علاماتها: بطاقة صغيرة مقروءة فوق الخريطة والقمر الصناعي، وما يتصادم منها يُخفى */
+.leaflet-tooltip.mk-label {
+  padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(15, 23, 42, .12);
+  background: rgba(255, 255, 255, .96); color: #0f172a; box-shadow: 0 2px 8px rgba(15, 23, 42, .22);
+  font: 600 11.5px/1.5 var(--font); white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none; transition: opacity var(--dur-2);
+}
+.leaflet-tooltip.mk-label::before { display: none; }
+.leaflet-tooltip.mk-label.is-router { display: inline-flex; align-items: center; gap: 5px; }
+.leaflet-tooltip.mk-label.is-router::after { content: ""; order: -1; width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; flex: none; }
+.leaflet-tooltip.mk-label.is-router.is-online::after { background: #16a34a; }
+.leaflet-tooltip.mk-label.is-router.is-offline::after { background: #dc2626; }
+.leaflet-tooltip.mk-label.is-site { background: #1e3a8a; color: #fff; border-color: rgba(255, 255, 255, .35); }
+.leaflet-tooltip.mk-label.is-clash, .hide-labels .leaflet-tooltip.mk-label { visibility: hidden; opacity: 0; }
+[data-theme="dark"] .leaflet-tooltip.mk-label:not(.is-site) { background: rgba(15, 23, 42, .94); color: #f1f5f9; border-color: rgba(255, 255, 255, .14); }
+.map-label-sample { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 999px; background: var(--surface-3); color: var(--text-2); flex: none; }
+.map-label-sample .icon { width: 14px; height: 14px; }
+.map-coords { display: flex; align-items: center; gap: 7px; margin-top: 12px; color: var(--muted); font-size: 12.5px; }
+.map-coords .icon { width: 15px; height: 15px; }
+/* شعار Google أسفل الخريطة حين تكون خرائط Google ظاهرة */
+.gmaps-logo { position: absolute; bottom: 4px; left: 8px; z-index: var(--z-map-overlay); pointer-events: none; line-height: 0; }
+.gmaps-logo img { display: block; width: 59px; height: 18px; }
+.map-panel { max-height: calc(100vh - 190px); overflow: auto; }
+.map-layers { display: flex; flex-direction: column; gap: var(--space-0h); }
+.map-layer { display: flex; align-items: center; gap: var(--space-2h); padding: 7px 8px; border-radius: var(--control-radius); cursor: pointer; font-size: 13.5px; }
+.map-layer:hover { background: var(--hover); }
+.map-layer input { accent-color: var(--primary); }
+.map-layer b { font-weight: 600; color: var(--muted); font-size: 12.5px; }
+.map-legend { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-1h) var(--space-2h); font-size: 12.5px; color: var(--text-2); }
+.map-legend > div { display: flex; align-items: center; gap: 7px; }
+.map-legend-title { grid-column: span 2; font-weight: 600; color: var(--muted); font-size: 11.5px; margin-top: 6px; }
+.map-line { width: 22px; height: 0; border-top: 3px solid #2563eb; display: inline-block; flex: none; }
+.map-line.is-wireless { border-top-style: dashed; }
+.map-line.is-fiber { border-color: #f97316; border-top-width: 4px; }
+.map-line.is-cable { border-color: #64748b; }
+.map-line.is-other { border-color: #a855f7; border-top-style: dotted; }
+.map-picker { height: min(60vh, 520px); }
+
+.mk-wrap { background: none; border: 0; }
+.mk { display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: #fff; border: 2.5px solid #fff; box-shadow: 0 3px 10px rgba(15, 23, 42, .35); flex: none; }
+.mk .icon { width: 55%; height: 55%; }
+.mk.mk-sm { width: 24px; height: 24px; border-width: 2px; box-shadow: none; }
+.mk-site { background: linear-gradient(135deg, #2453d6, #1e3a8a); border-radius: var(--radius-sm); }
+.mk-router.is-online { background: #16a34a; }
+.mk-router.is-offline { background: #dc2626; animation: mk-pulse 1.6s infinite; }
+.mk-router.is-unknown { background: #94a3b8; }
+.is-picked .mk { outline: 3px solid #f59e0b; outline-offset: 2px; }
+.mk-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .4); background: #16a34a; flex: none; }
+.mk-dot.is-active { background: #16a34a; }
+.mk-dot.is-expiring { background: #f59e0b; }
+.mk-dot.is-expired { background: #dc2626; }
+.mk-dot.is-new { background: #94a3b8; }
+.mk-dot.is-online { box-shadow: 0 0 0 3px rgba(22, 163, 74, .4), 0 1px 4px rgba(15, 23, 42, .4); }
+@keyframes mk-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, .55); }
+  70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+.leaflet-container { font-family: var(--font); direction: ltr; background: var(--surface-2); }
+.leaflet-container a.btn { color: var(--btn-fg); }
+.leaflet-popup-content { direction: rtl; text-align: right; margin: 12px 14px; line-height: 1.5; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); }
+.leaflet-popup-content-wrapper { border-radius: var(--radius); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+.leaflet-tooltip { font-family: var(--font); direction: rtl; }
+.leaflet-control-layers, .leaflet-bar a { background: var(--surface); color: var(--text); border-color: var(--border); }
+.leaflet-control-layers-expanded { direction: rtl; text-align: right; }
+.leaflet-control-attribution { font-size: 10px; }
+[data-theme="dark"] .tiles-street { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.9); }
+.pop { min-width: 190px; }
+.pop-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.pop-sub { color: var(--muted); font-size: 12.5px; margin-bottom: 4px; }
+.pop-stats { display: flex; gap: var(--space-3); font-size: 12.5px; margin: 6px 0; }
+.pop-stats span { display: inline-flex; align-items: center; gap: var(--space-1); }
+.pop-stats .icon { width: 14px; height: 14px; color: var(--muted); }
+.pop-actions { display: flex; flex-wrap: wrap; gap: var(--space-1h); margin-top: 8px; }
+
+@media (max-width: 960px) {
+  .map-shell { grid-template-columns: minmax(0, 1fr); }
+  .map-canvas { height: 62vh; min-height: 360px; }
+  .map-panel { max-height: none; }
+}

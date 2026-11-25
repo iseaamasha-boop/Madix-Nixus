@@ -3,6 +3,7 @@
 use App\Controllers\AdminController;
 use App\Services\CookiePolicy;
 
+$v->style('css/pages/admin.css');
 $v->title = 'الكوكيز';
 $v->subtitle = 'الدخول التلقائي للجهاز المعروف على أجهزة MikroTik لكل الشبكات';
 $durations = CookiePolicy::DURATIONS;
