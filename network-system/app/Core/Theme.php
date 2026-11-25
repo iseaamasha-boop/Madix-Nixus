@@ -363,9 +363,17 @@ final class Theme
             . 'function css(){var c="";F.forEach(function(f){c+="@font-face{font-family:\""+f[0]+"\";font-weight:"+f[1]+";font-style:normal;font-display:swap;src:url(\""+f[2]+"\") format(\"woff2\");unicode-range:"+f[3]+"}"});return c}'
             . 'function add(c){var s=d.createElement("style");s.textContent=c;d.head.appendChild(s)}function all(){add(css()+B)}'
             . 'var on=false;try{on=localStorage.getItem(K)===V}catch(e){}if(on){all();return}'
-            . 'addEventListener("load",function(){if(!window.FontFace||!d.fonts){all();return}'
+            // الأوزان الأخرى بعد أول رسم للصفحة ثم وقت فراغ المتصفح: لا تنافس الصفحة نفسها على الشبكة أبداً
+            . 'function go(){if(!window.FontFace||!d.fonts){all();return}'
             . 'var L=F.map(function(f){return new FontFace(f[0],"url(\""+f[2]+"\") format(\"woff2\")",{weight:String(f[1]),unicodeRange:f[3],display:"swap"})});'
-            . 'Promise.all(L.map(function(f){return f.load()})).then(function(){L.forEach(function(f){d.fonts.add(f)});if(B){add(B)}try{localStorage.setItem(K,V)}catch(e){}},all)})})();</script>';
+            // أول زيارة: الأوزان تُحفظ في ذاكرة المتصفح فقط وتُعلَن من الصفحة التالية، فلا يُعاد رسم نص الصفحة الحالية متأخراً
+            // (إعادة الرسم بعد وصول الخط تؤخر «أكبر رسم» وقد تزحزح التخطيط). إن تعذّر الحفظ تُطبَّق فوراً كما كانت
+            . 'Promise.all(L.map(function(f){return f.load()})).then(function(){var s=false;try{localStorage.setItem(K,V);s=localStorage.getItem(K)===V}catch(e){}'
+            . 'if(!s){L.forEach(function(f){d.fonts.add(f)})}if(B){add(B)}},all)}'
+            . 'function idle(){(window.requestIdleCallback||function(f){setTimeout(f,200)})(go,{timeout:3000})}'
+            . 'function painted(){var p=window.performance&&performance.getEntriesByType?performance.getEntriesByType("paint"):[];for(var i=0;i<p.length;i++){if(p[i].name==="first-contentful-paint"){return true}}return false}'
+            . 'addEventListener("load",function(){if(painted()||!window.PerformanceObserver){idle();return}'
+            . 'try{var o=new PerformanceObserver(function(l){if(l.getEntries().some(function(e){return e.name==="first-contentful-paint"})){o.disconnect();idle()}});o.observe({type:"paint",buffered:true})}catch(e){idle()}})})();</script>';
     }
 
     /** وسم style بالمتغيرات والخط المختار */
