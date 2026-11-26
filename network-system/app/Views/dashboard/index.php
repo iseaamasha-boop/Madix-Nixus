@@ -211,14 +211,14 @@ document.addEventListener('DOMContentLoaded', function () {
   // الأرقام الحية من التحديث المجمّع (يتوقف والتبويب مخفي)
   SN.live.on('dashboard', function (d) {
       ['online', 'online_hs', 'online_ppp', 'routers_online'].forEach(function (k) {
-        var el = document.querySelector('[data-k="' + k + '"]'); if (el) { el.textContent = SN.fmtNum(d[k]); }
+        var el = document.querySelector('[data-k="' + k + '"]'); if (el) { SN.countTo(el, d[k]); }
       });
       var rx = document.querySelector('[data-k="rx"]'), tx = document.querySelector('[data-k="tx"]');
       if (rx) { rx.textContent = SN.fmtRate(d.rx); } if (tx) { tx.textContent = SN.fmtRate(d.tx); }
       (d.routers || []).forEach(function (r) {
         var li = document.querySelector('[data-router="' + r.id + '"]'); if (!li) { return; }
         li.querySelector('.status-dot').className = 'status-dot is-' + r.status;
-        var u = li.querySelector('[data-r="users"]'); if (u) { u.textContent = SN.fmtNum((+r.active_hotspot || 0) + (+r.active_ppp || 0)); }
+        var u = li.querySelector('[data-r="users"]'); if (u) { SN.countTo(u, (+r.active_hotspot || 0) + (+r.active_ppp || 0)); }
         var c = li.querySelector('[data-r="cpu"]'); if (c && r.cpu_load !== null) { c.textContent = r.cpu_load; }
       });
   }, { every: 30000 });

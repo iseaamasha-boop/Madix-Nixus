@@ -49,7 +49,9 @@
 .mk.mk-sm { width: 24px; height: 24px; border-width: 2px; box-shadow: none; }
 .mk-site { background: linear-gradient(135deg, #2453d6, #1e3a8a); border-radius: var(--radius-sm); }
 .mk-router.is-online { background: #16a34a; }
-.mk-router.is-offline { background: #dc2626; animation: mk-pulse 1.6s infinite; }
+.mk-router.is-offline { background: #dc2626; position: relative; }
+/* نبض جهاز MikroTik المنقطع: حلقة خلف العلامة تكبر وتختفي (transform وopacity فقط) */
+.mk-router.is-offline::after { content: ""; position: absolute; inset: -2.5px; border-radius: 50%; background: rgba(220, 38, 38, .55); z-index: -1; animation: mk-pulse 1.6s ease-out infinite; }
 .mk-router.is-unknown { background: #94a3b8; }
 .is-picked .mk { outline: 3px solid #f59e0b; outline-offset: 2px; }
 .mk-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .4); background: #16a34a; flex: none; }
@@ -58,11 +60,8 @@
 .mk-dot.is-expired { background: #dc2626; }
 .mk-dot.is-new { background: #94a3b8; }
 .mk-dot.is-online { box-shadow: 0 0 0 3px rgba(22, 163, 74, .4), 0 1px 4px rgba(15, 23, 42, .4); }
-@keyframes mk-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, .55); }
-  70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
-}
+@keyframes mk-pulse { from { transform: scale(1); opacity: 1; } 70%, to { transform: scale(1.75); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .mk-router.is-offline::after { animation: none; opacity: 0; } }
 
 .leaflet-container { font-family: var(--font); direction: ltr; background: var(--surface-2); }
 .leaflet-container a.btn { color: var(--btn-fg); }

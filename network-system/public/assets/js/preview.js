@@ -24,7 +24,7 @@
 
   function render(d) {
     if (!d) {
-      card.innerHTML = '<div class="qp-skel"><i></i><i></i><i></i></div>';
+      card.innerHTML = '<div class="qp-skel"><i class="skeleton"></i><i class="skeleton"></i><i class="skeleton"></i></div>';
       return;
     }
     var html = '<div class="qp-head"><a class="qp-title" href="' + esc(d.url) + '">' + esc(d.title) + '</a>' +

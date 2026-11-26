@@ -1075,6 +1075,67 @@
   function fmtNum(n) { return (Number(n) || 0).toLocaleString('en-US'); }
 
   // ------------------------------------------------------------------------
+  // عدّاد Numbers (البند 44): Number الذي يتغيّر يعدّ to قيمته New within 300ms. لا يمس ما يظهر أول Open Page
+  // (لا أثر on LCP and no CLS), والEqual-width digits فلا ترتجف. تقليل Movement: Value مباشرة
+  // ------------------------------------------------------------------------
+  var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  function countTo(el, to, fmt) {
+    if (!el) { return; }
+    fmt = fmt || fmtNum;
+    to = Number(to) || 0;
+    var from = parseFloat(String(el.textContent).replace(/[^0-9.\-]/g, ''));
+    if (reduceMotion || isNaN(from) || from === to || doc.hidden || !el.isConnected) { el.textContent = fmt(to); return; }
+    var start = 0, dur = 300;
+    if (el._countRaf) { cancelAnimationFrame(el._countRaf); }
+    function step(now) {
+      if (!start) { start = now; }
+      var p = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(Math.round(from + (to - from) * e));
+      el._countRaf = p < 1 ? requestAnimationFrame(step) : 0;
+    }
+    el._countRaf = requestAnimationFrame(step);
+  }
+  // Numbers البطاقات التي تحت Screen عند الفتح تعدّ from الصفر أول times تظهر
+  (function () {
+    if (reduceMotion || !('IntersectionObserver' in window)) { return; }
+    var list = $$('.stat-value').filter(function (el) { return /^[0-9,]+$/.test(el.textContent.trim()) && el.getBoundingClientRect().top > window.innerHeight; });
+    if (!list.length) { return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) { return; }
+        io.unobserve(en.target);
+        var v = parseFloat(en.target.textContent.replace(/,/g, '')) || 0;
+        en.target.textContent = '0';
+        countTo(en.target, v);
+      });
+    }, { threshold: 0.6 });
+    list.forEach(function (el) { io.observe(el); });
+  })();
+
+  // ------------------------------------------------------------------------
+  // تموج الضغط (البند 54): دائرة تكبر (scale) وتختفي (opacity) from موضع الضغط داخل طبقة قص داخلية,
+  // فلا تُقص شارات Buttons. data-no-ripple لإيقافه on زر
+  // ------------------------------------------------------------------------
+  if (!reduceMotion) {
+    doc.addEventListener('pointerdown', function (e) {
+      if (e.button > 0) { return; }
+      var b = e.target.closest && e.target.closest('.btn, .icon-btn, .dropdown-item');
+      if (!b || b.disabled || b.hasAttribute('data-no-ripple') || b.closest('[data-no-ripple]')) { return; }
+      var r = b.getBoundingClientRect(), size = Math.max(r.width, r.height) * 2;
+      var wrap = doc.createElement('span');
+      wrap.className = 'ripple-wrap';
+      var dot = doc.createElement('span');
+      dot.className = 'ripple';
+      dot.style.width = dot.style.height = size + 'px';
+      dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+      dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+      wrap.appendChild(dot);
+      b.appendChild(wrap);
+      setTimeout(function () { if (wrap.parentNode) { wrap.parentNode.removeChild(wrap); } }, 420);
+    }, { passive: true });
+  }
+
+  // ------------------------------------------------------------------------
   // الرسوم البيانية
   // ------------------------------------------------------------------------
   function cssVar(name) { return getComputedStyle(root).getPropertyValue(name).trim(); }
@@ -1544,6 +1605,6 @@
   window.SN = {
     api: api, toast: toast, confirm: confirmDialog, openModal: openModal, closeModal: closeModal,
     esc: esc, icon: icon, fmtBytes: fmtBytes, fmtRate: fmtRate, fmtDuration: fmtDuration, fmtNum: fmtNum,
-    chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, palette: palette, undo: undo, undoToast: undoToast, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
+    countTo: countTo, chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, palette: palette, undo: undo, undoToast: undoToast, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
   };
 })();

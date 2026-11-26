@@ -39,11 +39,13 @@
 .cb-port-last.is-warn { background: var(--warning-soft); color: var(--warning); } .cb-port-last.is-warn i { background: var(--warning); }
 .cb-port-last.is-bad { background: var(--danger-soft); color: var(--danger); } .cb-port-last.is-bad i { background: var(--danger); }
 .cb-port.is-skeleton { cursor: default; pointer-events: none; }
-.cb-port.is-skeleton .cb-jack, .cb-port .sk-line { background: linear-gradient(90deg, var(--surface-2), var(--surface-3), var(--surface-2)); background-size: 200% 100%; animation: cb-shimmer 1.4s linear infinite; border-color: transparent; }
+/* هيكل التحميل: نبض شفافية (opacity فقط)؛ عناصر ::before و::after للمنفذ مشغولة برسمه */
+.cb-port.is-skeleton .cb-jack, .cb-port .sk-line { background: var(--surface-3); animation: cb-pulse 1.2s ease-in-out infinite alternate; border-color: transparent; }
 .cb-port.is-skeleton .cb-jack::before, .cb-port.is-skeleton .cb-jack::after { display: none; }
 .cb-port .sk-line { display: block; height: 10px; width: 80%; border-radius: 5px; }
 .cb-port .sk-line.is-short { width: 50%; }
-@keyframes cb-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@keyframes cb-pulse { from { opacity: 1; } to { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .cb-port.is-skeleton .cb-jack, .cb-port .sk-line { animation: none; } }
 
 .cb-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--space-4); align-items: start; margin-top: 16px; }
 .cb-hist { display: flex; flex-direction: column; }
@@ -65,11 +67,14 @@
 .cb-loading { display: flex; flex-direction: column; align-items: center; gap: var(--space-2h); padding: 36px 12px; text-align: center; }
 .cb-pulse { position: relative; width: 220px; max-width: 80%; height: 34px; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 6px; }
 .cb-pulse i { position: relative; display: block; height: 4px; border-radius: 2px; background: var(--surface-3); overflow: hidden; }
-.cb-pulse i::after { content: ""; position: absolute; inset-block: 0; inset-inline-start: -30%; width: 30%; border-radius: 2px; background: var(--c); animation: cb-signal 1.3s ease-in-out infinite; }
+/* الإشارة تتحرك بـ translateX (لا inset): من بداية السطر إلى نهايته حسب اتجاه اللغة */
+.cb-pulse i::after { content: ""; position: absolute; inset-block: 0; inset-inline-start: 0; width: 30%; border-radius: 2px; background: var(--c); animation: cb-signal 1.3s ease-in-out infinite; }
+[dir="ltr"] .cb-pulse i::after { animation-name: cb-signal-ltr; }
 .cb-pulse i:nth-child(1) { --c: #f97316; } .cb-pulse i:nth-child(2) { --c: #16a34a; } .cb-pulse i:nth-child(3) { --c: #2563eb; } .cb-pulse i:nth-child(4) { --c: #92400e; }
 .cb-pulse i:nth-child(2)::after { animation-delay: .12s; } .cb-pulse i:nth-child(3)::after { animation-delay: .24s; } .cb-pulse i:nth-child(4)::after { animation-delay: .36s; }
 .cb-loading.is-deep .cb-pulse i::after { animation-duration: .8s; }
-@keyframes cb-signal { from { inset-inline-start: -30%; } to { inset-inline-start: 100%; } }
+@keyframes cb-signal { from { transform: translateX(100%); } to { transform: translateX(-333.34%); } }
+@keyframes cb-signal-ltr { from { transform: translateX(-100%); } to { transform: translateX(333.34%); } }
 
 .cb-result { display: flex; flex-direction: column; gap: var(--space-3h); }
 .cb-verdict { display: flex; gap: var(--space-3h); align-items: flex-start; padding: 16px; border-radius: calc(var(--radius) + 2px); background: var(--success-soft); border: 1px solid color-mix(in srgb, var(--success) 28%, transparent); }
@@ -120,8 +125,13 @@
 [dir="ltr"] .cb-mark { transform: translate(-50%, -50%); }
 .cb-mark .icon { width: 22px; height: 22px; padding: 4px; border-radius: 50%; color: #fff; background: var(--danger); box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--danger-soft); }
 .cb-mark.is-short .icon { background: #eab308; color: #111; box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px color-mix(in srgb, #eab308 30%, transparent); }
-.cb-mark.is-cut .icon, .cb-mark.is-short .icon { animation: cb-ping 1.6s ease-out infinite; }
-@keyframes cb-ping { 0% { box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px var(--danger-soft); } 70% { box-shadow: 0 0 0 3px var(--surface), 0 0 0 11px transparent; } 100% { box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px transparent; } }
+/* حلقة النبض: عنصر خلف الأيقونة يكبر (scale) ويختفي (opacity) */
+.cb-mark.is-cut::before, .cb-mark.is-short::before {
+  content: ""; position: absolute; top: 0; inset-inline-start: 50%; width: 22px; height: 22px; margin-inline-start: -11px;
+  border-radius: 50%; background: var(--danger); z-index: -1; animation: cb-ring 1.6s ease-out infinite;
+}
+.cb-mark.is-short::before { background: #eab308; }
+@keyframes cb-ring { from { transform: scale(1); opacity: .45; } 70%, to { transform: scale(2); opacity: 0; } }
 .cb-mark em { position: absolute; top: 26px; font-style: normal; font-size: 11px; font-weight: 700; white-space: nowrap; color: var(--danger); background: var(--surface); padding: 0 4px; border-radius: 4px; }
 .cb-mark.is-short em { color: #a16207; }
 .cb-mark.is-end { width: 4px; height: 16px; border-radius: 2px; background: var(--c); }
@@ -182,7 +192,8 @@
 .cb-w.is-muted .cb-w-line { opacity: .35; }
 .cb-w.is-bad .cb-w-line { box-shadow: 0 0 0 3px var(--danger-soft), inset 0 0 0 1px var(--danger); }
 .cb-w-mark { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff; background: var(--success); }
-.cb-w.is-bad .cb-w-mark { background: var(--danger); animation: cb-ping 1.6s ease-out infinite; }
+.cb-w.is-bad .cb-w-mark { background: var(--danger); position: relative; isolation: isolate; }
+.cb-w.is-bad .cb-w-mark::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--danger); z-index: -1; animation: cb-ring 1.6s ease-out infinite; }
 .cb-w.is-warn .cb-w-mark { background: var(--warning); }
 .cb-w.is-muted .cb-w-mark { background: var(--faint); }
 .cb-rj-plug { width: 300px; max-width: 100%; height: 46px; margin-top: 4px; border-radius: calc(var(--radius-sm) - 2px) calc(var(--radius-sm) - 2px) calc(var(--radius) + 2px) calc(var(--radius) + 2px); display: grid; place-items: center;
@@ -224,7 +235,7 @@
   .cb-verdict { padding: 14px; gap: var(--space-3); }
   .cb-verdict b { font-size: 14px; }
 }
-@media (prefers-reduced-motion: reduce) { .cb-port.is-up .cb-jack i, .cb-mark .icon, .cb-wire-fill, .cb-pulse i::after, .cb-port .sk-line { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .cb-port.is-up .cb-jack i, .cb-mark .icon, .cb-wire-fill, .cb-pulse i::after, .cb-port .sk-line, .cb-mark::before, .cb-w-mark::after { animation: none; } .cb-mark::before, .cb-w-mark::after { opacity: 0; } }
 
 
 /* ---------------- خريطة الكابلات بين الأجهزة ---------------- */
