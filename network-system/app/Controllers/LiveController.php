@@ -23,6 +23,11 @@ final class LiveController extends Controller
                 DashboardController::scheduleCron();
                 return DashboardController::liveData();
             }],
+            // البند 57: رقم آخر تنبيه انقطاع (جهاز MikroTik أو انقطاع منطقة) ضمن نطاق الموظف؛ المتصفح يعزف تنبيهاً حين يزيد
+            'sound' => ['alerts.view', static function (Request $r): array {
+                [$scope, $params] = Auth::routerScope('a.router_id', true);
+                return ['down' => (int) \App\Core\DB::value("SELECT MAX(a.id) FROM alerts a WHERE a.type IN ('router_down', 'outage')" . $scope, $params)];
+            }],
             // البند 107: نبضة هذا التبويب، ومن غيره على الصفحة نفسها الآن (أي موظف داخل، في شبكته فقط)
             'presence' => [null, static function (Request $r): array {
                 return \App\Services\Presence::enabled() ? \App\Services\Presence::ping((int) Auth::id(), $r->str('tab'), $r->str('p')) : [];

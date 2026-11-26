@@ -16,7 +16,7 @@ $flash = Session::pull('_flash', []);
 $unreadAlerts = can('alerts.view') ? (int) DB::value('SELECT COUNT(*) FROM alerts WHERE is_read = 0') : 0;
 $presetLabel = $user['is_owner'] ? 'المالك' : (Permissions::PRESETS[$user['role_preset'] ?? '']['label'] ?? 'موظف');
 ?><!doctype html>
-<html <?= \App\Core\Lang::htmlAttrs() ?> data-theme="light" data-theme-pref="<?= e($themePref) ?>"<?= \App\Core\Theme::attrs() ?>>
+<html <?= \App\Core\Lang::htmlAttrs() ?> data-theme="light" data-theme-pref="<?= e($themePref) ?>"<?= \App\Core\Theme::attrs() ?><?= \App\Services\Prefs::get('sounds', false, $user) ? ' data-sounds="1"' : '' ?>>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

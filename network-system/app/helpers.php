@@ -266,6 +266,16 @@ function avatar(string $name, int|string $seed, string $class = '', string $inne
         . e(avatar_initials($name)) . $inner . '</span>';
 }
 
+/** صوت مع آخر رسالة (البند 57): يعزفه المتصفح لمن شغّل الأصوات فقط */
+function flash_sound(string $sound): void
+{
+    $list = Session::get('_flash', []);
+    if ($list) {
+        $list[array_key_last($list)]['sound'] = $sound;
+        Session::set('_flash', $list);
+    }
+}
+
 function auth(): ?array
 {
     return Auth::user();

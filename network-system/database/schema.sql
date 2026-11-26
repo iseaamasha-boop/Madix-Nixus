@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS employees (
   router_scope     ENUM('all','selected') NOT NULL DEFAULT 'all',
   status           ENUM('active','disabled') NOT NULL DEFAULT 'active',
   theme            ENUM('system','light','dark','black') NOT NULL DEFAULT 'light',
+  prefs            TEXT         NULL,
   session_version  INT UNSIGNED NOT NULL DEFAULT 1,
   totp_secret      VARCHAR(255) NULL,
   totp_enabled     TINYINT(1)   NOT NULL DEFAULT 0,

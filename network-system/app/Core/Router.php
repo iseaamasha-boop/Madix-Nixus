@@ -235,6 +235,9 @@ final class Router
         if (!empty($last['undo'])) {
             $out['undo'] = (string) $last['undo'];
         }
+        if (!empty($last['sound'])) {
+            $out['sound'] = (string) $last['sound'];
+        }
         return Response::json($out, $ok ? 200 : 422);
     }
 

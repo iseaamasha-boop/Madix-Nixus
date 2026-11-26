@@ -201,6 +201,42 @@ return [
         $pa->exec("DELETE FROM employees WHERE username = 'here107'");
         $pa->exec("UPDATE employees SET status = 'active' WHERE is_owner = 0 AND username <> 'here107'");
     },
+    'soft sounds: off by default, per employee, sale and outage signals (57)' => static function (Env $env): void {
+        $t = $env->tenant('a');
+        $pdo = $env->db($t['db']);
+        $h = $env->owner('a');
+        $json = ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
+        T::notContains('data-sounds', $h->request('GET', $t['path'] . '/')['body'], 'off by default');
+        $acc = $h->request('GET', $t['path'] . '/account');
+        T::contains('name="sounds"', $acc['body'], 'switch on the account page');
+        $owner = $pdo->query('SELECT id, name, phone, email FROM employees WHERE is_owner = 1 ORDER BY id LIMIT 1')->fetch();
+        $form = ['name' => $owner['name'], 'phone' => (string) $owner['phone'], 'email' => (string) $owner['email'], 'theme' => 'light'];
+        T::status(302, $h->post($t['path'] . '/account', $form + ['sounds' => '1']), 'saved');
+        T::eq(['sounds' => 1], json_decode((string) $pdo->query('SELECT prefs FROM employees WHERE id = ' . (int) $owner['id'])->fetchColumn(), true), 'stored for this employee only');
+        T::contains('data-sounds="1"', $h->request('GET', $t['path'] . '/')['body'], 'on after saving');
+        // البيع: رسالة النجاح تحمل الصوت (وفي رد التطبيق/النموذج الفوري حقل إضافي فقط)
+        $cat = (int) $pdo->query("SELECT category_id FROM cards WHERE status = 'new' AND is_disabled = 0 GROUP BY category_id ORDER BY COUNT(*) DESC LIMIT 1")->fetchColumn();
+        $h->request('GET', $t['path'] . '/sales/create');
+        $r = $h->post($t['path'] . '/sales', ['type' => 'direct', 'category_id' => $cat, 'quantity' => 1, 'paid' => 0], $json + ['X-Instant' => '1']);
+        T::status(200, $r, 'sale');
+        T::eq('sale', $r['json']['sound'] ?? null, 'sale carries the sound');
+        T::ok(isset($r['json']['message'], $r['json']['redirect']), 'existing fields kept');
+        // تنبيه الانقطاع: أحدث رقم ضمن نطاق الموظف
+        $down = static fn ($c) => $c->request('GET', $t['path'] . '/live?k=sound', null, $json)['json']['data']['sound']['down'] ?? null;
+        $routers = array_map('intval', $pdo->query('SELECT id FROM routers ORDER BY id LIMIT 2')->fetchAll(PDO::FETCH_COLUMN));
+        $pdo->prepare("INSERT INTO alerts (type, level, title, router_id, created_at) VALUES ('router_down', 'danger', 'sound57', ?, NOW())")->execute([$routers[1]]);
+        $last = (int) $pdo->lastInsertId();
+        T::eq($last, $down($h), 'owner gets the newest outage');
+        $env->employee('a', 'snd57', 'SoundPass12345', ['alerts.view'], [$routers[0]]);
+        $e = $env->owner('a', ['snd57', 'SoundPass12345']);
+        T::ok($down($e) < $last, 'another MikroTik device outage is not signalled to a scoped employee');
+        $env->employee('a', 'snd57b', 'SoundPass12345', ['subscribers.view']);
+        $n = $env->owner('a', ['snd57b', 'SoundPass12345']);
+        T::eq(null, $down($n), 'no alerts permission: nothing');
+        T::status(302, $h->post($t['path'] . '/account', $form), 'turned off');
+        T::notContains('data-sounds', $h->request('GET', $t['path'] . '/')['body'], 'off again');
+        $pdo->exec("DELETE FROM alerts WHERE title = 'sound57'");
+    },
     'migration 19 adds the black value once' => static function (Env $env): void {
         $t = $env->tenant('a');
         $type = (string) $env->db($t['db'])->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employees' AND COLUMN_NAME = 'theme'")->fetchColumn();

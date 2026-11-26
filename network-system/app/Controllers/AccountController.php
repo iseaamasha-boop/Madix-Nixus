@@ -137,6 +137,8 @@ final class AccountController extends Controller
         }
 
         DB::update('employees', $update, 'id = ?', [$user['id']]);
+        // البند 57: الأصوات مطفأة ما لم يشغّلها الموظف نفسه
+        \App\Services\Prefs::set((int) $user['id'], 'sounds', $request->bool('sounds') ? 1 : null);
         if (isset($update['session_version'])) {
             Session::set('session_version', $update['session_version']);
             TrustedDevices::revokeAll((int) $user['id']);

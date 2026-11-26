@@ -1575,6 +1575,56 @@
   $$('canvas[data-live-chart]').forEach(liveChart);
 
   // ------------------------------------------------------------------------
+  // أصوات خفيفة (البند 57): مطفأة إلا لمن شغّلها من حسابه (data-sounds على الصفحة). تُولَّد بـ Web Audio بلا ملفات:
+  // «تشينغ» بعد حفظ بيع، وتنبيه حين يصل تنبيه انقطاع جديد لجهاز MikroTik أو منطقة (من التحديث المجمّع).
+  // المتصفح لا يسمح بالصوت قبل أول تفاعل مع الموقع: السياق يُفتح عند أول ضغطة أو مفتاح
+  // ------------------------------------------------------------------------
+  var sound = (function () {
+    var on = root.getAttribute('data-sounds') === '1', ctx = null;
+    function audio() {
+      if (!on) { return null; }
+      var A = window.AudioContext || window.webkitAudioContext;
+      if (!A) { return null; }
+      if (!ctx) { try { ctx = new A(); } catch (e) { return null; } }
+      if (ctx.state === 'suspended') { ctx.resume().catch(function () {}); }
+      return ctx;
+    }
+    function tone(c, freq, at, dur, type, vol) {
+      var o = c.createOscillator(), g = c.createGain(), t = c.currentTime + at;
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    }
+    var kinds = {
+      sale: function (c) { tone(c, 1318.5, 0, 0.32, 'sine', 0.12); tone(c, 1975.5, 0.07, 0.42, 'sine', 0.09); },
+      alert: function (c) { tone(c, 880, 0, 0.16, 'triangle', 0.14); tone(c, 660, 0.2, 0.16, 'triangle', 0.14); tone(c, 494, 0.4, 0.24, 'triangle', 0.12); }
+    };
+    function play(kind) {
+      var c = audio();
+      if (!c || !kinds[kind]) { return false; }
+      try { kinds[kind](c); return true; } catch (e) { return false; }
+    }
+    if (on) {
+      var unlock = function () { audio(); doc.removeEventListener('pointerdown', unlock, true); doc.removeEventListener('keydown', unlock, true); };
+      doc.addEventListener('pointerdown', unlock, true);
+      doc.addEventListener('keydown', unlock, true);
+      // تنبيه الانقطاع: الرقم الأول مرجع (لا صوت عند فتح الصفحة)، ثم صوت لكل زيادة؛ يُحفظ للتبويب فلا يتكرر بين الصفحات
+      var last = null;
+      try { last = parseInt(sessionStorage.getItem('mnx-snd-down'), 10); } catch (e) { last = null; }
+      live.on('sound', function (d) {
+        var id = parseInt(d && d.down, 10) || 0;
+        if (last !== null && !isNaN(last) && id > last) { play('alert'); }
+        last = id;
+        try { sessionStorage.setItem('mnx-snd-down', String(id)); } catch (e) { /* بلا تخزين */ }
+      }, { now: true });
+    }
+    return { enabled: function () { return on; }, play: play };
+  })();
+
+  // ------------------------------------------------------------------------
   // «مين موجود هلأ» (البند 107): صور الموظفين الذين يفتحون هذه الصفحة الآن، في الشريط العلوي.
   // النبضة داخل التحديث المجمّع كل 20 ثانية والتبويب ظاهر فقط (يتوقف حين يُخفى)؛ لكل تبويب رقم ثابت ما دام مفتوحاً
   // ------------------------------------------------------------------------
@@ -1707,6 +1757,7 @@
     if (flash) {
       try {
         JSON.parse(flash.textContent).forEach(function (f) {
+          if (f.sound) { sound.play(f.sound); }
           if (f.undo) { toast('success', f.message, 10000, { label: 'تراجع', run: function () { return undo(f.undo); } }); return; }
           toast(f.type === 'error' ? 'error' : f.type, f.message);
         });
@@ -1725,6 +1776,6 @@
   window.SN = {
     api: api, toast: toast, confirm: confirmDialog, openModal: openModal, closeModal: closeModal,
     esc: esc, icon: icon, fmtBytes: fmtBytes, fmtRate: fmtRate, fmtDuration: fmtDuration, fmtNum: fmtNum,
-    countTo: countTo, chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, palette: palette, undo: undo, undoToast: undoToast, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
+    sound: sound, countTo: countTo, chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, palette: palette, undo: undo, undoToast: undoToast, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
   };
 })();

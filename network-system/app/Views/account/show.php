@@ -43,6 +43,7 @@ if ($twoFactor['setup'] !== null) {
             <?php if (\App\Core\Theme::current()['oled'] === '1' || $user['theme'] === 'black'): ?><option value="black"<?= selected($user['theme'], 'black') ?>>أسود (OLED)</option><?php endif; ?>
           </select>
         </div>
+        <div class="field col-6"><label class="switch"><input type="checkbox" name="sounds" value="1"<?= checked((bool) \App\Services\Prefs::get('sounds', false, $user)) ?>><span class="track"></span><span>أصوات خفيفة (البيع، انقطاع الأبراج)</span></label></div>
 
         <div class="form-section-title">تغيير كلمة المرور</div>
         <div class="field col-4">

@@ -149,7 +149,9 @@ final class SalesController extends Controller
         if ($cardIds) {
             Session::forget('sale_selection');
         }
-        return $this->ok('تم بيع ' . ar_plural((int) $r['quantity'], 'كرت واحد', 'كرتين', 'كروت', 'كرت') . ' بقيمة ' . money($r['total']) . '.', '/sales/' . $r['sale_id']);
+        $res = $this->ok('تم بيع ' . ar_plural((int) $r['quantity'], 'كرت واحد', 'كرتين', 'كروت', 'كرت') . ' بقيمة ' . money($r['total']) . '.', '/sales/' . $r['sale_id']);
+        flash_sound('sale');
+        return $res;
     }
 
     public function show(Request $request, int $id): Response

@@ -12,7 +12,7 @@ use Throwable;
 final class Migrator
 {
     /** نسخة البنية التي تتوقعها الشيفرة الحالية */
-    public const VERSION = 20;
+    public const VERSION = 21;
 
     private static bool $checked = false;
 
@@ -187,6 +187,10 @@ final class Migrator
             case 20:
                 // من يفتح الصفحة نفسها الآن (البند 107)
                 self::createTables(['presence']);
+                break;
+            case 21:
+                // تفضيلات الموظف الشخصية: الأصوات (البند 57) وترتيب لوحة التحكم (البند 108)
+                self::addColumns('employees', ['prefs' => 'TEXT NULL']);
                 break;
         }
     }
