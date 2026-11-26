@@ -108,7 +108,7 @@ return [
     },
     'no guidance or instruction text in the interface' => static function (Env $env): void {
         // طلب صاحب المشروع: لا نصوص إرشادية ولا تعليمات في الواجهة (لوحة الشبكة ولوحة المسؤول وسكربتاتهما)
-        $pat = '/اضغط|اتركه فارغ|اتركها فارغ|الصق |افتح Winbox|استخدم البحث|لتتأكد|أضف [^<\'"]{0,25}أولاً|اسحب العلامات|من Google Cloud/u';
+        $pat = '/اضغط|اتركه فارغ|اتركها فارغ|الصق |افتح Winbox|استخدم البحث|لتتأكد|أضف [^<\'"]{0,25}أولاً|اسحب العلامات|من Google Cloud|بـ 3 خطوات|حدد واجهة|تواصل معنا على/u';
         $hits = [];
         $scan = static function (string $dir, string $ext) use (&$hits, $pat): void {
             $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));

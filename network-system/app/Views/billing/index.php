@@ -42,8 +42,8 @@ $waLink = $waIntl !== '' ? Platform::whatsappLink('مرحباً، أريد تف�
   <div class="billing-contact-main">
     <span class="billing-contact-icon"><?= icon('message-circle') ?></span>
     <div>
-      <div class="billing-contact-title">فعّل خطك عبر واتساب</div>
-      <div class="billing-contact-sub">تواصل معنا على واتساب<?php if ($waNumber !== ''): ?> <b><?= ltr(e($waNumber)) ?></b><?php endif; ?> لتفعيل اشتراكك أو تجديده مباشرة</div>
+      <div class="billing-contact-title">تفعيل الاشتراك وتجديده عبر واتساب</div>
+      <?php if ($waNumber !== ''): ?><div class="billing-contact-sub"><b><?= ltr(e($waNumber)) ?></b></div><?php endif; ?>
     </div>
   </div>
   <a class="btn btn-whatsapp" href="<?= e($waLink) ?>" target="_blank" rel="noopener" data-no-loading><?= icon('message-circle') ?>تواصل عبر واتساب</a>

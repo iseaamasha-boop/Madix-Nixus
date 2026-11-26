@@ -5442,4 +5442,6 @@ return [
     'تعذّر إنشاء الصورة.' => 'The image could not be created.',
     'السابق' => 'Previous',
     'التالي' => 'Next',
+    'تفعيل الاشتراك وتجديده عبر واتساب' => 'Activate and renew the subscription on WhatsApp',
+    'واجهة الإنترنت غير محددة' => 'The internet interface is not set',
 ];

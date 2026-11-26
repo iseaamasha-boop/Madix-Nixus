@@ -38,7 +38,7 @@ $v->script('vendor/chart.umd.min.js');
             </div>
             <div class="chart-box"><canvas id="live-chart"></canvas></div>
           <?php else: ?>
-            <div class="empty"><?= icon('cable') ?><div>حدد واجهة الإنترنت في إعدادات جهاز MikroTik لعرض الحركة.</div></div>
+            <div class="empty"><?= icon('cable') ?><div>واجهة الإنترنت غير محددة</div></div>
           <?php endif; ?>
         </div>
       </div>
