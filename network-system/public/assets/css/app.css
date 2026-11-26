@@ -310,6 +310,18 @@ html { -webkit-tap-highlight-color: transparent; }
   background: var(--primary-soft); color: var(--primary);
   font-weight: 700; font-size: 13px; flex: none;
 }
+/* البند 90: صورة رمزية ملونة: لون ثابت من رقم السجل (--h)، خلفية فاتحة ونص داكن من اللون نفسه، وعكسهما في الوضع الداكن (تباين ≥ 4.5 لكل الدرجات) */
+.av { --av-bg: hsl(var(--h) 60% 92%); --av-fg: hsl(var(--h) 60% 24%); }
+[data-theme="dark"] .av { --av-bg: hsl(var(--h) 32% 24%); --av-fg: hsl(var(--h) 75% 84%); }
+@supports (color: oklch(0 0 0)) {
+  .av { --av-bg: oklch(.93 .045 var(--h)); --av-fg: oklch(.42 .13 var(--h)); }
+  [data-theme="dark"] .av { --av-bg: oklch(.33 .07 var(--h)); --av-fg: oklch(.88 .08 var(--h)); }
+}
+.avatar.av { position: relative; background: var(--av-bg); color: var(--av-fg); letter-spacing: 0; line-height: 1; }
+.avatar.sm { width: 30px; height: 30px; font-size: 11.5px; }
+.avatar.lg { width: 56px; height: 56px; font-size: 20px; border-radius: 16px; }
+/* نقطة الحالة على زاوية الصورة الرمزية */
+.avatar.av > .status-dot { position: absolute; inset-block-end: -1px; inset-inline-end: -1px; box-shadow: 0 0 0 2px var(--surface); }
 .user-chip-name { font-size: 13px; font-weight: 500; line-height: 1.2; text-align: start; }
 .user-chip-role { font-size: 11.5px; color: var(--muted); line-height: 1.2; }
 
@@ -636,6 +648,8 @@ tr.is-dragging > td { background: var(--surface); }
   opacity: 0; transform: translateY(4px); transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
 }
 .qp-card.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.qp-top { display: flex; align-items: center; gap: 10px; }
+.qp-top > .qp-head { flex: 1; min-width: 0; }
 .qp-title { display: block; font-weight: 700; font-size: 14px; color: var(--text); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qp-title:hover { color: var(--primary); }
 .qp-sub { color: var(--muted); font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

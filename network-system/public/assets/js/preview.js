@@ -29,6 +29,8 @@
     }
     var html = '<div class="qp-head"><a class="qp-title" href="' + esc(d.url) + '">' + esc(d.title) + '</a>' +
       (d.sub ? '<div class="qp-sub"><bdi>' + esc(d.sub) + '</bdi></div>' : '') + '</div>';
+    // الصورة الرمزية الملونة للمشترك (البند 90)
+    if (d.av) { html = '<div class="qp-top"><span class="avatar av" style="--h:' + (parseInt(d.av[1], 10) || 0) + '" aria-hidden="true">' + esc(d.av[0]) + '</span>' + html + '</div>'; }
     if (d.badges && d.badges.length) {
       html += '<div class="qp-badges">' + d.badges.map(function (b) { return '<span class="badge ' + (TONE[b[1]] || TONE.muted) + '">' + esc(b[0]) + '</span>'; }).join('') + '</div>';
     }

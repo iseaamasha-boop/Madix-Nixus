@@ -27,7 +27,7 @@ $v->actions = '<a class="btn btn-primary" href="' . e(url('/employees/create')) 
         <tr>
           <td>
             <div class="flex items-center gap-2">
-              <span class="avatar"><?= e(mb_substr($emp['name'], 0, 1)) ?></span>
+              <?= avatar((string) $emp['name'], (int) $emp['id']) ?>
               <div>
                 <div class="cell-title"><?= e($emp['name']) ?></div>
                 <?php if ($emp['phone']): ?><div class="cell-sub mono"><?= e($emp['phone']) ?></div><?php endif; ?>

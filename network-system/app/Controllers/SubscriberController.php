@@ -279,6 +279,7 @@ final class SubscriberController extends Controller
         }
         return json_response([
             'ok' => true, 'title' => $sub['full_name'], 'sub' => trim($sub['username'] . ($sub['phone'] ? ' · ' . $sub['phone'] : '')),
+            'av' => [avatar_initials((string) ($sub['full_name'] ?: $sub['username'])), avatar_hue($id)],
             'badges' => array_values(array_filter([[$label, $tone], $online ? ['متصل الآن', 'success'] : null])), 'rows' => $rows, 'url' => url('/subscribers/' . $id),
         ]);
     }

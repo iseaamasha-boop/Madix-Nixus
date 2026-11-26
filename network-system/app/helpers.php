@@ -231,6 +231,41 @@ function flash_undo(string $message, string $token): void
     Session::set('_flash', $list);
 }
 
+/**
+ * البند 90: الحرفان الأولان لصورة رمزية: أول حرف من أول كلمتين، أو أول حرفين من كلمة واحدة.
+ * التشكيل والتطويل يُحذفان، والحرفان العربيان يُفصلان بفاصل غير مرئي (ZWNJ) فيظهر كل حرف منفصلاً لا متصلاً.
+ */
+function avatar_initials(string $name): string
+{
+    $clean = trim((string) preg_replace('/[\x{064B}-\x{065F}\x{0670}\x{0640}]/u', '', $name));
+    $words = array_values(array_filter(preg_split('/[\s\-_.]+/u', $clean) ?: [], static fn ($w) => $w !== ''));
+    if (!$words) {
+        return '؟';
+    }
+    $first = static function (string $w): array {
+        preg_match_all('/\X/u', $w, $m);
+        return $m[0];
+    };
+    $a = $first($words[0]);
+    $chars = count($words) > 1 ? [$a[0], $first($words[1])[0]] : array_slice($a, 0, 2);
+    $chars = array_map(static fn ($c) => mb_strtoupper($c), $chars);
+    $arabic = static fn ($c) => preg_match('/^\p{Arabic}$/u', $c) === 1;
+    return count($chars) === 2 && $arabic($chars[0]) && $arabic($chars[1]) ? $chars[0] . "\u{200C}" . $chars[1] : implode('', $chars);
+}
+
+/** لون ثابت (درجة 0–359) من رقم السجل، أو من النص إن لم يكن رقماً: الأرقام المتتالية تأخذ ألواناً متباعدة */
+function avatar_hue(int|string $seed): int
+{
+    return is_int($seed) || ctype_digit((string) $seed) ? ((int) $seed * 137) % 360 : (int) (crc32((string) $seed) % 360);
+}
+
+/** صورة رمزية ملونة بحرفين (بلا خدمات خارجية)؛ $class: sm أو lg، و$inner عنصر إضافي داخلها (نقطة الحالة) */
+function avatar(string $name, int|string $seed, string $class = '', string $inner = ''): string
+{
+    return '<span class="avatar av' . ($class !== '' ? ' ' . $class : '') . '" style="--h:' . avatar_hue($seed) . '" aria-hidden="true">'
+        . e(avatar_initials($name)) . $inner . '</span>';
+}
+
 function auth(): ?array
 {
     return Auth::user();

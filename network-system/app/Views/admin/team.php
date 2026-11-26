@@ -15,7 +15,7 @@ $all = AdminPermissions::all();
         'role' => $owner ? 'owner' : (($a['permissions'] ?? null) === null ? 'full' : (array_search(AdminPermissions::roleOf($a), array_map(static fn ($p) => $p[0], AdminPermissions::PRESETS), true) ?: 'custom'))]; ?>
   <div class="panel team-card<?= (int) $a['is_active'] ? '' : ' is-off' ?><?= $owner ? ' is-owner' : '' ?>">
     <div class="team-head">
-      <span class="team-avatar"><?= e(mb_substr(trim((string) $a['name']), 0, 1)) ?></span>
+      <span class="team-avatar av" style="--h:<?= avatar_hue((int) $a['id']) ?>" aria-hidden="true"><?= e(avatar_initials((string) $a['name'])) ?></span>
       <div class="team-id">
         <b><?= e($a['name']) ?><?= $me ? ' <span class="badge">أنت</span>' : '' ?></b>
         <span class="mono text-sm text-muted"><?= e($a['username']) ?><?= $a['email'] ? ' · ' . e($a['email']) : '' ?></span>

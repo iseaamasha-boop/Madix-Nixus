@@ -70,7 +70,6 @@ foreach ($nav as [, $items]) {
         }
     }
 }
-$initial = mb_substr(trim((string) $admin['name']), 0, 1);
 ?><!doctype html>
 <html <?= \App\Core\Lang::htmlAttrs() ?> data-theme="light" data-theme-pref="light"<?= Theme::attrs() ?>>
 <head>
@@ -159,7 +158,7 @@ $initial = mb_substr(trim((string) $admin['name']), 0, 1);
         </div>
         <div class="dropdown">
           <button type="button" class="user-chip" data-dropdown>
-            <span class="avatar"><?= e($initial) ?></span>
+            <?= avatar((string) $admin['name'], (int) $admin['id']) ?>
             <span class="user-chip-text"><span class="user-chip-name d-block"><?= e($admin['name']) ?></span><span class="user-chip-role d-block">مسؤول المنصة</span></span>
             <?= icon('chevron-down', 'icon-sm text-muted') ?>
           </button>

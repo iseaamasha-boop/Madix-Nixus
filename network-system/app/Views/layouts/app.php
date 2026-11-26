@@ -15,7 +15,6 @@ $logo = (string) Settings::get('general.logo', '');
 $flash = Session::pull('_flash', []);
 $unreadAlerts = can('alerts.view') ? (int) DB::value('SELECT COUNT(*) FROM alerts WHERE is_read = 0') : 0;
 $presetLabel = $user['is_owner'] ? 'المالك' : (Permissions::PRESETS[$user['role_preset'] ?? '']['label'] ?? 'موظف');
-$initial = mb_substr(trim((string) $user['name']), 0, 1);
 ?><!doctype html>
 <html <?= \App\Core\Lang::htmlAttrs() ?> data-theme="light" data-theme-pref="<?= e($themePref) ?>"<?= \App\Core\Theme::attrs() ?>>
 <head>
@@ -100,7 +99,7 @@ $initial = mb_substr(trim((string) $user['name']), 0, 1);
         <?php endif; ?>
         <div class="dropdown">
           <button type="button" class="user-chip" data-dropdown>
-            <span class="avatar"><?= e($initial) ?></span>
+            <?= avatar((string) $user['name'], (int) $user['id']) ?>
             <span class="user-chip-text">
               <span class="user-chip-name d-block"><?= e($user['name']) ?></span>
               <span class="user-chip-role d-block"><?= e($presetLabel) ?></span>

@@ -26,7 +26,7 @@ $base = url('/subscribers/' . $sub['id']);
 ?>
 <div class="panel mb-3">
   <div class="panel-body flex items-center gap-3 wrap">
-    <div class="stat-icon" style="width:56px;height:56px;border-radius:14px"><?= icon($plan['service'] === 'ppp' ? 'cable' : 'wifi', 'icon-lg') ?></div>
+    <?= avatar((string) ($sub['full_name'] ?: $sub['username']), (int) $sub['id'], 'lg') ?>
     <div style="flex:1;min-width:200px">
       <div style="font-size:21px;font-weight:700"><?= e($sub['full_name']) ?></div>
       <div class="flex items-center gap-1 wrap mt-1">

@@ -46,6 +46,8 @@
 .team-card.is-owner { border-color: color-mix(in srgb, var(--warning) 40%, var(--border)); }
 .team-card.is-off { opacity: .7; }
 .team-head { display: flex; align-items: center; gap: var(--space-3); }
+.team-avatar.av { background: var(--av-bg); color: var(--av-fg); }
+.team-card.is-owner .team-avatar.av { color: #fff; }
 .team-avatar { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: calc(var(--radius) + 2px); font-weight: 800; font-size: 18px; color: #fff; background: linear-gradient(135deg, var(--primary), var(--violet)); }
 
 .team-id { display: flex; flex-direction: column; gap: var(--space-0h); min-width: 0; flex: 1; }
