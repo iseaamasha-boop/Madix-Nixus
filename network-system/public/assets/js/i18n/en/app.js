@@ -698,6 +698,40 @@
   on(doc, 'change', '[data-row-check]', function (e, el) {
     refreshBulk(el.closest('[data-bulk-scope]') || doc);
   });
+  // التحديد بمدى: Shift مع النقر يحدد (or يلغي) Every الصفوف بين Last row ضُغط وهذا الصف
+  var lastCheck = null;
+  on(doc, 'click', '[data-row-check]', function (e, el) {
+    var scope = el.closest('[data-bulk-scope]') || doc;
+    if (e.shiftKey && lastCheck && lastCheck !== el && scope.contains(lastCheck)) {
+      var list = $$('[data-row-check]', scope).filter(function (c) { return !c.disabled; });
+      var a = list.indexOf(lastCheck), b = list.indexOf(el);
+      if (a !== -1 && b !== -1) {
+        list.slice(Math.min(a, b), Math.max(a, b) + 1).forEach(function (c) { c.checked = el.checked; });
+        refreshBulk(scope);
+      }
+    }
+    lastCheck = el;
+  });
+  // Clear selection: زر الإغلاق in الشريط or Escape
+  function clearBulk(scope) {
+    $$('[data-row-check]', scope).forEach(function (c) { c.checked = false; });
+    refreshBulk(scope);
+  }
+  $$('.bulkbar').forEach(function (bar) {
+    if ($('.bulkbar-close', bar)) { return; }
+    var x = doc.createElement('button');
+    x.type = 'button';
+    x.className = 'btn btn-ghost btn-icon btn-sm bulkbar-close';
+    x.setAttribute('aria-label', 'Clear selection');
+    x.innerHTML = icon('x');
+    bar.appendChild(x);
+  });
+  on(doc, 'click', '.bulkbar-close', function (e, x) { clearBulk(x.closest('[data-bulk-scope]') || doc); });
+  doc.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || doc.querySelector('dialog[open]')) { return; }
+    var bar = doc.querySelector('.bulkbar.is-visible');
+    if (bar) { clearBulk(bar.closest('[data-bulk-scope]') || doc); }
+  });
   // Action الجماعي ينسخ المعرّفات selected to Model before الإرسال
   on(doc, 'submit', 'form[data-bulk-form]', function (e, form) {
     var scope = form.closest('[data-bulk-scope]') || doc;

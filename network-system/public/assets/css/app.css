@@ -609,6 +609,27 @@ select.input-sm { padding-inline-end: 30px; background-position: left 8px center
 }
 .bulkbar.is-visible { display: flex; }
 .bulkbar strong { color: var(--primary); }
+/* شريط التحديد العائم (البند 77): يطفو أسفل الشاشة فوق المحتوى ما دام هناك تحديد، في وسط منطقة الصفحة */
+.bulkbar.is-visible {
+  position: fixed; z-index: var(--z-popover);
+  inset-inline: 16px; margin-inline: auto; width: fit-content; max-width: calc(100vw - 32px);
+  bottom: calc(14px + var(--footbar-h, 0px) + env(safe-area-inset-bottom, 0px));
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  padding: 8px 10px 8px 14px; animation: bulk-in var(--dur-4) var(--ease-out);
+}
+@media (min-width: 961px) and (hover: hover) and (pointer: fine) {
+  body:not(.sidebar-hidden) .bulkbar.is-visible { inset-inline-start: calc(var(--sidebar-w) + 16px); }
+}
+.bulkbar-close { margin-inline-start: auto; }
+@media (max-width: 600px) {
+  .bulkbar.is-visible { row-gap: 6px; padding: 8px 10px; }
+  .bulkbar.is-visible > :first-child { flex: 1; }
+  .bulkbar.is-visible > .bulkbar-close { order: 1; }
+  .bulkbar.is-visible > form { order: 2; width: 100%; }
+}
+@keyframes bulk-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bulkbar.is-visible { animation: none; } }
+@media print { .bulkbar { display: none !important; } }
 
 /* الترقيم */
 .pager { display: flex; align-items: center; gap: var(--space-3h); padding: 12px 18px; border-top: 1px solid var(--border); flex-wrap: wrap; }
