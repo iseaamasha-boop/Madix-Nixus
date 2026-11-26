@@ -69,7 +69,7 @@ $on = static fn (string $k) => Settings::bool($k);
             <div class="list-item-main"><div class="list-item-title"><?= e($t['name']) ?></div><div class="list-item-sub"><?= e(mb_strimwidth($t['body'], 0, 60, '…')) ?></div></div>
             <div class="list-item-end">
               <button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-open="m-template" data-id="<?= (int) $t['id'] ?>" data-name="<?= e($t['name']) ?>" data-body="<?= e($t['body']) ?>" title="تعديل"><?= icon('pencil') ?></button>
-              <form method="post" action="<?= e(url('/sms/templates/' . $t['id'] . '/delete')) ?>" style="display:inline"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm text-danger" title="حذف"><?= icon('trash-2') ?></button></form>
+              <form method="post" action="<?= e(url('/sms/templates/' . $t['id'] . '/delete')) ?>" style="display:inline" data-instant="remove"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm text-danger" title="حذف"><?= icon('trash-2') ?></button></form>
             </div>
           </li>
         <?php endforeach; ?>

@@ -821,6 +821,12 @@ dialog.modal[open] > form { display: flex; flex-direction: column; flex: 1 1 aut
 .toast-action:active { transform: scale(.96); }
 .toast-action:disabled { opacity: .6; cursor: default; }
 .toast-action + .toast-close { margin-inline-start: 2px; align-self: center; }
+
+/* الاستجابة الفورية: الصف يغادر، المقروء، الموقوف */
+tr.is-leaving, li.is-leaving, [data-instant-row].is-leaving { opacity: 0; transform: translateX(12px); transition: opacity var(--dur-4) var(--ease-out), transform var(--dur-4) var(--ease-out); }
+[dir="ltr"] tr.is-leaving, [dir="ltr"] li.is-leaving, [dir="ltr"] [data-instant-row].is-leaving { transform: translateX(-12px); }
+.alert-list .list-item.is-unread { background: var(--primary-soft); }
+.ad-item.is-off .ad-thumb, .ad-item.is-off .ad-main { opacity: .55; transition: opacity var(--dur-3); }
 /* شريط انقطاع الاتصال */
 .net-bar {
   position: fixed; top: calc(var(--topbar-h) + 8px); inset-inline: 0; margin-inline: auto; width: max-content; max-width: calc(100vw - 32px);

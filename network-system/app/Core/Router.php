@@ -186,7 +186,8 @@ final class Router
         }
 
         if ($result instanceof Response) {
-            return !empty($o['token']) ? self::forApp($result) : $result;
+            // التطبيق، والنماذج «الفورية» في المتصفح (X-Instant): التحويل مع الرسالة يصبح JSON
+            return !empty($o['token']) || $request->header('X-Instant') === '1' ? self::forApp($result) : $result;
         }
         if (is_array($result)) {
             return Response::json($result);
@@ -225,11 +226,16 @@ final class Router
             $path = substr($path, strlen($base)) ?: '/';
         }
         unset($_SESSION['_flash']);
-        return Response::json([
+        $out = [
             'ok'       => $ok,
             'message'  => (string) ($last['message'] ?? ($ok ? 'تم.' : 'تعذّر تنفيذ العملية.')),
             'redirect' => $path,
-        ], $ok ? 200 : 422);
+        ];
+        // رمز التراجع بعد الحذف (المتصفح يعرض زر «تراجع»؛ التطبيق يتجاهل الحقل الإضافي)
+        if (!empty($last['undo'])) {
+            $out['undo'] = (string) $last['undo'];
+        }
+        return Response::json($out, $ok ? 200 : 422);
     }
 
     public static function cors(Response $response): Response

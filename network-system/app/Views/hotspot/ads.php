@@ -30,10 +30,10 @@ foreach ($ads as $a) {
       <?php foreach ($ads as $a):
           [$label, $badge] = HotspotAds::STATES[HotspotAds::state($a, $today)];
           $only = HotspotAds::routerIds($a); ?>
-      <li class="ad-item">
+      <li class="ad-item<?= (int) $a['is_active'] === 1 ? '' : ' is-off' ?>">
         <div class="ad-thumb"><?php if ($a['image']): ?><?= upload_img((string) $a['image'], 'alt="" loading="lazy" decoding="async" width="92" height="60"') ?><?php else: ?><?= icon('megaphone') ?><?php endif; ?></div>
         <div class="ad-main">
-          <div class="ad-title"><?= e($a['title']) ?> <span class="badge <?= $badge ?>"><?= e($label) ?></span></div>
+          <div class="ad-title"><?= e($a['title']) ?> <span class="badge <?= $badge ?>" data-instant-label><?= e($label) ?></span></div>
           <?php if ($a['advertiser'] || $a['body']): ?><div class="ad-sub"><?= $a['advertiser'] ? '<b>' . e($a['advertiser']) . '</b>' . ($a['body'] ? ' · ' : '') : '' ?><?= e(str_limit((string) $a['body'], 110)) ?></div><?php endif; ?>
           <div class="ad-meta">
             <span><?= icon('calendar', 'icon-sm') ?><?= $a['starts_on'] || $a['ends_on'] ? ltr(e(($a['starts_on'] ?: '…') . ' → ' . ($a['ends_on'] ?: '…'))) : 'بلا مدة محددة' ?></span>
@@ -45,7 +45,7 @@ foreach ($ads as $a) {
         </div>
         <div class="row-actions">
           <a class="btn btn-ghost btn-icon btn-sm" href="<?= e(url('/hotspot/ads/' . $a['id'] . '/edit')) ?>" title="تعديل"><?= icon('pencil') ?></a>
-          <form method="post" action="<?= e(url('/hotspot/ads/' . $a['id'] . '/toggle')) ?>"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm" title="<?= (int) $a['is_active'] === 1 ? 'إيقاف' : 'تشغيل' ?>"><?= icon((int) $a['is_active'] === 1 ? 'pause' : 'play') ?></button></form>
+          <form method="post" action="<?= e(url('/hotspot/ads/' . $a['id'] . '/toggle')) ?>" data-instant="toggle" data-state="<?= (int) $a['is_active'] === 1 ? 'on' : 'off' ?>" data-on-icon="pause" data-off-icon="play" data-on-title="إيقاف" data-off-title="تشغيل"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm" title="<?= (int) $a['is_active'] === 1 ? 'إيقاف' : 'تشغيل' ?>"><?= icon((int) $a['is_active'] === 1 ? 'pause' : 'play') ?></button></form>
           <form method="post" action="<?= e(url('/hotspot/ads/' . $a['id'] . '/delete')) ?>" data-confirm="حذف الإعلان «<?= e($a['title']) ?>»؟"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm text-danger" title="حذف"><?= icon('trash-2') ?></button></form>
         </div>
       </li>

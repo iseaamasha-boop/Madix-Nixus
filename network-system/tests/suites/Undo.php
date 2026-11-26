@@ -78,6 +78,29 @@ return [
         T::ok((int) $pdo->query("SELECT COUNT(*) FROM router_tasks WHERE target = 'sub:" . $id . "' AND action = 'sub_provision'")->fetchColumn() >= 1
             || (int) $pdo->query("SELECT COUNT(*) FROM router_tasks WHERE target = 'sub:" . $id . "'")->fetchColumn() >= 1, 'sent back to the MikroTik device');
     },
+    'instant forms get JSON: message, undo token, errors as failures' => static function (Env $env) use ($undo): void {
+        $t = $env->tenant('a');
+        $pdo = $env->db($t['db']);
+        $pdo->exec("INSERT INTO areas (name, created_at) VALUES ('منطقة فورية', NOW())");
+        $area = (int) $pdo->lastInsertId();
+        $h = $env->owner('a');
+        $h->get($t['path'] . '/areas');
+        $hdr = ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest', 'X-Instant' => '1', 'Content-Type' => 'application/x-www-form-urlencoded'];
+        $r = $h->request('POST', $t['path'] . '/areas/' . $area . '/delete', http_build_query(['_token' => $h->csrf]), $hdr);
+        T::status(200, $r);
+        T::eq(true, $r['json']['ok'] ?? null);
+        T::ok(preg_match('/^[a-f0-9]{32}$/', (string) ($r['json']['undo'] ?? '')) === 1, 'undo token in the JSON answer');
+        T::status(200, $undo($h, $t['path'], (string) $r['json']['undo']));
+        T::eq(1, (int) $pdo->query('SELECT COUNT(*) FROM areas WHERE id = ' . $area)->fetchColumn(), 'restored');
+        // خطأ (قالب الطباعة الوحيد مثلاً) يصل فشلاً لا تحويلاً
+        $only = $pdo->query('SELECT COUNT(*) FROM print_templates')->fetchColumn();
+        if ((int) $only === 1) {
+            $id = (int) $pdo->query('SELECT id FROM print_templates LIMIT 1')->fetchColumn();
+            $e = $h->request('POST', $t['path'] . '/print/templates/' . $id . '/delete', http_build_query(['_token' => $h->csrf]), $hdr);
+            T::status(422, $e, 'refused action answers as a failure');
+            T::eq(false, $e['json']['ok'] ?? null);
+        }
+    },
     'only the same employee with the same permission, within the time limit' => static function (Env $env) use ($deleteAndToken, $undo): void {
         $t = $env->tenant('a');
         $pdo = $env->db($t['db']);

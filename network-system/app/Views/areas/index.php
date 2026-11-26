@@ -18,7 +18,7 @@ $v->title = 'المناطق';
             <td class="w-actions">
               <div class="row-actions">
                 <a class="btn btn-ghost btn-icon btn-sm" href="<?= e(url('/areas', ['edit' => $a['id']])) ?>" title="تعديل"><?= icon('pencil') ?></a>
-                <form method="post" action="<?= e(url('/areas/' . $a['id'] . '/delete')) ?>">
+                <form method="post" action="<?= e(url('/areas/' . $a['id'] . '/delete')) ?>" data-instant="remove">
                   <?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm text-danger" title="حذف"><?= icon('trash-2') ?></button>
                 </form>
               </div>

@@ -116,6 +116,7 @@
     opts = opts || {};
     var method = (opts.method || 'GET').toUpperCase();
     var headers = { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+    if (opts.headers) { Object.keys(opts.headers).forEach(function (k) { headers[k] = opts.headers[k]; }); }
     var body = null;
     if (method !== 'GET') {
       headers['X-CSRF-Token'] = csrf;
@@ -582,6 +583,80 @@
       form.dataset.waitingNet = '';
       if (btn) { btn.classList.remove('is-loading'); }
       if (form.requestSubmit) { form.requestSubmit(btn || undefined); } else { form.submit(); }
+    });
+  });
+
+  // ------------------------------------------------------------------------
+  // الاستجابة الفورية (البند 70): النماذج الصغيرة المعلَّمة data-instant تُرسل في الخلفية والواجهة تتغير فوراً
+  // دون انتظار الخادم ولا إعادة تحميل الصفحة؛ إن فشل الطلب تعود كما كانت مع رسالة الخطأ.
+  //   data-instant="remove" : الصف يختفي (والحذف القابل للتراجع يُظهر «تراجع» يعيده)
+  //   data-instant="read"   : العنصر يصبح مقروءاً
+  //   data-instant="toggle" : الزر يتبدّل (data-on-* / data-off-*) والعنصر يُعلَّم is-off
+  // الصف: أقرب [data-instant-row] أو tr أو li
+  // ------------------------------------------------------------------------
+  function instantRow(form) { return form.closest('[data-instant-row], tr, li'); }
+  function badgeBy(href, d) {
+    $$('.nav-link').forEach(function (a) {
+      if (a.getAttribute('href') !== href) { return; }
+      var b = $('.nav-badge', a);
+      if (!b) { return; }
+      var n = Math.max(0, (parseInt(b.textContent, 10) || 0) + d);
+      b.hidden = n === 0;
+      b.textContent = n > 99 ? '99+' : String(n);
+    });
+  }
+  var instantApply = {
+    remove: function (form, row) {
+      if (!row) { return function () {}; }
+      row.classList.add('is-leaving');
+      var t = setTimeout(function () { row.hidden = true; }, 200);
+      return function () { clearTimeout(t); row.hidden = false; row.classList.remove('is-leaving'); };
+    },
+    read: function (form, row) {
+      var was = !!(row && row.classList.contains('is-unread'));
+      if (row) { row.classList.remove('is-unread'); }
+      form.hidden = true;
+      if (was && form.getAttribute('data-badge')) { badgeBy(form.getAttribute('data-badge'), -1); }
+      return function () {
+        if (row && was) { row.classList.add('is-unread'); }
+        form.hidden = false;
+        if (was && form.getAttribute('data-badge')) { badgeBy(form.getAttribute('data-badge'), 1); }
+      };
+    },
+    toggle: function (form, row) {
+      var btn = $('button', form), off = form.getAttribute('data-state') !== 'off';
+      function set(isOff) {
+        form.setAttribute('data-state', isOff ? 'off' : 'on');
+        if (row) { row.classList.toggle('is-off', isOff); }
+        var k = isOff ? 'off' : 'on';
+        if (btn && form.getAttribute('data-' + k + '-icon')) { btn.innerHTML = icon(form.getAttribute('data-' + k + '-icon')); }
+        if (btn && form.getAttribute('data-' + k + '-title')) { btn.title = form.getAttribute('data-' + k + '-title'); }
+      }
+      set(off);
+      return function () { set(!off); };
+    }
+  };
+  on(doc, 'submit', 'form[data-instant]', function (e, form) {
+    if (e.defaultPrevented) { return; }
+    var apply = instantApply[form.getAttribute('data-instant')];
+    if (!apply) { return; }
+    e.preventDefault();
+    var row = instantRow(form);
+    var revert = apply(form, row);
+    var fresh = function () { var k = $('input[name="_idem"]', form); if (k) { k.value = ''; } };
+    api(form.action, { method: 'POST', form: form, silent: true, headers: { 'X-Instant': '1' } }).then(function (d) {
+      if (form.getAttribute('data-instant') === 'remove') {
+        undoToast(d.message || 'تم.', d.undo, function () { if (row) { row.hidden = false; row.classList.remove('is-leaving'); } });
+      } else if (d.label !== undefined && row) {
+        var l = $('[data-instant-label]', row);
+        if (l) { l.textContent = d.label; if (d.labelClass) { l.className = d.labelClass; } }
+      }
+      // تبديل ثانٍ لاحقاً عملية جديدة بمفتاح منع تكرار جديد
+      fresh();
+    }, function (err) {
+      revert();
+      toast('error', err.message || 'تعذّر تنفيذ الطلب.');
+      fresh();
     });
   });
 

@@ -43,17 +43,32 @@ function ok(cond, msg) {
     console.log(w + 'px');
     const row = page.locator('tr', { hasText: name });
     ok(await row.count() === 1, 'area added');
-    await Promise.all([page.waitForNavigation(), row.locator('form[action$="/delete"] button').click()]);
+    let navigated = false;
+    page.once('framenavigated', () => { navigated = true; });
+    // من لحظة الإرسال حتى اختفاء الصف، مقاساً داخل الصفحة (بلا زمن أداة الاختبار)
+    await page.evaluate((n) => {
+      window.__gone = null;
+      const tr = Array.from(document.querySelectorAll('tr')).find((r) => r.textContent.includes(n));
+      document.addEventListener('submit', () => { window.__t0 = performance.now(); }, { capture: true, once: true });
+      new MutationObserver((m, o) => { if (tr.hidden) { window.__gone = performance.now() - window.__t0; o.disconnect(); } }).observe(tr, { attributes: true });
+    }, name);
+    await row.locator('form[action$="/delete"] button').click();
+    await page.waitForFunction(() => window.__gone !== null, null, { timeout: 3000 }).catch(() => null);
+    const gone = await page.evaluate(() => window.__gone);
+    ok(gone !== null && gone < 400, 'row gone at once without waiting for the server (' + Math.round(gone || -1) + 'ms)');
     ok(await page.locator('dialog.modal[open]').count() === 0 && dialogs === 0, 'no "are you sure" question');
-    ok(await page.locator('tr', { hasText: name }).count() === 0, 'deleted at once');
     const btn = page.locator('.toast .toast-action');
     await btn.waitFor({ timeout: 5000 }).catch(() => null);
     ok(await btn.count() === 1 && (await btn.textContent()).trim() === 'تراجع', 'message with an undo button');
-    await Promise.all([page.waitForNavigation({ timeout: 10000 }).catch(() => null), btn.click()]);
-    await page.waitForLoadState('load');
-    ok(await page.locator('tr', { hasText: name }).count() === 1, 'undo brings it back');
+    ok(!navigated, 'no page reload');
+    await btn.click();
+    await page.waitForFunction((n) => Array.from(document.querySelectorAll('tr')).some((r) => !r.hidden && r.textContent.includes(n)), name, { timeout: 8000 }).catch(() => null);
+    ok(await page.locator('tr:not([hidden])', { hasText: name }).count() === 1, 'undo brings it back on the page');
+    await page.reload();
+    ok(await page.locator('tr', { hasText: name }).count() === 1, 'and in the database');
     // تنظيف: حذف المنطقة التجريبية
-    await Promise.all([page.waitForNavigation(), page.locator('tr', { hasText: name }).locator('form[action$="/delete"] button').click()]);
+    await page.locator('tr', { hasText: name }).locator('form[action$="/delete"] button').click();
+    await page.waitForSelector('.toast .toast-action', { timeout: 5000 }).catch(() => null);
     ok(errors.length === 0, 'no JavaScript errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
     await ctx.close();
   }

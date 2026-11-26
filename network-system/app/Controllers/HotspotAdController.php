@@ -147,7 +147,13 @@ final class HotspotAdController extends Controller
         $on = (int) $ad['is_active'] === 1 ? 0 : 1;
         DB::update('hotspot_ads', ['is_active' => $on, 'updated_at' => now()], 'id = ?', [$id]);
         Audit::log('hotspot.ads', ($on ? 'تشغيل' : 'إيقاف') . ' إعلان صفحة الهوتسبوت: ' . $ad['title'], 'hotspot_ad', $id);
-        return $this->ok($on ? 'الإعلان يُعرض الآن.' : 'أُوقف الإعلان.', '/hotspot/ads');
+        $message = $on ? 'الإعلان يُعرض الآن.' : 'أُوقف الإعلان.';
+        if ($request->wantsJson()) {
+            // الاستجابة الفورية: حالة الإعلان الجديدة لشارة القائمة
+            [$label, $badge] = HotspotAds::STATES[HotspotAds::state(['is_active' => $on] + $ad, date('Y-m-d'))];
+            return json_response(['ok' => true, 'message' => $message, 'active' => (bool) $on, 'label' => $label, 'labelClass' => 'badge ' . $badge]);
+        }
+        return $this->ok($message, '/hotspot/ads');
     }
 
     public function destroy(Request $request, int $id): Response

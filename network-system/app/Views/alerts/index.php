@@ -30,7 +30,7 @@ $req = Request::current();
   </form>
   <ul class="list alert-list">
     <?php foreach ($rows as $a): ?>
-    <li class="list-item" style="<?= $a['is_read'] ? '' : 'background:var(--primary-soft)' ?>">
+    <li class="list-item<?= $a['is_read'] ? '' : ' is-unread' ?>">
       <span class="list-icon is-<?= e($a['level'] === 'danger' ? 'danger' : ($a['level'] === 'warning' ? 'warning' : ($a['level'] === 'success' ? 'success' : 'info'))) ?>"><?= icon(Notifier::levelIcon($a['level'])) ?></span>
       <div class="list-item-main">
         <div class="list-item-title"><?= e($a['title']) ?></div>
@@ -41,7 +41,7 @@ $req = Request::current();
         <div class="text-xs"><?= e(Notifier::TYPES[$a['type']] ?? $a['type']) ?></div>
       </div>
       <?php if (!$a['is_read']): ?>
-      <form method="post" action="<?= e(url('/alerts/' . $a['id'] . '/read')) ?>">
+      <form method="post" action="<?= e(url('/alerts/' . $a['id'] . '/read')) ?>" data-instant="read" data-badge="<?= e(url('/alerts')) ?>">
         <?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm" title="تعليم كمقروء"><?= icon('check') ?></button>
       </form>
       <?php endif; ?>
