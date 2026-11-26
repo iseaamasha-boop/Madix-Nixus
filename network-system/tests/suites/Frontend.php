@@ -101,4 +101,9 @@ return [
         $h->get($t['path'] . '/support/' . $id);
         T::eq(0, (int) $pdo->query('SELECT tenant_unread FROM support_tickets WHERE id = ' . $id)->fetchColumn(), 'read after a real visit');
     },
+    'English JavaScript builds match the current scripts' => static function (Env $env): void {
+        // المستخدم بالإنجليزية يأخذ نسخاً مولّدة من ملفات JS: أي تعديل على ملف دون إعادة توليدها يعطيه نسخة قديمة
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(BASE_PATH . '/cli/i18n.php') . ' check 2>&1', $out, $code);
+        T::eq(0, $code, 'php cli/i18n.php check: ' . implode(' ', $out));
+    },
 ];

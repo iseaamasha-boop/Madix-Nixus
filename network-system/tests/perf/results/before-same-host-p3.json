@@ -1,0 +1,1119 @@
+{
+  "label": "before",
+  "base": "https://old.madix.test",
+  "at": "2026-11-26T05:38:42.259Z",
+  "runs": 7,
+  "pages": [
+    {
+      "key": "dashboard",
+      "name": "لوحة التحكم",
+      "path": "/demo/",
+      "status": 200,
+      "ttfb": 108.6,
+      "ttfbMin": 96.1,
+      "ttfbMax": 145.9,
+      "ttfbCold": 107.2,
+      "ttfbColdMax": 148.2,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 11,
+      "jsKB": 81.7,
+      "cssKB": 46.6,
+      "fontKB": 251.6,
+      "imgKB": 12.1,
+      "requests": 16,
+      "fcp": 372,
+      "lcp": 372,
+      "cls": 0.016,
+      "inp": 24,
+      "load": 430,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 9.3,
+      "errors": [],
+      "files": [
+        [
+          "css",
+          "/assets/css/app.css",
+          47756
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/app.js",
+          14594
+        ],
+        [
+          "js",
+          "/assets/js/app-bridge.js",
+          2473
+        ],
+        [
+          "js",
+          "/assets/vendor/chart.umd.min.js",
+          66604
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ]
+      ],
+      "lh": {
+        "score": 87,
+        "lcp": 2904,
+        "fcp": 2404,
+        "cls": 0,
+        "tbt": 239,
+        "si": 2404
+      }
+    },
+    {
+      "key": "subscribers",
+      "name": "المشتركين",
+      "path": "/demo/subscribers",
+      "status": 200,
+      "ttfb": 42.8,
+      "ttfbMin": 38.4,
+      "ttfbMax": 45.5,
+      "ttfbCold": 50.6,
+      "ttfbColdMax": 54.1,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 11.3,
+      "jsKB": 16.7,
+      "cssKB": 46.6,
+      "fontKB": 251.6,
+      "imgKB": 12.1,
+      "requests": 15,
+      "fcp": 372,
+      "lcp": 372,
+      "cls": 0.01,
+      "inp": 24,
+      "load": 391,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 7.3,
+      "errors": [],
+      "files": [
+        [
+          "css",
+          "/assets/css/app.css",
+          47756
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/app.js",
+          14594
+        ],
+        [
+          "js",
+          "/assets/js/app-bridge.js",
+          2473
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ]
+      ],
+      "navClick": 135,
+      "navHover": 140,
+      "lh": {
+        "score": 90,
+        "lcp": 2814,
+        "fcp": 2407,
+        "cls": 0.025,
+        "tbt": 185,
+        "si": 2407
+      }
+    },
+    {
+      "key": "cards",
+      "name": "الكروت",
+      "path": "/demo/cards",
+      "status": 200,
+      "ttfb": 65.8,
+      "ttfbMin": 48.4,
+      "ttfbMax": 75.8,
+      "ttfbCold": 62.2,
+      "ttfbColdMax": 76.8,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 12,
+      "jsKB": 16.7,
+      "cssKB": 46.6,
+      "fontKB": 251.6,
+      "imgKB": 12.1,
+      "requests": 15,
+      "fcp": 348,
+      "lcp": 348,
+      "cls": 0.001,
+      "inp": 32,
+      "load": 359,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 8.9,
+      "errors": [],
+      "files": [
+        [
+          "css",
+          "/assets/css/app.css",
+          47756
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/app.js",
+          14594
+        ],
+        [
+          "js",
+          "/assets/js/app-bridge.js",
+          2473
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ]
+      ],
+      "navClick": 195,
+      "navHover": 133,
+      "lh": {
+        "score": 93,
+        "lcp": 2671,
+        "fcp": 2407,
+        "cls": 0,
+        "tbt": 67,
+        "si": 2407
+      }
+    },
+    {
+      "key": "routers",
+      "name": "أجهزة MikroTik",
+      "path": "/demo/routers",
+      "status": 200,
+      "ttfb": 32.5,
+      "ttfbMin": 27.9,
+      "ttfbMax": 35.5,
+      "ttfbCold": 30.2,
+      "ttfbColdMax": 34,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 10.2,
+      "jsKB": 16.7,
+      "cssKB": 46.6,
+      "fontKB": 251.6,
+      "imgKB": 12.1,
+      "requests": 15,
+      "fcp": 312,
+      "lcp": 312,
+      "cls": 0.04,
+      "inp": 24,
+      "load": 328,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 7.3,
+      "errors": [],
+      "files": [
+        [
+          "css",
+          "/assets/css/app.css",
+          47756
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/app.js",
+          14594
+        ],
+        [
+          "js",
+          "/assets/js/app-bridge.js",
+          2473
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ]
+      ],
+      "navClick": 119,
+      "navHover": 58,
+      "lh": {
+        "score": 93,
+        "lcp": 2676,
+        "fcp": 2406,
+        "cls": 0,
+        "tbt": 87,
+        "si": 2406
+      }
+    },
+    {
+      "key": "map",
+      "name": "الخريطة",
+      "path": "/demo/map",
+      "status": 200,
+      "ttfb": 22.7,
+      "ttfbMin": 21.2,
+      "ttfbMax": 25.2,
+      "ttfbCold": 24.2,
+      "ttfbColdMax": 28.5,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 10,
+      "jsKB": 67.5,
+      "cssKB": 49.9,
+      "fontKB": 251.6,
+      "imgKB": 12.8,
+      "requests": 35,
+      "fcp": 256,
+      "lcp": 256,
+      "cls": 0.001,
+      "inp": 24,
+      "load": 314,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 9.4,
+      "errors": [
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "Failed to load resource: net::ERR_NAME_NOT_RESOLVED"
+      ],
+      "files": [
+        [
+          "css",
+          "/assets/css/app.css",
+          47756
+        ],
+        [
+          "css",
+          "/assets/vendor/leaflet/leaflet.css",
+          3320
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "js",
+          "/assets/js/app.js",
+          14594
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/app-bridge.js",
+          2473
+        ],
+        [
+          "js",
+          "/assets/vendor/leaflet/leaflet.js",
+          41049
+        ],
+        [
+          "js",
+          "/assets/js/geo.js",
+          4745
+        ],
+        [
+          "js",
+          "/assets/js/map.js",
+          6285
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ],
+        [
+          "img",
+          "https://c.tile.openstreetmap.org/11/1219/835.png",
+          0
+        ],
+        [
+          "img",
+          "https://b.tile.openstreetmap.org/11/1219/834.png",
+          0
+        ],
+        [
+          "img",
+          "https://b.tile.openstreetmap.org/11/1218/835.png",
+          0
+        ],
+        [
+          "img",
+          "https://a.tile.openstreetmap.org/11/1219/836.png",
+          0
+        ],
+        [
+          "img",
+          "https://a.tile.openstreetmap.org/11/1220/835.png",
+          0
+        ],
+        [
+          "img",
+          "https://c.tile.openstreetmap.org/11/1220/834.png",
+          0
+        ],
+        [
+          "img",
+          "https://a.tile.openstreetmap.org/11/1218/834.png",
+          0
+        ],
+        [
+          "img",
+          "https://c.tile.openstreetmap.org/11/1218/836.png",
+          0
+        ],
+        [
+          "img",
+          "https://b.tile.openstreetmap.org/11/1220/836.png",
+          0
+        ],
+        [
+          "img",
+          "https://a.tile.openstreetmap.org/11/1217/835.png",
+          0
+        ],
+        [
+          "img",
+          "https://b.tile.openstreetmap.org/11/1221/835.png",
+          0
+        ],
+        [
+          "img",
+          "https://c.tile.openstreetmap.org/11/1217/834.png",
+          0
+        ],
+        [
+          "img",
+          "https://a.tile.openstreetmap.org/11/1221/834.png",
+          0
+        ],
+        [
+          "img",
+          "https://c.tile.openstreetmap.org/11/1221/836.png",
+          0
+        ],
+        [
+          "img",
+          "https://b.tile.openstreetmap.org/11/1217/836.png",
+          0
+        ],
+        [
+          "img",
+          "/assets/vendor/leaflet/images/layers.png",
+          696
+        ]
+      ],
+      "navClick": 140,
+      "navHover": 104,
+      "lh": {
+        "score": 53,
+        "lcp": 2751,
+        "fcp": 2407,
+        "cls": 0,
+        "tbt": 11318,
+        "si": 13741
+      }
+    },
+    {
+      "key": "reports",
+      "name": "التقارير",
+      "path": "/demo/reports",
+      "status": 200,
+      "ttfb": 35.4,
+      "ttfbMin": 32.1,
+      "ttfbMax": 45.6,
+      "ttfbCold": 31.4,
+      "ttfbColdMax": 35.5,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 10,
+      "jsKB": 81.7,
+      "cssKB": 46.6,
+      "fontKB": 251.6,
+      "imgKB": 12.1,
+      "requests": 16,
+      "fcp": 260,
+      "lcp": 260,
+      "cls": 0.001,
+      "inp": 24,
+      "load": 328,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 8.8,
+      "errors": [],
+      "files": [
+        [
+          "css",
+          "/assets/css/app.css",
+          47756
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/app-bridge.js",
+          2473
+        ],
+        [
+          "js",
+          "/assets/js/app.js",
+          14594
+        ],
+        [
+          "js",
+          "/assets/vendor/chart.umd.min.js",
+          66604
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ]
+      ],
+      "navClick": 123,
+      "navHover": 109,
+      "lh": {
+        "score": 94,
+        "lcp": 2556,
+        "fcp": 2406,
+        "cls": 0.048,
+        "tbt": 32,
+        "si": 2406
+      }
+    },
+    {
+      "key": "hotspot",
+      "name": "ربط الهوتسبوت",
+      "path": "/demo/hotspot",
+      "status": 200,
+      "ttfb": 28.4,
+      "ttfbMin": 22.2,
+      "ttfbMax": 38.7,
+      "ttfbCold": 25.6,
+      "ttfbColdMax": 28.9,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 11.1,
+      "jsKB": 16.7,
+      "cssKB": 46.6,
+      "fontKB": 251.6,
+      "imgKB": 12.1,
+      "requests": 15,
+      "fcp": 292,
+      "lcp": 292,
+      "cls": 0.081,
+      "inp": 24,
+      "load": 309,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 7.3,
+      "errors": [],
+      "files": [
+        [
+          "css",
+          "/assets/css/app.css",
+          47756
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/app-bridge.js",
+          2473
+        ],
+        [
+          "js",
+          "/assets/js/app.js",
+          14594
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ]
+      ],
+      "navClick": 159,
+      "navHover": 56,
+      "lh": {
+        "score": 94,
+        "lcp": 2543,
+        "fcp": 2401,
+        "cls": 0,
+        "tbt": 67,
+        "si": 2401
+      }
+    },
+    {
+      "key": "admin",
+      "name": "لوحة المسؤول",
+      "path": "/admin",
+      "status": 200,
+      "ttfb": 17.3,
+      "ttfbMin": 14.4,
+      "ttfbMax": 20,
+      "ttfbCold": 19.2,
+      "ttfbColdMax": 19.7,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 7.9,
+      "jsKB": 79.3,
+      "cssKB": 46.6,
+      "fontKB": 251.6,
+      "imgKB": 12.1,
+      "requests": 15,
+      "fcp": 200,
+      "lcp": 232,
+      "cls": 0,
+      "inp": 24,
+      "load": 308,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 8.2,
+      "errors": [],
+      "files": [
+        [
+          "css",
+          "/assets/css/app.css",
+          47756
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/app.js",
+          14594
+        ],
+        [
+          "js",
+          "/assets/vendor/chart.umd.min.js",
+          66604
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ]
+      ],
+      "lh": {
+        "score": 91,
+        "lcp": 2899,
+        "fcp": 2404,
+        "cls": 0,
+        "tbt": 108,
+        "si": 2404
+      }
+    },
+    {
+      "key": "landing",
+      "name": "صفحة الهبوط",
+      "path": "/",
+      "status": 200,
+      "ttfb": 16.9,
+      "ttfbMin": 13.7,
+      "ttfbMax": 27.1,
+      "ttfbCold": 14.4,
+      "ttfbColdMax": 15.3,
+      "sqlN": null,
+      "sqlMs": null,
+      "htmlKB": 8.2,
+      "jsKB": 3,
+      "cssKB": 9.9,
+      "fontKB": 251.6,
+      "imgKB": 92,
+      "requests": 16,
+      "fcp": 412,
+      "lcp": 412,
+      "cls": 0.006,
+      "inp": 0,
+      "load": 287,
+      "inlineCssKB": 0.4,
+      "inlineJsKB": 3.9,
+      "errors": [],
+      "files": [
+        [
+          "img",
+          "/assets/img/landing/dash-ar-sm.webp",
+          40326
+        ],
+        [
+          "css",
+          "/assets/css/landing.css",
+          10120
+        ],
+        [
+          "img",
+          "/assets/img/icons.svg",
+          10950
+        ],
+        [
+          "img",
+          "/assets/img/brand/mark.svg",
+          474
+        ],
+        [
+          "img",
+          "/assets/img/landing/phone-ar.webp",
+          41458
+        ],
+        [
+          "img",
+          "/assets/img/brand/verified.svg",
+          1009
+        ],
+        [
+          "js",
+          "/assets/js/landing.js",
+          3021
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2",
+          19144
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2",
+          46344
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2",
+          20096
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2",
+          45804
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2",
+          43200
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2",
+          18808
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2",
+          44528
+        ],
+        [
+          "font",
+          "/assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2",
+          19716
+        ]
+      ],
+      "lh": {
+        "score": 88,
+        "lcp": 2989,
+        "fcp": 2285,
+        "cls": 0,
+        "tbt": 220,
+        "si": 2285
+      }
+    }
+  ],
+  "hotspot": {
+    "key": "hotspot-api",
+    "name": "واجهة صفحة الهوتسبوت",
+    "error": "no router key (use --hotspot-key)"
+  }
+}

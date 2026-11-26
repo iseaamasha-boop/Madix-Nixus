@@ -125,19 +125,19 @@
     submit.classList.remove('is-loading');
     wrap.classList.add('is-verified');
     if (!calm) {
+      // المربعات تبقى in أماكنها (left/top ثابتة) وتنتقل to الدائرة بـ translate only (لا left/top متحركة)
       var start = boxes.map(function (b) { return { left: b.offsetLeft, top: b.offsetTop }; });
-      ring.style.height = ring.offsetHeight + 'px';
-      ring.classList.add('is-ring');
-      boxes.forEach(function (b, i) { b.style.left = start[i].left + 'px'; b.style.top = start[i].top + 'px'; });
-      void ring.offsetWidth;
       var h = 188, size = boxes[0].offsetWidth, r = 66, cx = ring.clientWidth / 2, cy = h / 2;
+      ring.classList.add('is-ring');
       ring.style.height = h + 'px';
+      var top0 = (h - ring.firstElementChild.offsetHeight) / 2;
+      boxes.forEach(function (b, i) { b.style.left = start[i].left + 'px'; b.style.top = (start[i].top + top0) + 'px'; });
+      void ring.offsetWidth;
+      ring.classList.add('is-moving');
       boxes.forEach(function (b, i) {
         var a = (i / boxes.length) * Math.PI * 2 - Math.PI / 2;
-        b.style.left = (cx + r * Math.cos(a) - size / 2) + 'px';
-        b.style.top = (cy + r * Math.sin(a) - size / 2) + 'px';
+        b.style.translate = (cx + r * Math.cos(a) - size / 2 - start[i].left) + 'px ' + (cy + r * Math.sin(a) - size / 2 - start[i].top - top0) + 'px';
       });
-      setTimeout(function () { ring.classList.add('is-spinning'); }, 650);
     }
     setTimeout(function () { window.location.href = to; }, parseInt(form.getAttribute('data-otp-delay'), 10) || 3000);
   }
