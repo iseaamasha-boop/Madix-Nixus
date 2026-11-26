@@ -585,6 +585,28 @@ select.input-sm { padding-inline-end: 30px; background-position: left 8px center
 .table th.sortable.is-asc > a::after, .table th.sortable.is-desc > a::after { opacity: 1; border-top-color: var(--primary); }
 .table th.sortable.is-asc > a::after { transform: rotate(180deg); }
 .table th.num.sortable > a { flex-direction: row-reverse; }
+/* المعاينة السريعة (js/preview.js) */
+.qp-card {
+  position: fixed; z-index: var(--z-popover); width: 300px; max-width: calc(100vw - 16px);
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg);
+  padding: 12px 14px; font-size: 13px; pointer-events: none;
+  opacity: 0; transform: translateY(4px); transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
+}
+.qp-card.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.qp-title { display: block; font-weight: 700; font-size: 14px; color: var(--text); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qp-title:hover { color: var(--primary); }
+.qp-sub { color: var(--muted); font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qp-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.qp-rows { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 10px 0 0; }
+.qp-rows dt { color: var(--muted); white-space: nowrap; }
+.qp-rows dd { margin: 0; overflow-wrap: anywhere; }
+.qp-skel { display: grid; gap: 8px; }
+.qp-skel i { display: block; height: 10px; border-radius: 5px; background: var(--surface-3); }
+.qp-skel i:first-child { width: 60%; height: 13px; }
+.qp-skel i:nth-child(2) { width: 40%; }
+@media (prefers-reduced-motion: reduce) { .qp-card { transition: none; } }
+@media print { .qp-card { display: none !important; } }
+
 /* نسخة رأس الجدول الطويل أثناء التمرير (js/tables.js) */
 .table-float {
   position: fixed; z-index: var(--z-topbar); overflow: hidden; pointer-events: none;
@@ -941,6 +963,8 @@ tr.is-leaving, li.is-leaving, [data-instant-row].is-leaving { opacity: 0; transf
 .divider-text::before, .divider-text::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
 .chart-box { position: relative; height: 260px; }
+/* اللوحة كتلة من البداية (الرسم يُنشأ عند ظهورها): لا تغيير في التخطيط حين يُرسم */
+.chart-box > canvas { display: block; }
 .chart-box.is-sm { height: 190px; }
 .chart-box.is-lg { height: 320px; }
 

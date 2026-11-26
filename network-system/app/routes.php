@@ -208,6 +208,7 @@ return static function (Router $r): void {
     $r->get('/routers/connect/{id}/script', [RouterConnectController::class, 'download'], ['perm' => 'routers.manage']);
     $r->post('/routers', [RouterController::class, 'store'], ['perm' => 'routers.manage']);
     $r->post('/routers/test', [RouterController::class, 'test'], ['perm' => 'routers.manage']);
+    $r->get('/routers/{id}/preview', [RouterController::class, 'preview'], ['perm' => 'routers.view']);
     $r->get('/routers/{id}', [RouterController::class, 'show'], ['perm' => 'routers.view']);
     $r->get('/routers/{id}/edit', [RouterController::class, 'edit'], ['perm' => 'routers.manage']);
     $r->post('/routers/{id}', [RouterController::class, 'update'], ['perm' => 'routers.manage']);
@@ -378,6 +379,7 @@ return static function (Router $r): void {
     $r->post('/subscribers/import-smart/parse', [\App\Controllers\SmartImportController::class, 'parse'], ['perm' => 'subscribers.manage']);
     $r->post('/subscribers/import-smart/save', [\App\Controllers\SmartImportController::class, 'save'], ['perm' => 'subscribers.manage']);
     $r->post('/subscribers', [SubscriberController::class, 'store'], ['perm' => 'subscribers.manage']);
+    $r->get('/subscribers/{id}/preview', [SubscriberController::class, 'preview'], ['perm' => 'subscribers.view']);
     $r->get('/subscribers/{id}', [SubscriberController::class, 'show'], ['perm' => 'subscribers.view']);
     $r->get('/subscribers/{id}/edit', [SubscriberController::class, 'edit'], ['perm' => 'subscribers.manage']);
     $r->post('/subscribers/{id}', [SubscriberController::class, 'update'], ['perm' => 'subscribers.manage']);

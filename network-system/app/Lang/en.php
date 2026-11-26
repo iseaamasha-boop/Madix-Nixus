@@ -5294,4 +5294,5 @@ return [
     'تعذّر التراجع: أُضيفت بيانات تتعارض مع العنصر المحذوف بعد حذفه.' => 'Could not undo: data added after the deletion conflicts with the deleted item.',
     'تعذّرت المزامنة مع جهاز MikroTik، وستُعاد تلقائياً.' => 'Syncing with the MikroTik device failed and will be retried automatically.',
     'تراجع عن: ' => 'Undid: ',
+    'يعمل منذ' => 'Up for',
 ];

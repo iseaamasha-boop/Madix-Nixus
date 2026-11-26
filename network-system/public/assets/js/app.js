@@ -925,6 +925,55 @@
     if (doc.readyState === 'complete') { go(); } else { window.addEventListener('load', go); }
   })();
 
+  // المعاينة السريعة (البند 73): المرور بالفأرة على رابط مشترك أو جهاز MikroTik، أو التركيز عليه بلوحة المفاتيح،
+  // يُظهر بطاقة بأهم بياناته؛ js/preview.js يُحمَّل عند أول مرور فقط. اللمس يفتح الرابط كما هو
+  (function () {
+    var meta = doc.querySelector('meta[name="palette-src"]');
+    var src = meta && meta.getAttribute('data-preview');
+    if (!src) { return; }
+    var re = new RegExp('^' + base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/(subscribers|routers)/(\\d+)$');
+    var timer = null, loading = false, mouse = false;
+    function target(a) {
+      if (!a || a.target === '_blank' || a.closest('.sidebar, .cmdk, .qp-card, .dropdown-menu, .tabs, .pager')) { return null; }
+      var u;
+      try { u = new URL(a.href, window.location.href); } catch (e) { return null; }
+      if (u.origin !== window.location.origin || u.search || u.hash || u.pathname === window.location.pathname) { return null; }
+      return re.test(u.pathname) ? u.pathname + '/preview' : null;
+    }
+    function open(a, api) {
+      if (window.SNPreview) { window.SNPreview.show(a, api); return; }
+      if (loading) { return; }
+      loading = true;
+      var s = doc.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = function () { if (window.SNPreview && (a.matches(':hover') || doc.activeElement === a)) { window.SNPreview.show(a, api); } };
+      doc.head.appendChild(s);
+    }
+    doc.addEventListener('pointerover', function (e) {
+      mouse = e.pointerType === 'mouse';
+      if (!mouse) { return; }
+      var a = e.target.closest('a[href]'), api = target(a);
+      if (!api) { return; }
+      clearTimeout(timer);
+      timer = setTimeout(function () { open(a, api); }, 450);
+    });
+    doc.addEventListener('pointerout', function (e) {
+      var a = e.target.closest('a[href]');
+      if (!a || a.contains(e.relatedTarget)) { return; }
+      clearTimeout(timer);
+      if (window.SNPreview && window.SNPreview.current() === a) { window.SNPreview.hideSoon(); }
+    });
+    // لوحة المفاتيح فقط (Tab): التركيز باللمس أو بالنقر لا يُظهر بطاقة
+    doc.addEventListener('focusin', function (e) {
+      var a = e.target.closest && e.target.closest('a[href]'), api = target(a);
+      clearTimeout(timer);
+      var keyboard = false;
+      try { keyboard = !!a && a.matches(':focus-visible'); } catch (x) { keyboard = false; }
+      if (api && keyboard) { timer = setTimeout(function () { open(a, api); }, 600); } else if (window.SNPreview) { window.SNPreview.hide(); }
+    });
+  })();
+
   // البحث العام
   on(doc, 'keydown', '[data-global-search]', function (e, el) {
     if (e.key === 'Enter' && el.value.trim() !== '') {

@@ -230,6 +230,34 @@ final class SubscriberController extends Controller
         return view('subscribers/form', $this->formData($sub, $request));
     }
 
+    /** المعاينة السريعة (البند 73): أهم بيانات المشترك عند المرور على رابطه، بصلاحية العرض ونطاق أجهزة MikroTik نفسيهما */
+    public function preview(Request $request, int $id): Response
+    {
+        Session::release();
+        $sub = $this->find($id);
+        $plan = DB::row('SELECT name, price FROM plans WHERE id = ?', [$sub['plan_id']]);
+        $router = $sub['router_id'] ? DB::value('SELECT name FROM routers WHERE id = ?', [$sub['router_id']]) : null;
+        $online = (bool) DB::value('SELECT 1 FROM sessions WHERE subscriber_id = ? AND stopped_at IS NULL LIMIT 1', [$id]);
+        $state = SubscriberRules::displayState($sub);
+        $tones = ['suspended' => ['موقوف', 'danger'], 'expired' => ['منتهي', 'danger'], 'expiring' => ['ينتهي قريباً', 'warning'], 'new' => ['بانتظار التفعيل', 'info'], 'active' => ['فعّال', 'success']];
+        [$label, $tone] = $tones[$state] ?? $tones['active'];
+        $rows = [['الباقة', ($plan['name'] ?? '—') . ($plan ? ' · ' . money($plan['price']) : '')]];
+        if ($sub['expires_at']) {
+            $left = seconds_until($sub['expires_at']);
+            $rows[] = ['الانتهاء', fmt_date($sub['expires_at']) . ' · ' . ($left > 0 ? 'متبقٍ ' . fmt_duration($left) : 'منذ ' . fmt_duration(-$left))];
+        }
+        if ((float) $sub['balance'] != 0.0) {
+            $rows[] = [(float) $sub['balance'] > 0 ? 'المستحق' : 'الرصيد', money(abs((float) $sub['balance']))];
+        }
+        if ($router) {
+            $rows[] = ['جهاز MikroTik', (string) $router];
+        }
+        return json_response([
+            'ok' => true, 'title' => $sub['full_name'], 'sub' => trim($sub['username'] . ($sub['phone'] ? ' · ' . $sub['phone'] : '')),
+            'badges' => array_values(array_filter([[$label, $tone], $online ? ['متصل الآن', 'success'] : null])), 'rows' => $rows, 'url' => url('/subscribers/' . $id),
+        ]);
+    }
+
     private function find(int $id): array
     {
         $sub = DB::row('SELECT s.*, p.service FROM subscribers s JOIN plans p ON p.id = s.plan_id WHERE s.id = ?', [$id]);

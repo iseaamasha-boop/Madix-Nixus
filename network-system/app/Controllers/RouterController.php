@@ -45,6 +45,34 @@ final class RouterController extends Controller
         'tasks'      => ['المهام المعلّقة', 'list-checks'],
     ];
 
+    /** المعاينة السريعة (البند 73): حالة جهاز MikroTik عند المرور على رابطه */
+    public function preview(Request $request, int $id): Response
+    {
+        Session::release();
+        $r = $this->findRouter($id);
+        $tones = ['online' => ['متصل', 'success'], 'offline' => ['غير متصل', 'danger']];
+        [$label, $tone] = $tones[$r['status']] ?? ['غير معروف', 'muted'];
+        $rows = [];
+        if ($r['status'] === 'online') {
+            $rows[] = ['المتصلون', num((int) $r['active_hotspot'] + (int) $r['active_ppp'])];
+            if ($r['cpu_load'] !== null) {
+                $rows[] = ['المعالج', (int) $r['cpu_load'] . '%'];
+            }
+            if ($r['uptime_seconds']) {
+                $rows[] = ['يعمل منذ', fmt_duration((int) $r['uptime_seconds'])];
+            }
+        } elseif ($r['last_seen_at']) {
+            $rows[] = ['آخر اتصال', time_ago($r['last_seen_at'])];
+        }
+        if ($r['site_name'] || $r['area_name']) {
+            $rows[] = ['الموقع', trim(($r['site_name'] ?? '') . ($r['site_name'] && $r['area_name'] ? ' · ' : '') . ($r['area_name'] ?? ''))];
+        }
+        if ($r['model'] || $r['version']) {
+            $rows[] = ['الطراز', trim(($r['model'] ?? '') . ($r['version'] ? ' · RouterOS ' . $r['version'] : ''))];
+        }
+        return json_response(['ok' => true, 'title' => $r['name'], 'sub' => (string) $r['host'], 'badges' => [[$label, $tone]], 'rows' => $rows, 'url' => url('/routers/' . $id)]);
+    }
+
     private function findRouter(int $id): array
     {
         $router = DB::row('SELECT r.*, a.name AS area_name, si.name AS site_name FROM routers r LEFT JOIN areas a ON a.id = r.area_id LEFT JOIN sites si ON si.id = r.site_id WHERE r.id = ?', [$id]);
