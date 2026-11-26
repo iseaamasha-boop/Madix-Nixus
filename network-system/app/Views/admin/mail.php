@@ -63,7 +63,6 @@ $first = $autoErr && $canSet ? 'auto' : ($bErr !== null && $canSend ? 'broadcast
             <div class="field col-6"><label for="m-from">بريد المرسل</label><input class="input input-ltr" id="m-from" name="from" value="<?= e($c('from')) ?>" placeholder="no-reply@example.com" spellcheck="false" autocapitalize="off"><?= error_html('from') ?></div>
             <div class="field col-6"><label for="m-name">اسم المرسل</label><input class="input" id="m-name" name="from_name" value="<?= e(old('from_name', Platform::setting('mail.from_name', ''))) ?>" placeholder="<?= e(App\Platform\PlatformSms::name()) ?>"><?= error_html('from_name') ?></div>
           </div>
-          <p class="text-sm text-muted mt-3"><?= icon('info', 'icon-sm') ?> مثال Gmail: الخادم smtp.gmail.com والمنفذ 587 مع TLS، واسم المستخدم بريدك، وكلمة المرور «كلمة مرور التطبيقات» من إعدادات حساب Google (لا كلمة مرور الحساب).</p>
           <div class="form-actions"><button class="btn btn-primary"><?= icon('save') ?>حفظ</button></div>
         </form>
         <div class="mail-side">
@@ -81,7 +80,6 @@ $first = $autoErr && $canSet ? 'auto' : ($bErr !== null && $canSend ? 'broadcast
     <form method="post" action="<?= e(url('/admin/mail/features')) ?>" class="panel-body" id="mail-auto">
       <?= csrf_field() ?>
       <div class="mail-auto-head">
-        <p class="text-sm text-muted"><?= icon('info', 'icon-sm') ?> تصل كل رسالة إلى البريد المسجّل في حساب الزبون. لكل رسالة مفتاح تشغيل، وعنوان ونص تكتبهما بالرموز، ومعاينة، وإرسال تجربة ببيانات نموذجية.</p>
         <div class="field mail-try"><label for="m-try">بريد التجربة</label><input class="input input-ltr" id="m-try" type="email" placeholder="you@example.com" value="<?= e($adminEmail) ?>"></div>
       </div>
       <div class="mail-auto-list">

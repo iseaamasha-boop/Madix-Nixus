@@ -65,7 +65,6 @@ $defPassLen = old('password_length', Settings::get('cards.password_length', '4')
             <label><input type="radio" name="router_mode" value="all"<?= checked($rMode !== 'selected') ?>><span>كل الأجهزة</span></label>
             <label><input type="radio" name="router_mode" value="selected"<?= checked($rMode === 'selected') ?><?= $routers ? '' : ' disabled' ?>><span>أجهزة محددة فقط</span></label>
           </div>
-          <p class="hint mt-2" data-show-when="router_mode=all">تعمل الكروت على كل أجهزة MikroTik المسموحة للباقة، وتُجهَّز على الجهاز تلقائياً عند أول دخول.</p>
           <?php if (!$routers): ?>
             <p class="hint mt-2">لا توجد أجهزة MikroTik مفعّلة بعد.<?php if (can('routers.manage')): ?> <a href="<?= e(url('/routers/create')) ?>">إضافة جهاز</a><?php endif; ?></p>
           <?php else: ?>

@@ -33,25 +33,24 @@ $state = static function (?array $f, array $own): array {
         : ['موقوفة', 'badge-outline', 'من إعدادات الشبكة'];
 };
 ?>
-<div class="grid grid-main-side">
+<div class="stack">
   <div class="stack">
     <form method="post" action="<?= e(url('/admin/cookies')) ?>" class="panel">
       <?= csrf_field() ?>
       <div class="panel-head"><h3><?= icon('cookie') ?>السياسة العامة لكل الشبكات</h3></div>
       <div class="panel-body">
         <div class="cookie-modes">
-          <?php foreach (['tenant' => ['sliders-horizontal', 'كل شبكة تتحكم بنفسها', 'يُتبع إعداد «الدخول التلقائي» في إعدادات الهوتسبوت لكل شبكة.'],
-                          'on' => ['circle-check', 'تفعيل لكل الشبكات', 'الجهاز الذي دخل بكرت يعود تلقائياً دون إدخال الكرت طوال المدة المحددة.'],
-                          'off' => ['ban', 'إيقاف لكل الشبكات', 'يلزم إدخال الكرت في كل مرة، وتُحذف الكوكيز المحفوظة على الأجهزة فوراً.']] as $k => [$ic, $label, $hint]): ?>
+          <?php foreach (['tenant' => ['sliders-horizontal', 'كل شبكة تتحكم بنفسها'],
+                          'on' => ['circle-check', 'تفعيل لكل الشبكات'],
+                          'off' => ['ban', 'إيقاف لكل الشبكات']] as $k => [$ic, $label]): ?>
           <label class="cookie-mode">
             <input type="radio" name="mode" value="<?= e($k) ?>"<?= checked($policy['mode'] === $k) ?> data-cookie-mode>
-            <span class="cookie-mode-card"><span class="cookie-mode-icon is-<?= e($k) ?>"><?= icon($ic) ?></span><span class="cookie-mode-text"><b><?= e($label) ?></b><small><?= e($hint) ?></small></span></span>
+            <span class="cookie-mode-card"><span class="cookie-mode-icon is-<?= e($k) ?>"><?= icon($ic) ?></span><span class="cookie-mode-text"><b><?= e($label) ?></b></span></span>
           </label>
           <?php endforeach; ?>
         </div>
         <div class="form-grid mt-3" data-cookie-when-on<?= $policy['mode'] === 'on' ? '' : ' hidden' ?>>
           <div class="field col-6"><label for="cookie-duration">مدة الكوكيز</label><?= $durSelect($policy['duration'], 'cookie-duration') ?><?= error_html('duration') ?></div>
-          <div class="field col-6"><label>&nbsp;</label><p class="text-sm text-muted" style="margin:0">بعد انتهاء المدة يُطلب الكرت من جديد على الجهاز نفسه.</p></div>
         </div>
         <div class="form-actions"><button class="btn btn-primary"><?= icon('save') ?>حفظ وتطبيق</button></div>
       </div>
@@ -92,18 +91,6 @@ $state = static function (?array $f, array $own): array {
       </div>
       <?php if ($total > count($rows)): ?><div class="panel-foot text-sm text-muted">يُعرض <?= num(count($rows)) ?> من <?= num($total) ?></div><?php endif; ?>
       <?php endif; ?>
-    </div>
-  </div>
-
-  <div class="stack">
-    <div class="panel">
-      <div class="panel-head"><h3><?= icon('info') ?>كيف تعمل الكوكيز؟</h3></div>
-      <div class="panel-body stack text-sm" style="gap:10px">
-        <p style="margin:0">عند الدخول بكرت يحفظ جهاز MikroTik «كوكيز» لجهاز المستخدم (حسب عنوان MAC)، فيدخل تلقائياً في المرات التالية دون إدخال الكرت حتى تنتهي المدة.</p>
-        <p style="margin:0"><b>الأولوية:</b> تعيين الحساب ← سياسة المنصة ← إعداد الشبكة نفسها.</p>
-        <p style="margin:0"><b>التطبيق:</b> تتحدّث ملفات السرعة على كل أجهزة MikroTik للحساب تلقائياً خلال دقيقة. عند الإيقاف أو تقصير المدة تُحذف الكوكيز المحفوظة على الأجهزة فوراً.</p>
-        <p class="text-muted" style="margin:0">لا يظهر هذا الإجراء في تنبيهات الزبون ولا في سجل عملياته.</p>
-      </div>
     </div>
   </div>
 </div>

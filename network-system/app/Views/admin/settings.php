@@ -61,7 +61,6 @@ $zones = ['Asia/Gaza', 'Asia/Hebron', 'Asia/Jerusalem', 'Asia/Amman', 'Africa/Ca
     <div class="panel">
       <div class="panel-head"><h3><?= icon('user-cog') ?>فريق الإدارة</h3></div>
       <div class="panel-body stack" style="gap:10px">
-        <p class="text-sm text-muted" style="margin:0">المسؤولون وأدوارهم وصلاحياتهم يديرها مالك المنصة من صفحة «فريق الإدارة»، وكل مسؤول يغيّر كلمة مروره من صفحة «الأمان».</p>
         <?php if (AdminAuth::isOwner()): ?><a class="btn btn-block" href="<?= e(url('/admin/team')) ?>"><?= icon('user-cog') ?>فريق الإدارة</a><?php endif; ?>
         <a class="btn btn-block btn-ghost" href="<?= e(url('/admin/security')) ?>"><?= icon('shield-check') ?>الأمان وكلمة المرور</a>
       </div>

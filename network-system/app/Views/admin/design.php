@@ -219,7 +219,6 @@ $fields = static function (string $name, array $opts) use ($t): string {
       </div>
       <div class="dz-apply">
         <button class="btn btn-primary btn-lg btn-block"><?= icon('check') ?>تطبيق على كل الأنظمة</button>
-        <p class="text-sm text-muted">يُطبَّق التصميم فوراً على لوحة المسؤول وعلى أنظمة كل الزبائن. يبقى لكل مستخدم اختيار الوضع الفاتح أو الداكن.</p>
       </div>
     </div>
   </div>

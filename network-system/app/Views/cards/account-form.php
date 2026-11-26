@@ -64,7 +64,6 @@ $hasBurst = $cat && ($cat['burst_rate_down'] || $cat['burst_rate_up']);
                 <input class="input input-ltr mono" id="username" value="<?= e($card['username']) ?>" disabled>
               <?php else: ?>
                 <input class="input input-ltr mono" id="username" name="username" value="<?= e($val('username')) ?>" required maxlength="64" autocapitalize="off" spellcheck="false" placeholder="ahmad">
-                <?php if ($codeCase !== 'none'): ?><span class="hint"><?= $codeCase === 'lower' ? 'يُحفظ بأحرف صغيرة' : 'يُحفظ بأحرف كبيرة' ?></span><?php endif; ?>
               <?php endif; ?>
               <?= error_html('username') ?>
             </div>
