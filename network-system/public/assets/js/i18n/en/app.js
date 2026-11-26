@@ -859,11 +859,14 @@
   var palette = (function () {
     var meta = doc.querySelector('meta[name="palette-src"]');
     if (!meta) { return null; }
-    var dlg = null, input = null, loading = false;
+    var dlg = null, input = null, loading = false, back = null;
     function build() {
+      // نافذة غير “modal”: showModal تجعل Every Page خاملة (inert) فيُعاد Account أنماط Every عناصرها عند الفتح,
+      // وهذا بطيء in Pages الكبيرة on الهواتف; الطبقة الخلفية وEscape والتركيز تُدار هنا
       dlg = doc.createElement('dialog');
       dlg.className = 'cmdk';
       dlg.setAttribute('aria-label', 'Search');
+      dlg.setAttribute('aria-modal', 'true');
       dlg.innerHTML = '<div class="cmdk-box"><div class="cmdk-head">' + icon('search') +
         '<input type="search" class="cmdk-input" placeholder="Search pages, subscribers, cards, MikroTik devices..." aria-label="Search" autocomplete="off" spellcheck="false" enterkeyhint="go" role="combobox" aria-expanded="true" aria-controls="cmdk-list">' +
         '<button type="button" class="cmdk-close icon-btn" aria-label="Close">' + icon('x') + '</button></div>' +
@@ -871,7 +874,11 @@
       doc.body.appendChild(dlg);
       input = dlg.querySelector('.cmdk-input');
       dlg.addEventListener('click', function (e) { if (e.target === dlg || e.target.closest('.cmdk-close')) { close(); } });
-      dlg.addEventListener('close', function () { doc.documentElement.classList.remove('cmdk-open'); });
+      dlg.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { e.preventDefault(); close(); }
+        else if (e.key === 'Tab') { e.preventDefault(); input.focus(); }
+      });
+      dlg.addEventListener('close', function () { if (back && back.focus) { back.focus({ preventScroll: true }); } });
     }
     function load() {
       if (window.SNPalette || loading) { return; }
@@ -886,8 +893,8 @@
     function open(text) {
       if (!dlg) { build(); }
       if (!dlg.open) {
-        if (typeof dlg.showModal === 'function') { dlg.showModal(); } else { dlg.setAttribute('open', ''); }
-        doc.documentElement.classList.add('cmdk-open');
+        back = doc.activeElement;
+        if (typeof dlg.show === 'function') { dlg.show(); } else { dlg.setAttribute('open', ''); }
       }
       if (typeof text === 'string') { input.value = text; }
       input.focus();
@@ -896,6 +903,8 @@
       if (window.SNPalette) { window.SNPalette.refresh(); }
     }
     function close() { if (dlg && dlg.open) { if (typeof dlg.close === 'function') { dlg.close(); } else { dlg.removeAttribute('open'); } } }
+    // الإطار يُبنى Time الفراغ yet اكتمال Page (مخفياً): أول Open أخف وأسرع استجابة
+    window.addEventListener('load', function () { (window.requestIdleCallback || function (f) { setTimeout(f, 500); })(function () { if (!dlg) { build(); } }, { timeout: 3000 }); });
     doc.addEventListener('keydown', function (e) {
       if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || (e.code !== 'KeyK' && e.key !== 'k' && e.key !== 'K')) { return; }
       e.preventDefault();

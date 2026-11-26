@@ -9,7 +9,7 @@
   var SN = window.SN;
   var dlg, input, list, cfg;
   var pages = [], actions = null, remote = [], remoteQ = null, items = [], active = 0;
-  var timer = null, ctrl = null, pending = '';
+  var timer = null, ctrl = null, pending = '', lastHtml = null;
   var base = (document.querySelector('meta[name="base-url"]') || {}).content || '';
   var RECENT = 'sn-cmdk-recent:' + base;
 
@@ -111,7 +111,8 @@
     if (q && !selectable.some(function (it) { return it.type !== 'all'; }) && !pending) {
       html = '<div class="cmdk-empty">No results</div>' + html;
     }
-    list.innerHTML = html;
+    // لا Redo بناء إن لم تتغير Menu (الكتابة السريعة ترسم Less)
+    if (html !== lastHtml) { list.innerHTML = html; lastHtml = html; }
     dlg.classList.toggle('is-loading', !!pending);
     input.setAttribute('aria-activedescendant', selectable.length ? 'cmdk-o' + active : '');
   }
