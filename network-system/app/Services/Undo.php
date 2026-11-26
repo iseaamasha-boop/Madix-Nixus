@@ -122,9 +122,8 @@ final class Undo
             'payload' => (string) json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE),
             'created_at' => now(), 'expires_at' => date('Y-m-d H:i:s', time() + self::WINDOW),
         ]);
-        if (mt_rand(1, 50) === 1) {
-            DB::delete('undo_actions', 'expires_at < ?', [date('Y-m-d H:i:s', time() - 86400)]);
-        }
+        // اللقطات المنتهية تُحذف فوراً (قد تحوي كلمة مرور PPPoE للمشترك): لا نسخة تبقى بعد مدة التراجع
+        DB::delete('undo_actions', 'expires_at < ?', [now()]);
         return $token;
     }
 

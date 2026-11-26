@@ -77,6 +77,10 @@ final class CronService
             if (self::every('stock', 3600)) {
                 self::guard(static fn () => self::lowStockAlerts());
             }
+            // لقطات التراجع المنتهية (البند 71) لا تبقى بعد مدتها
+            if (self::every('undo', 600)) {
+                self::guard(static fn () => DB::query('DELETE FROM undo_actions WHERE expires_at < ?', [date('Y-m-d H:i:s')]));
+            }
             if (self::every('expiring', 86400 / 2)) {
                 self::guard(static fn () => self::expiringAlerts());
             }
