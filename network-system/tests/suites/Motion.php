@@ -60,6 +60,12 @@ return [
         $s = $css()['app.css'];
         T::contains('@media (prefers-reduced-motion: reduce) { .skeleton::after', $s, 'skeleton shimmer');
         T::contains('.ripple-wrap { display: none; }', $s, 'press ripple');
+        // التموج كما في النموذج: موجة بقطر أكبر ضلع تكبر أربعة أضعاف وتختفي، على الأزرار وروابط القائمة والصفوف
+        T::contains('@keyframes ripple { to { transform: scale(4); opacity: 0; } }', $s, 'ripple grows four times and fades');
+        T::contains(':is(.btn-primary, .btn-danger, .btn-success, .btn-warning, .btn-dark) > .ripple-wrap { --ripple: rgba(255, 255, 255, .45); }', $s, 'white wave on colored buttons');
+        $rjs = (string) file_get_contents(PUBLIC_PATH . '/assets/js/app.js');
+        T::contains("e.target.closest('.btn, .icon-btn, .dropdown-item, .nav-link, a.list-item, .section-link')", $rjs, 'buttons, menu links and rows');
+        T::contains('size = Math.max(r.width, r.height);', $rjs, 'wave size from the longest side');
         T::ok(preg_match('/:root \{ --dur-1: \.01ms;[^}]*--dur-8: \.01ms; \}/', $s) === 1, 'all duration tokens zeroed under reduced motion');
         $js = (string) file_get_contents(PUBLIC_PATH . '/assets/js/app.js');
         T::contains("matchMedia('(prefers-reduced-motion: reduce)')", $js, 'counter and ripple check reduced motion');
@@ -68,6 +74,24 @@ return [
     'menu icons, empty states and staggered cards (64, 63, 83)' => static function (Env $env) use ($css): void {
         $s = $css()['app.css'];
         T::contains('.nav-link.is-active .icon { animation: nav-icon-in', $s, 'active menu icon pops');
+        // البند 64 كما في نموذج صاحب المشروع: كل أيقونة لها حركة من معناها على رسمها (لا مربّعها)، transform وopacity فقط
+        T::eq('grow', nav_anim('layout-dashboard'), 'charts grow');
+        T::eq('blink', nav_anim('router'), 'MikroTik devices blink');
+        T::eq('flip', nav_anim('credit-card'), 'cards flip');
+        T::eq('hop', nav_anim('users'), 'people hop');
+        T::eq('drop', nav_anim('map'), 'map pin drops');
+        T::eq('ring', nav_anim('bell'), 'bell rings');
+        T::eq('spin', nav_anim('settings'), 'settings spin');
+        T::eq('pop', nav_anim('something-else'), 'others pop');
+        foreach (['grow', 'blink', 'flip', 'hop', 'drop', 'ring', 'pop'] as $k) {
+            T::ok(preg_match('/\.nav-link:is\(:hover, :focus-visible\) \.icon\.ni-' . $k . ' > use, \.sidebar-open \.nav-link \.icon\.ni-' . $k . ' > use \{[^}]*animation: ni-' . $k . ' /', $s) === 1, 'ni-' . $k . ' plays on hover and when the menu opens');
+            T::ok(preg_match('/@keyframes ni-' . $k . ' \{([^{}]*\{[^{}]*\})+ \}/', $s, $kf) === 1 && !preg_match('/(?<![a-z-])(width|height|top|left|margin|padding)\s*:/', $kf[0]), 'ni-' . $k . ' uses transform/opacity only');
+        }
+        T::contains('.nav-link:is(:hover, :focus-visible) .icon.ni-spin > use { transform: rotate(90deg); }', $s, 'gear turns a quarter');
+        T::contains('.nav-link .icon[class*="ni-"] > use { animation: none !important; transition: none !important; }', $s, 'icon motion off under reduced motion');
+        $side = (string) file_get_contents(APP_PATH . '/Views/partials/sidebar.php');
+        T::contains("icon(\$item[2], 'ni-' . nav_anim(\$item[2]))", $side, 'network menu icons carry their motion');
+        T::contains("icon(\$ic, 'ni-' . nav_anim(\$ic))", (string) file_get_contents(APP_PATH . '/Views/layouts/admin.php'), 'admin menu icons carry their motion');
         T::contains('animation: nav-bar-in', $s, 'active menu bar grows');
         T::contains('.nav-link.is-active .icon, .nav-link.is-active::before { animation: none; }', $s, 'menu motion off under reduced motion');
         T::contains('.empty:has(> .icon:first-child)::before {', $s, 'empty state illustration');

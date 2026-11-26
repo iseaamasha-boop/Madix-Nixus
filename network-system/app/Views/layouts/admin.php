@@ -123,7 +123,7 @@ foreach ($nav as [, $items]) {
         <button type="button" class="nav-group-title" data-nav-toggle aria-expanded="true"><span><?= e($groupTitle) ?></span><?= icon('chevron-down', 'nav-chevron') ?></button>
         <div class="nav-group-items"><div class="nav-group-inner">
         <?php foreach ($items as $item): [$label, $href, $ic] = $item; ?>
-          <a class="nav-link<?= $active === $href ? ' is-active' : '' ?>" href="<?= e(url($href)) ?>"<?= $active === $href ? ' aria-current="page"' : '' ?>><?= icon($ic) ?><span class="nav-text"><?= e($label) ?></span><?php if (!empty($item[3])): ?><span class="nav-badge is-danger"><?= (int) $item[3] > 99 ? '99+' : (int) $item[3] ?></span><?php endif; ?></a>
+          <a class="nav-link<?= $active === $href ? ' is-active' : '' ?>" href="<?= e(url($href)) ?>"<?= $active === $href ? ' aria-current="page"' : '' ?>><?= icon($ic, 'ni-' . nav_anim($ic)) ?><span class="nav-text"><?= e($label) ?></span><?php if (!empty($item[3])): ?><span class="nav-badge is-danger"><?= (int) $item[3] > 99 ? '99+' : (int) $item[3] ?></span><?php endif; ?></a>
         <?php endforeach; ?>
         </div></div>
       </div>

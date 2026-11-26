@@ -634,8 +634,14 @@ tr.is-dragging > td { background: var(--surface); }
 /* البند 54: تموج الضغط */
 .dropdown-item { position: relative; }
 .ripple-wrap { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
-.ripple { position: absolute; border-radius: 50%; background: currentColor; opacity: .16; transform: scale(0); animation: ripple var(--dur-6) var(--ease-out) forwards; }
-@keyframes ripple { to { transform: scale(1); opacity: 0; } }
+/* موجة واضحة من موضع الضغط (كما في نموذج صاحب المشروع): بيضاء على الأزرار الملوّنة، وبلون الهوية على الأزرار الفاتحة وروابط القائمة والصفوف */
+.ripple { position: absolute; border-radius: 50%; background: var(--ripple, color-mix(in srgb, var(--primary) 24%, transparent)); transform: scale(0); animation: ripple .6s ease-out forwards; }
+:is(a.list-item, .section-link, .dropdown-item) > .ripple-wrap { --ripple: color-mix(in srgb, var(--primary) 15%, transparent); }
+:is(.btn-primary, .btn-danger, .btn-success, .btn-warning, .btn-dark) > .ripple-wrap { --ripple: rgba(255, 255, 255, .45); }
+[data-theme="dark"] .ripple-wrap, :is([data-sidebar-style="dark"], [data-sidebar-style="brand"]) .nav-link > .ripple-wrap { --ripple: rgba(255, 255, 255, .18); }
+[data-theme="dark"] :is(.btn-primary, .btn-danger, .btn-success, .btn-warning) > .ripple-wrap { --ripple: rgba(255, 255, 255, .4); }
+a.list-item, .section-link { position: relative; }
+@keyframes ripple { to { transform: scale(4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ripple-wrap { display: none; } }
 
 /* البند 44: أرقام متساوية العرض (العدّاد لا يرتجف) */
@@ -1844,6 +1850,37 @@ dialog.modal::backdrop { animation: fade-in var(--dur-4) ease; }
 .nav-link.is-active .icon { animation: nav-icon-in var(--dur-6) var(--ease-pop); }
 @keyframes nav-icon-in { from { transform: scale(.82); } }
 @keyframes nav-bar-in { from { transform: scaleY(0); } }
+/* البند 64 (كما في نموذج صاحب المشروع): يتحرك رسم الأيقونة نفسه (لا مربّعها) بحركة من معناها عند المرور أو التركيز،
+   وعلى الجوال تتحرك الأيقونات بالتتابع عند فتح القائمة. كل حركة تبدأ وتنتهي عند وضع الرسم الطبيعي. transform وopacity فقط */
+.nav-link .icon[class*="ni-"] { overflow: visible; }
+.nav-link .icon[class*="ni-"] > use { transform-box: view-box; transform-origin: 50% 50%; }
+.nav-link:is(:hover, :focus-visible) .icon.ni-grow > use, .sidebar-open .nav-link .icon.ni-grow > use { transform-origin: 50% 100%; animation: ni-grow .55s cubic-bezier(.3, 1.4, .5, 1) backwards; }
+.nav-link:is(:hover, :focus-visible) .icon.ni-blink > use, .sidebar-open .nav-link .icon.ni-blink > use { animation: ni-blink .8s ease backwards; }
+.nav-link:is(:hover, :focus-visible) .icon.ni-flip > use, .sidebar-open .nav-link .icon.ni-flip > use { animation: ni-flip .7s ease backwards; }
+.nav-link:is(:hover, :focus-visible) .icon.ni-hop > use, .sidebar-open .nav-link .icon.ni-hop > use { animation: ni-hop .6s ease backwards; }
+.nav-link:is(:hover, :focus-visible) .icon.ni-drop > use, .sidebar-open .nav-link .icon.ni-drop > use { animation: ni-drop .6s cubic-bezier(.3, 1.5, .5, 1) backwards; }
+.nav-link:is(:hover, :focus-visible) .icon.ni-ring > use, .sidebar-open .nav-link .icon.ni-ring > use { transform-origin: 50% 8%; animation: ni-ring .8s ease backwards; }
+.nav-link:is(:hover, :focus-visible) .icon.ni-pop > use, .sidebar-open .nav-link .icon.ni-pop > use { animation: ni-pop .5s cubic-bezier(.3, 1.4, .5, 1) backwards; }
+/* الترس يدور ربع دورة ويبقى ما دام المؤشر فوقه ثم يرجع بنعومة، وعند فتح القائمة يدور داخلًا */
+.nav-link .icon.ni-spin > use { transition: transform .7s cubic-bezier(.3, 1.3, .5, 1); }
+.nav-link:is(:hover, :focus-visible) .icon.ni-spin > use { transform: rotate(90deg); }
+.sidebar-open .nav-link .icon.ni-spin > use { animation: ni-spin .7s cubic-bezier(.3, 1.3, .5, 1) backwards; }
+.nav-link .nav-text { transition: transform var(--dur-3); }
+.nav-link:hover .nav-text { transform: translateX(-3px); }
+[dir="ltr"] .nav-link:hover .nav-text { transform: translateX(3px); }
+.sidebar-open .nav-group-inner > .nav-link:nth-child(2) .icon > use { animation-delay: 50ms; }
+.sidebar-open .nav-group-inner > .nav-link:nth-child(3) .icon > use { animation-delay: 100ms; }
+.sidebar-open .nav-group-inner > .nav-link:nth-child(4) .icon > use { animation-delay: 150ms; }
+.sidebar-open .nav-group-inner > .nav-link:nth-child(5) .icon > use { animation-delay: 200ms; }
+.sidebar-open .nav-group-inner > .nav-link:nth-child(n+6) .icon > use { animation-delay: 250ms; }
+@keyframes ni-grow { 35% { transform: scaleY(.55); } 70% { transform: scaleY(1.08); } }
+@keyframes ni-blink { 0% { opacity: .2; } 30% { opacity: 1; } 50% { opacity: .4; } }
+@keyframes ni-flip { 25% { transform: scaleX(0); } 50% { transform: scaleX(-1); } 75% { transform: scaleX(0); } }
+@keyframes ni-hop { 30% { transform: translateY(-5px); } 55% { transform: translateY(0); } 75% { transform: translateY(-2px); } }
+@keyframes ni-drop { 0% { transform: translateY(-9px); opacity: .25; } 60% { transform: translateY(1px); opacity: 1; } }
+@keyframes ni-ring { 15% { transform: rotate(16deg); } 30% { transform: rotate(-14deg); } 45% { transform: rotate(10deg); } 60% { transform: rotate(-6deg); } 75% { transform: rotate(3deg); } }
+@keyframes ni-spin { from { transform: rotate(-90deg); } }
+@keyframes ni-pop { 40% { transform: scale(1.18); } 70% { transform: scale(.96); } }
 .nav-badge { margin-inline-start: auto; min-width: 22px; height: 20px; padding: 0 7px; border-radius: 999px; font-size: 11px; font-weight: 700; flex: none; }
 .nav-badge.is-danger { background: linear-gradient(135deg, #f43f5e, var(--danger)); color: #fff; box-shadow: 0 4px 10px -4px var(--danger); }
 mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: color-mix(in srgb, var(--warning) 32%, transparent); }
@@ -1903,6 +1940,8 @@ mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: c
 @media (prefers-reduced-motion: reduce) {
   .nav-link:hover .icon, .nav-link:active .icon { transform: none; }
   .nav-link.is-active .icon, .nav-link.is-active::before { animation: none; }
+  .nav-link .icon[class*="ni-"] > use { animation: none !important; transition: none !important; }
+  .nav-link:is(:hover, :focus-visible) .icon.ni-spin > use, .nav-link:hover .nav-text, [dir="ltr"] .nav-link:hover .nav-text { transform: none; }
   .nav-group-items, .nav-chevron { transition: none; }
   .nav-group.is-toggling .nav-group-inner { animation: none; }
 }
@@ -2580,11 +2619,43 @@ mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: c
   border-color: rgba(255, 255, 255, .09);
   box-shadow: 0 16px 38px -20px rgba(0, 0, 0, .85), inset 0 1px 0 rgba(255, 255, 255, .06);
 }
+/* خيار «بطاقات زجاجية» (كما في نموذج صاحب المشروع): مسرح داكن خلف بطاقات الأرقام فيه ثلاث هالات بألوان الهوية تتحرك ببطء
+   (تدرّجات بلا مرشّحات، وحركة transform فقط على طبقة مستقلة)، والبطاقات شفافة بحافة مضيئة، ترتفع وتُضاء تحت الفأرة أو الإصبع */
+[data-glass="1"] :is(.stats, .kpi-row) {
+  position: relative; isolation: isolate; overflow: hidden; padding: 14px; border-radius: calc(var(--radius) * 1.6 + 6px);
+  background: radial-gradient(38% 55% at 55% 45%, rgba(20, 184, 166, .38), transparent 70%), color-mix(in srgb, var(--primary) 14%, #0c1120);
+}
+[data-glass="1"] :is(.stats, .kpi-row)::before, [data-glass="1"] :is(.stats, .kpi-row)::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none; border-radius: 50%; will-change: transform;
+  animation: glass-float 11s ease-in-out infinite alternate;
+}
+[data-glass="1"] :is(.stats, .kpi-row)::before { width: 70%; height: 90%; top: -30%; inset-inline-start: -15%; background: radial-gradient(closest-side, color-mix(in srgb, var(--primary) 85%, #3b82f6), transparent); opacity: .85; }
+[data-glass="1"] :is(.stats, .kpi-row)::after { width: 64%; height: 85%; bottom: -35%; inset-inline-end: -12%; background: radial-gradient(closest-side, color-mix(in srgb, var(--accent-2, #a855f7) 75%, #a855f7), transparent); opacity: .8; animation-duration: 13s; animation-direction: alternate-reverse; }
+@keyframes glass-float { to { transform: translate(36px, 24px) scale(1.12); } }
+[data-glass="1"] .glass-still::before, [data-glass="1"] .glass-still::after { animation-play-state: paused; }
+[data-glass="1"] .stat {
+  color: #fff; border-color: rgba(255, 255, 255, .24); overflow: hidden; isolation: isolate;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, .06));
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .28);
+  transition: transform .35s cubic-bezier(.2, .8, .2, 1), box-shadow .35s;
+}
+[data-glass="1"] .stat :is(.stat-label, .stat-meta) { color: rgba(255, 255, 255, .82); }
+[data-glass="1"] .stat .stat-value { color: #fff; }
+[data-glass="1"] .stat .stat-icon { background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2); }
+[data-glass="1"] .stat :is(.text-success, .is-up, .up) { color: #4ade80; }
+[data-glass="1"] .stat :is(.text-danger, .is-down, .down) { color: #fca5a5; }
+[data-glass="1"] .stat .text-warning { color: #fcd34d; }
+[data-glass="1"] .stat:is(:hover, .is-lit) { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .35); }
+/* التمويه على الأجهزة القادرة فقط (fx-blur: ذاكرة 4GB وأربع أنوية فأكثر)، على بطاقات الأرقام وحدها، في الحاسوب والجوال */
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  @media (hover: hover) and (pointer: fine) and (min-width: 961px) {
-    .fx-blur[data-glass="1"] .stat, .fx-blur[data-skin="glass"] .stat { background: color-mix(in srgb, var(--surface) 62%, transparent); -webkit-backdrop-filter: blur(8px) saturate(150%); backdrop-filter: blur(8px) saturate(150%); }
-    [data-theme="dark"].fx-blur[data-glass="1"] .stat, [data-theme="dark"].fx-blur[data-skin="glass"] .stat { background: color-mix(in srgb, var(--surface) 58%, transparent); }
-  }
+  .fx-blur[data-glass="1"] .stat { -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); }
+  .fx-blur[data-skin="glass"] .stat { background: color-mix(in srgb, var(--surface) 62%, transparent); -webkit-backdrop-filter: blur(8px) saturate(150%); backdrop-filter: blur(8px) saturate(150%); }
+  [data-theme="dark"].fx-blur[data-skin="glass"] .stat { background: color-mix(in srgb, var(--surface) 58%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-glass="1"] :is(.stats, .kpi-row)::before, [data-glass="1"] :is(.stats, .kpi-row)::after { animation: none; }
+  [data-glass="1"] .stat { transition: none; }
+  [data-glass="1"] .stat:is(:hover, .is-lit) { transform: none; }
 }
 [data-glass="1"] .stat::after, [data-skin="glass"] .stat::after {
   content: ""; position: absolute; z-index: -1; left: 0; top: 0; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 50%;
@@ -2593,10 +2664,22 @@ mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: c
 }
 [data-theme="dark"][data-glass="1"] .stat::after, [data-theme="dark"][data-skin="glass"] .stat::after { background: radial-gradient(closest-side, rgba(255, 255, 255, .1), transparent); }
 [data-glass="1"] .stat.is-lit::after, [data-skin="glass"] .stat.is-lit::after { opacity: 1; }
+/* المسرح داكن في الوضعين (كما في النموذج): البطاقة والإضاءة نفسها في الفاتح والداكن */
+:root[data-theme="dark"][data-glass="1"] .stat {
+  background: linear-gradient(135deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .04)); border-color: rgba(255, 255, 255, .2);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .4), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+:root[data-glass="1"] .stat::after, :root[data-theme="dark"][data-glass="1"] .stat::after { background: radial-gradient(closest-side, rgba(255, 255, 255, .3), transparent); }
 @media (prefers-reduced-transparency: reduce) {
   [data-glass="1"] .stat, [data-skin="glass"] .stat, [data-skin="glass"] .panel, [data-skin="glass"] .section-link { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  :root[data-glass="1"] .stat { background: #1b2232; }
+  [data-glass="1"] :is(.stats, .kpi-row)::before, [data-glass="1"] :is(.stats, .kpi-row)::after { display: none; }
 }
+/* الأسود الكامل: مسرح أسود بلا هالات وبطاقات سوداء (الغرض توفير الشاشة) */
 [data-theme-pref="black"][data-glass="1"] .stat, [data-theme-pref="black"][data-skin="glass"] .stat { background: #000; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+:root[data-theme-pref="black"][data-glass="1"] .stat { background: #000; border-color: rgba(255, 255, 255, .14); box-shadow: none; }
+[data-theme-pref="black"][data-glass="1"] :is(.stats, .kpi-row) { background: #000; }
+[data-theme-pref="black"][data-glass="1"] :is(.stats, .kpi-row)::before, [data-theme-pref="black"][data-glass="1"] :is(.stats, .kpi-row)::after { display: none; }
 
 /* ---------- الخلفية ---------- */
 :root:not([data-theme="dark"])[data-bg="tinted"] { --bg: color-mix(in srgb, var(--primary) 6%, #f3f5f9); }

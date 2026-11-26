@@ -240,7 +240,7 @@ return [
         $plan = $pdo->query("EXPLAIN SELECT MAX(a.id) FROM alerts a WHERE a.type IN ('router_down', 'outage')")->fetch();
         T::ok(($plan['key'] ?? '') === 'idx_alerts_type' || str_contains((string) ($plan['Extra'] ?? ''), 'Select tables optimized away'), 'outage signal uses the index (' . ($plan['key'] ?? '') . ' ' . ($plan['Extra'] ?? '') . ')');
     },
-    'glass cards: design studio option, moderate blur on number cards only, fallbacks (46)' => static function (Env $env): void {
+    'glass cards: design studio option, blur on number cards only, stage, fallbacks (46)' => static function (Env $env): void {
         $t = \App\Core\Theme::sanitize([]);
         T::eq('0', $t['glass'], 'off by default');
         T::ok(!str_contains(\App\Core\Theme::attrs($t), 'data-glass'), 'nothing on the page when off');
@@ -254,13 +254,27 @@ return [
         $css = (string) file_get_contents(PUBLIC_PATH . '/assets/css/app.css');
         preg_match_all('/([^{}]+)\{[^{}]*backdrop-filter:\s*blur\((\d+)px\)[^{}]*\}/', $css, $m, PREG_SET_ORDER);
         $statBlur = array_values(array_filter($m, static fn ($x) => str_contains($x[1], '.stat')));
-        T::eq(1, count($statBlur), 'one blur rule for number cards');
-        T::ok((int) $statBlur[0][2] <= 10 && str_contains($statBlur[0][1], '.fx-blur'), 'moderate blur, capable devices only');
+        T::ok(count($statBlur) >= 1, 'number cards are blurred');
+        foreach ($statBlur as $x) {
+            // كما في نموذج صاحب المشروع: 16px حدًّا أعلى، وعلى الأجهزة القادرة وحدها
+            T::ok((int) $x[2] <= 16 && str_contains($x[1], '.fx-blur'), 'blur ≤ 16px, capable devices only: ' . trim($x[1]));
+        }
         foreach ($m as $x) {
             T::ok(!preg_match('/data-skin="glass"\] \.panel/', $x[1]), 'no blur on large panels: ' . trim($x[1]));
         }
         T::contains('transform: translate(var(--lx, 0), var(--ly, 0))', $css, 'light moves with transform');
         T::contains('@media (prefers-reduced-transparency: reduce) {', $css, 'opaque fallback');
+        // المسرح كما في النموذج: خلفية داكنة بتوهجين من ألوان الهوية تتحرك بـ transform، ونص أبيض، ورفع عند المرور أو اللمس
+        T::ok(preg_match('/\[data-glass="1"\] :is\(\.stats, \.kpi-row\) \{\s*position: relative; isolation: isolate;/', $css) === 1, 'cards sit on a stage');
+        T::contains('@keyframes glass-float { to { transform: translate(36px, 24px) scale(1.12); } }', $css, 'stage glows float with transform');
+        T::contains('[data-glass="1"] .stat .stat-value { color: #fff; }', $css, 'white numbers on glass');
+        T::contains('[data-glass="1"] .stat :is(.text-danger, .is-down, .down) { color: #fca5a5; }', $css, 'warnings readable on glass');
+        T::contains('[data-glass="1"] .stat:is(:hover, .is-lit) { transform: translateY(-4px);', $css, 'cards lift on hover or touch');
+        T::contains('[data-glass="1"] :is(.stats, .kpi-row)::before, [data-glass="1"] :is(.stats, .kpi-row)::after { animation: none; }', $css, 'stage glows still under reduced motion');
+        T::contains('[data-glass="1"] .glass-still::before, [data-glass="1"] .glass-still::after { animation-play-state: paused; }', $css, 'glows pause off screen');
+        $js = (string) file_get_contents(PUBLIC_PATH . '/assets/js/app.js');
+        T::contains("if (e.pointerType === 'mouse') { return; }", $js, 'touch lights the card it touches');
+        T::contains("en.target.classList.toggle('glass-still', !en.isIntersecting)", $js, 'stage observed for visibility');
         $a = $env->admin();
         $a->get('/admin/design');
         T::status(302, $a->post('/admin/design', ['glass' => '1']), 'turned on');

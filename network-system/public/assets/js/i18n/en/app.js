@@ -1121,9 +1121,9 @@
   if (!reduceMotion) {
     doc.addEventListener('pointerdown', function (e) {
       if (e.button > 0) { return; }
-      var b = e.target.closest && e.target.closest('.btn, .icon-btn, .dropdown-item');
+      var b = e.target.closest && e.target.closest('.btn, .icon-btn, .dropdown-item, .nav-link, a.list-item, .section-link');
       if (!b || b.disabled || b.hasAttribute('data-no-ripple') || b.closest('[data-no-ripple]')) { return; }
-      var r = b.getBoundingClientRect(), size = Math.max(r.width, r.height) * 2;
+      var r = b.getBoundingClientRect(), size = Math.max(r.width, r.height);
       var wrap = doc.createElement('span');
       wrap.className = 'ripple-wrap';
       var dot = doc.createElement('span');
@@ -1133,7 +1133,7 @@
       dot.style.top = (e.clientY - r.top - size / 2) + 'px';
       wrap.appendChild(dot);
       b.appendChild(wrap);
-      setTimeout(function () { if (wrap.parentNode) { wrap.parentNode.removeChild(wrap); } }, 420);
+      setTimeout(function () { if (wrap.parentNode) { wrap.parentNode.removeChild(wrap); } }, 650);
     }, { passive: true });
   }
 
@@ -1596,14 +1596,36 @@
   // البطاقات الزجاجية (البند 46): إضاءة تتبع الفأرة فوق بطاقة Number; تتحرك بـ transform times لكل Border, للفأرة only and no مع تقليل Movement
   (function () {
     if (!(root.getAttribute('data-glass') === '1' || root.getAttribute('data-skin') === 'glass') || reduceMotion) { return; }
-    if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) { return; }
-    var cur = null, raf = 0, px = 0, py = 0;
+    var cur = null, raf = 0, px = 0, py = 0, touchTimer = 0;
+    // هالات المسرح تتوقف حين يخرج from Screen (توفيرًا للبطارية)
+    if (root.getAttribute('data-glass') === '1' && 'IntersectionObserver' in window) {
+      var stageIo = new IntersectionObserver(function (es) {
+        es.forEach(function (en) { en.target.classList.toggle('glass-still', !en.isIntersecting); });
+      });
+      [].forEach.call(doc.querySelectorAll('.stats, .kpi-row'), function (el) { stageIo.observe(el); });
+    }
     function lit(s) {
       if (s === cur) { return; }
       if (cur) { cur.classList.remove('is-lit'); }
       cur = s;
       if (s) { s.classList.add('is-lit'); }
     }
+    function spot(s, x, y) {
+      var r = s.getBoundingClientRect();
+      s.style.setProperty('--lx', Math.round(x - r.left) + 'px');
+      s.style.setProperty('--ly', Math.round(y - r.top) + 'px');
+    }
+    // الإصبع: البطاقة تُضاء from موضع اللمس وترتفع قليلاً then تعود
+    doc.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse') { return; }
+      var s = e.target.closest ? e.target.closest('.stat') : null;
+      if (!s) { return; }
+      spot(s, e.clientX, e.clientY);
+      lit(s);
+      clearTimeout(touchTimer);
+      touchTimer = setTimeout(function () { lit(null); }, 700);
+    }, { passive: true });
+    if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) { return; }
     doc.addEventListener('pointermove', function (e) {
       if (e.pointerType !== 'mouse') { return; }
       lit(e.target.closest ? e.target.closest('.stat') : null);

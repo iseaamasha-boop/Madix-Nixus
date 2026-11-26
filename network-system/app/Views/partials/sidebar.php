@@ -142,7 +142,7 @@ $allowed = static function ($perm): bool {
         <div class="nav-group-items"><div class="nav-group-inner">
         <?php foreach ($visible as $item): ?>
           <a class="nav-link<?= $item[1] === $active ? ' is-active' : '' ?>" href="<?= e(url($item[1])) ?>"<?= $item[1] === $active ? ' aria-current="page"' : '' ?>>
-            <?= icon($item[2]) ?><span class="nav-text"><?= e($item[0]) ?></span>
+            <?= icon($item[2], 'ni-' . nav_anim($item[2])) ?><span class="nav-text"><?= e($item[0]) ?></span>
             <?php if (($item[4] ?? null) === 'ai'): ?><span class="nav-badge is-ai">AI</span><?php endif; ?>
             <?php if (($item[4] ?? null) === 'inbox' && $inboxWaiting > 0): ?><span class="nav-badge is-danger" title="بانتظار ردك"><?= $inboxWaiting > 99 ? '99+' : $inboxWaiting ?></span><?php endif; ?>
             <?php if (($item[4] ?? null) === 'maintenance' && ($myTasks = \App\Services\Maintenance::mineOpen()) > 0): ?><span class="nav-badge is-danger" title="مهامي المفتوحة"><?= $myTasks > 99 ? '99+' : $myTasks ?></span><?php endif; ?>

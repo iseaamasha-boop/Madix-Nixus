@@ -158,6 +158,29 @@ function icon(string $name, string $class = ''): string
         . e(asset('img/icons.svg')) . '#i-' . e($name) . '"></use></svg>';
 }
 
+/**
+ * البند 64: حركة أيقونة القائمة الجانبية حسب معناها (كما في نموذج صاحب المشروع): الرسوم تنمو، الأجهزة والإشارة تومض،
+ * الكروت والدفع تنقلب، الأشخاص يقفزون، الخريطة والروابط تسقط، الجرس والرسائل ترنّ، الإعدادات تدور، والباقي ينبض.
+ */
+function nav_anim(string $icon): string
+{
+    static $map = [
+        'grow'  => ['layout-dashboard', 'gauge', 'chart-column', 'chart-line', 'activity', 'layout-grid', 'layers', 'boxes', 'warehouse', 'package', 'building'],
+        'blink' => ['router', 'wifi', 'radio-tower', 'server', 'cable', 'unplug', 'zap', 'scan-line', 'smartphone'],
+        'flip'  => ['credit-card', 'barcode', 'receipt', 'badge-check', 'banknote', 'hand-coins', 'store', 'shopping-cart', 'hourglass'],
+        'hop'   => ['users', 'user-plus', 'user-cog'],
+        'drop'  => ['map', 'map-pin', 'waypoints', 'link', 'link-2', 'arrow-left-right'],
+        'ring'  => ['bell', 'megaphone', 'message-circle', 'message-square', 'mail', 'send', 'bot', 'bot-message-square', 'wrench'],
+        'spin'  => ['settings', 'cookie', 'history', 'calendar-clock'],
+    ];
+    foreach ($map as $anim => $icons) {
+        if (in_array($icon, $icons, true)) {
+            return $anim;
+        }
+    }
+    return 'pop';
+}
+
 function config(string $key, mixed $default = null): mixed
 {
     return Config::get($key, $default);
