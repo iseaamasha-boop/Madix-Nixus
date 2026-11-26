@@ -135,6 +135,7 @@ final class Demo
         }
         Platform::setSettings(['demo.building_until' => (string) (time() + 120)]);
         $inside = Tenant::current();
+        $done = false;
         try {
             $pdo = Tenant::pdo($t);
             $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
@@ -160,12 +161,14 @@ final class Demo
             Tenant::enter($t);
             DemoSeed::run();
             Cache::flushAll();
+            $done = true;
         } finally {
             Tenant::leave();
             if ($inside) {
                 Tenant::enter($inside);
             }
-            Platform::setSettings(['demo.building_until' => '0', 'demo.reset_at' => date('Y-m-d H:i:s')]);
+            // تجهيز لم يكتمل لا يُحسب: تعيد المهمة المجدولة المحاولة في الدقيقة التالية
+            Platform::setSettings(['demo.building_until' => '0'] + ($done ? ['demo.reset_at' => date('Y-m-d H:i:s')] : []));
         }
         // ملفات رفعها الزوار (الشعار، صور الإعلانات...) وأي نسخ احتياطية
         foreach ([STORAGE_PATH . '/tenants/' . $t['slug'] . '/uploads', STORAGE_PATH . '/tenants/' . $t['slug'] . '/backups', PUBLIC_PATH . '/uploads/t/' . $t['slug']] as $dir) {

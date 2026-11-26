@@ -681,6 +681,10 @@ final class AdminController extends Controller
             return $this->backWithErrors($request, ['confirm' => 'اكتب اسم الحساب للتأكيد.'], '/admin/tenants/' . $id);
         }
         TenantProvisioner::destroy($t);
+        // حذف الشبكة التجريبية يوقف «جرّب الآن» معها (تُنشأ من جديد عند تشغيلها)
+        if ((int) ($t['is_demo'] ?? 0) === 1) {
+            Platform::setSettings(['demo.enabled' => '0', 'demo.slug' => '']);
+        }
         Platform::log(null, 'admin', 'tenant.delete', 'حذف الحساب ' . $t['name'] . ' (' . $t['slug'] . ') نهائياً', AdminAuth::user()['name']);
         return $this->ok('تم حذف الحساب وقاعدة بياناته.', '/admin/tenants');
     }

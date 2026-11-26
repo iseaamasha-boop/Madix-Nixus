@@ -189,4 +189,35 @@ return [
         $admin->get('/admin/demo');
         $admin->post('/admin/demo', ['enabled' => '1']);
     },
+    'a failed reset is not counted, deleting the demo network turns try now off (105)' => static function (Env $env) use ($enable): void {
+        $t = $enable($env);
+        // تجهيز يفشل في منتصفه: لا يُسجَّل وقت التجهيز فتعيد المهمة المجدولة المحاولة، ولا تبقى صفحة الانتظار
+        $env->db()->exec("UPDATE platform_settings SET `value` = '2000-01-01 00:00:00' WHERE `key` = 'demo.reset_at'");
+        $broken = $t;
+        $broken['db_name'] = 'mnxtest_missing_db_' . bin2hex(random_bytes(3));
+        $threw = false;
+        try {
+            \App\Platform\Demo::build($broken);
+        } catch (\Throwable) {
+            $threw = true;
+        }
+        Platform::flushSettings();
+        T::ok($threw, 'reset failed');
+        T::eq('2000-01-01 00:00:00', Platform::setting('demo.reset_at'), 'failed reset not recorded');
+        T::eq('0', Platform::setting('demo.building_until'), 'no waiting page left');
+        // حذف الشبكة التجريبية من قائمة الحسابات
+        $admin = $env->admin();
+        $admin->get('/admin/tenants/' . (int) $t['id']);
+        T::status(302, $admin->post('/admin/tenants/' . (int) $t['id'] . '/delete', ['confirm' => $t['slug']]), 'demo network deleted');
+        Platform::flushSettings();
+        T::eq('0', Platform::setting('demo.enabled'), 'try now off with it');
+        T::notContains('data-lp-try', $env->http()->get('/')['body'], 'no try now link to a deleted network');
+        // تشغيلها من جديد ينشئها كاملة
+        $admin->get('/admin/demo');
+        T::status(302, $admin->post('/admin/demo', ['enabled' => '1']), 'turned on again');
+        \App\Platform\Demo::forget();
+        $again = Platform::row('SELECT * FROM tenants WHERE is_demo = 1 LIMIT 1');
+        T::ok($again !== null && (int) $env->db($again['db_name'])->query('SELECT COUNT(*) FROM subscribers')->fetchColumn() > 100, 'created again with its data');
+        $env->tenants['demo-net'] = ['slug' => $again['slug'], 'db' => $again['db_name'], 'path' => '/' . $again['slug']];
+    },
 ];
