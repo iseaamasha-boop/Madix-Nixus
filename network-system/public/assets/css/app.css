@@ -2529,15 +2529,44 @@ mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: c
 [data-skin="glass"] .filters { background: transparent; }
 [data-skin="glass"] .table th { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
 [data-skin="glass"] .table tbody tr:hover td { background: color-mix(in srgb, var(--hover) 70%, transparent); }
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
-  @media (hover: hover) and (pointer: fine) and (min-width: 961px) {
-    [data-skin="glass"] .panel, [data-skin="glass"] .stat, [data-skin="glass"] .section-link { -webkit-backdrop-filter: blur(16px) saturate(160%); backdrop-filter: blur(16px) saturate(160%); }
-  }
-}
+/* التمويه على بطاقات الأرقام فقط (عناصر قليلة) وبقدر معتدل (البند 46)؛ اللوحات الكبيرة شبه معتمة بلا تمويه */
+[data-skin="glass"] .panel, [data-skin="glass"] .section-link { background: color-mix(in srgb, var(--surface) 84%, transparent); }
 /* الهواتف: أسطح شبه معتمة دون تمويه (أخف وأسرع) */
 @media (max-width: 960px), (hover: none), (pointer: coarse) {
   [data-skin="glass"] .panel, [data-skin="glass"] .stat, [data-skin="glass"] .section-link { background: color-mix(in srgb, var(--surface) 90%, transparent); }
 }
+
+/* ---------- البند 46: بطاقات الأرقام الزجاجية (خيار «بطاقات زجاجية»، ونمط النظام الزجاجي) ----------
+   شفافة بظل ناعم وحافة مضيئة، وإضاءة تتبع الفأرة (تتحرك بـ transform)، والتمويه معتدل (8px) وعلى الأجهزة القادرة فقط
+   (fx-blur من رأس الصفحة، شاشة كبيرة وفأرة)؛ البديل بلا تمويه: أسطح أكثر عتمة. تقليل الشفافية: سطح معتم */
+[data-glass="1"] .stat, [data-skin="glass"] .stat {
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  border-color: color-mix(in srgb, #fff 55%, var(--border));
+  box-shadow: 0 14px 34px -20px color-mix(in srgb, var(--primary) 50%, rgba(15, 23, 42, .4)), inset 0 1px 0 rgba(255, 255, 255, .65);
+  overflow: hidden; isolation: isolate;
+}
+[data-theme="dark"][data-glass="1"] .stat, [data-theme="dark"][data-skin="glass"] .stat {
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border-color: rgba(255, 255, 255, .09);
+  box-shadow: 0 16px 38px -20px rgba(0, 0, 0, .85), inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  @media (hover: hover) and (pointer: fine) and (min-width: 961px) {
+    .fx-blur[data-glass="1"] .stat, .fx-blur[data-skin="glass"] .stat { background: color-mix(in srgb, var(--surface) 62%, transparent); -webkit-backdrop-filter: blur(8px) saturate(150%); backdrop-filter: blur(8px) saturate(150%); }
+    [data-theme="dark"].fx-blur[data-glass="1"] .stat, [data-theme="dark"].fx-blur[data-skin="glass"] .stat { background: color-mix(in srgb, var(--surface) 58%, transparent); }
+  }
+}
+[data-glass="1"] .stat::after, [data-skin="glass"] .stat::after {
+  content: ""; position: absolute; z-index: -1; left: 0; top: 0; width: 260px; height: 260px; margin: -130px 0 0 -130px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .55), transparent); pointer-events: none;
+  transform: translate(var(--lx, 0), var(--ly, 0)); opacity: 0; transition: opacity var(--dur-4) var(--ease-out);
+}
+[data-theme="dark"][data-glass="1"] .stat::after, [data-theme="dark"][data-skin="glass"] .stat::after { background: radial-gradient(closest-side, rgba(255, 255, 255, .1), transparent); }
+[data-glass="1"] .stat.is-lit::after, [data-skin="glass"] .stat.is-lit::after { opacity: 1; }
+@media (prefers-reduced-transparency: reduce) {
+  [data-glass="1"] .stat, [data-skin="glass"] .stat, [data-skin="glass"] .panel, [data-skin="glass"] .section-link { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+[data-theme-pref="black"][data-glass="1"] .stat, [data-theme-pref="black"][data-skin="glass"] .stat { background: #000; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 
 /* ---------- الخلفية ---------- */
 :root:not([data-theme="dark"])[data-bg="tinted"] { --bg: color-mix(in srgb, var(--primary) 6%, #f3f5f9); }

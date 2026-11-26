@@ -5319,4 +5319,5 @@ return [
     'أسود (OLED)' => 'Black (OLED)',
     'الوضع الأسود الكامل (OLED)' => 'Full black mode (OLED)',
     'أصوات خفيفة (البيع، انقطاع الأبراج)' => 'Soft sounds (sales, tower outages)',
+    'بطاقات زجاجية' => 'Glass cards',
 ];

@@ -170,6 +170,8 @@ final class Theme
         'design.haptics'       => '1',
         // البند 88: إتاحة الوضع الأسود الكامل (OLED) للمستخدمين
         'design.oled'          => '1',
+        // البند 46: بطاقات الأرقام زجاجية (مطفأ افتراضياً)
+        'design.glass'         => '0',
     ];
 
     /** مراجعة إعدادات الحركة: تُحفظ مع صفحة التصاميم (2 = بعد تخفيف التنقل بين الصفحات) */
@@ -226,6 +228,7 @@ final class Theme
         $out['page_fx'] = $out['page_fx'] === '1' ? '1' : '0';
         $out['haptics'] = $out['haptics'] === '1' ? '1' : '0';
         $out['oled'] = $out['oled'] === '0' ? '0' : '1';
+        $out['glass'] = $out['glass'] === '1' ? '1' : '0';
         return $out;
     }
 
@@ -269,7 +272,8 @@ final class Theme
             . ' data-skin="' . e($t['skin']) . '" data-sidebar-shape="' . e($t['sidebar_shape']) . '" data-nav-style="' . e($t['nav_style']) . '"'
             . ' data-topbar="' . e($t['topbar']) . '" data-bg="' . e($t['background']) . '" data-buttons="' . e($t['buttons']) . '" data-font-size="' . e($t['font_size']) . '"'
             . ' data-page-fx="' . ($t['page_fx'] === '1' ? '1' : '0') . '" data-haptics="' . ($t['haptics'] === '1' ? '1' : '0') . '"'
-            . (($t['oled'] ?? '1') === '0' ? ' data-oled="0"' : '');
+            . (($t['oled'] ?? '1') === '0' ? ' data-oled="0"' : '')
+            . (($t['glass'] ?? '0') === '1' ? ' data-glass="1"' : '');
     }
 
     /**
@@ -428,8 +432,13 @@ final class Theme
         if ($t['page_fx'] === '1') {
             $css .= '@view-transition{navigation:auto}';
         }
+        // البند 46: التمويه (blur) فقط على الأجهزة القادرة: ذاكرة 4GB فأكثر، 4 أنوية فأكثر، ولم يطلب المستخدم تقليل الشفافية؛
+        // يُحدَّد قبل أول رسم فلا يتغير شكل البطاقات بعده. يُضاف فقط حين يكون الزجاج مستعملاً
+        $fx = ($t['glass'] ?? '0') === '1' || $t['skin'] === 'glass'
+            ? '<script>(function(){try{var n=navigator,m=window.matchMedia;if((n.deviceMemory||8)>=4&&(n.hardwareConcurrency||8)>=4&&!(m&&m("(prefers-reduced-transparency: reduce)").matches)){document.documentElement.classList.add("fx-blur")}}catch(e){}})()</script>'
+            : '';
         // ملفات الخط (التحميل المسبق والتأجيل) بعد متغيرات التصميم
-        return '<style id="theme-vars">' . $css . '</style>' . self::fonts($t);
+        return '<style id="theme-vars">' . $css . '</style>' . $fx . self::fonts($t);
     }
 
     /**

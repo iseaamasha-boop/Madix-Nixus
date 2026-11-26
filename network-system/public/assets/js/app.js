@@ -1574,6 +1574,35 @@
   }
   $$('canvas[data-live-chart]').forEach(liveChart);
 
+  // البطاقات الزجاجية (البند 46): إضاءة تتبع الفأرة فوق بطاقة الرقم؛ تتحرك بـ transform مرة لكل إطار، للفأرة فقط ولا مع تقليل الحركة
+  (function () {
+    if (!(root.getAttribute('data-glass') === '1' || root.getAttribute('data-skin') === 'glass') || reduceMotion) { return; }
+    if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) { return; }
+    var cur = null, raf = 0, px = 0, py = 0;
+    function lit(s) {
+      if (s === cur) { return; }
+      if (cur) { cur.classList.remove('is-lit'); }
+      cur = s;
+      if (s) { s.classList.add('is-lit'); }
+    }
+    doc.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') { return; }
+      lit(e.target.closest ? e.target.closest('.stat') : null);
+      if (!cur) { return; }
+      px = e.clientX; py = e.clientY;
+      if (!raf) {
+        raf = requestAnimationFrame(function () {
+          raf = 0;
+          if (!cur) { return; }
+          var r = cur.getBoundingClientRect();
+          cur.style.setProperty('--lx', Math.round(px - r.left) + 'px');
+          cur.style.setProperty('--ly', Math.round(py - r.top) + 'px');
+        });
+      }
+    }, { passive: true });
+    doc.addEventListener('mouseout', function (e) { if (!e.relatedTarget) { lit(null); } });
+  })();
+
   // ------------------------------------------------------------------------
   // أصوات خفيفة (البند 57): مطفأة إلا لمن شغّلها من حسابه (data-sounds على الصفحة). تُولَّد بـ Web Audio بلا ملفات:
   // «تشينغ» بعد حفظ بيع، وتنبيه حين يصل تنبيه انقطاع جديد لجهاز MikroTik أو منطقة (من التحديث المجمّع).

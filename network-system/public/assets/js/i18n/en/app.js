@@ -1575,6 +1575,35 @@
   }
   $$('canvas[data-live-chart]').forEach(liveChart);
 
+  // البطاقات الزجاجية (البند 46): إضاءة تتبع الفأرة فوق بطاقة Number; تتحرك بـ transform times لكل Border, للفأرة only and no مع تقليل Movement
+  (function () {
+    if (!(root.getAttribute('data-glass') === '1' || root.getAttribute('data-skin') === 'glass') || reduceMotion) { return; }
+    if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) { return; }
+    var cur = null, raf = 0, px = 0, py = 0;
+    function lit(s) {
+      if (s === cur) { return; }
+      if (cur) { cur.classList.remove('is-lit'); }
+      cur = s;
+      if (s) { s.classList.add('is-lit'); }
+    }
+    doc.addEventListener('pointermove', function (e) {
+      if (e.pointerType !== 'mouse') { return; }
+      lit(e.target.closest ? e.target.closest('.stat') : null);
+      if (!cur) { return; }
+      px = e.clientX; py = e.clientY;
+      if (!raf) {
+        raf = requestAnimationFrame(function () {
+          raf = 0;
+          if (!cur) { return; }
+          var r = cur.getBoundingClientRect();
+          cur.style.setProperty('--lx', Math.round(px - r.left) + 'px');
+          cur.style.setProperty('--ly', Math.round(py - r.top) + 'px');
+        });
+      }
+    }, { passive: true });
+    doc.addEventListener('mouseout', function (e) { if (!e.relatedTarget) { lit(null); } });
+  })();
+
   // ------------------------------------------------------------------------
   // أصوات خفيفة (البند 57): Off إلا لمن شغّلها from حسابه (data-sounds on Page). تُولَّد بـ Web Audio بلا Files:
   // “تشينغ” yet Save Sale, and Alert حين يصل Alert drops New for the MikroTik device or منطقة (from التحديث المجمّع).

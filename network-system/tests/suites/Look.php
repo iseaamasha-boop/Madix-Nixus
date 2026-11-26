@@ -237,6 +237,33 @@ return [
         T::notContains('data-sounds', $h->request('GET', $t['path'] . '/')['body'], 'off again');
         $pdo->exec("DELETE FROM alerts WHERE title = 'sound57'");
     },
+    'glass cards: design studio option, moderate blur on number cards only, fallbacks (46)' => static function (Env $env): void {
+        $t = \App\Core\Theme::sanitize([]);
+        T::eq('0', $t['glass'], 'off by default');
+        T::ok(!str_contains(\App\Core\Theme::attrs($t), 'data-glass'), 'nothing on the page when off');
+        T::ok(!str_contains(\App\Core\Theme::style($t), 'fx-blur'), 'no capability script when off');
+        $on = \App\Core\Theme::sanitize(['glass' => '1']);
+        T::contains('data-glass="1"', \App\Core\Theme::attrs($on), 'page marked when on');
+        $style = \App\Core\Theme::style($on);
+        T::contains('fx-blur', $style, 'capability check in the head');
+        T::contains('prefers-reduced-transparency: reduce', $style, 'reduced transparency gets no blur');
+        T::contains('fx-blur', \App\Core\Theme::style(\App\Core\Theme::sanitize(['skin' => 'glass'])), 'glass skin uses the same check');
+        $css = (string) file_get_contents(PUBLIC_PATH . '/assets/css/app.css');
+        preg_match_all('/([^{}]+)\{[^{}]*backdrop-filter:\s*blur\((\d+)px\)[^{}]*\}/', $css, $m, PREG_SET_ORDER);
+        $statBlur = array_values(array_filter($m, static fn ($x) => str_contains($x[1], '.stat')));
+        T::eq(1, count($statBlur), 'one blur rule for number cards');
+        T::ok((int) $statBlur[0][2] <= 10 && str_contains($statBlur[0][1], '.fx-blur'), 'moderate blur, capable devices only');
+        foreach ($m as $x) {
+            T::ok(!preg_match('/data-skin="glass"\] \.panel/', $x[1]), 'no blur on large panels: ' . trim($x[1]));
+        }
+        T::contains('transform: translate(var(--lx, 0), var(--ly, 0))', $css, 'light moves with transform');
+        T::contains('@media (prefers-reduced-transparency: reduce) {', $css, 'opaque fallback');
+        $a = $env->admin();
+        $a->get('/admin/design');
+        T::status(302, $a->post('/admin/design', ['glass' => '1']), 'turned on');
+        T::contains('data-glass="1"', $env->owner('a')->request('GET', $env->tenant('a')['path'] . '/')['body'], 'networks get it');
+        T::status(302, $a->post('/admin/design', ['oled' => '1']), 'turned off (other defaults kept)');
+    },
     'migration 19 adds the black value once' => static function (Env $env): void {
         $t = $env->tenant('a');
         $type = (string) $env->db($t['db'])->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employees' AND COLUMN_NAME = 'theme'")->fetchColumn();

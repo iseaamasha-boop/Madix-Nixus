@@ -192,6 +192,7 @@ $fields = static function (string $name, array $opts) use ($t): string {
             <div class="field col-6"><label class="switch"><input type="checkbox" name="page_fx" value="1"<?= checked($t['page_fx'] === '1') ?>><span class="track"></span><span>انتقال ناعم بين الصفحات</span></label></div>
             <div class="field col-6"><label class="switch"><input type="checkbox" name="haptics" value="1"<?= checked($t['haptics'] === '1') ?>><span class="track"></span><span>الاهتزاز عند اللمس</span></label></div>
             <div class="field col-6"><label class="switch"><input type="checkbox" name="oled" value="1"<?= checked($t['oled'] === '1') ?>><span class="track"></span><span>الوضع الأسود الكامل (OLED)</span></label></div>
+            <div class="field col-6"><label class="switch"><input type="checkbox" name="glass" value="1"<?= checked($t['glass'] === '1') ?>><span class="track"></span><span>بطاقات زجاجية</span></label></div>
           </div>
         </div>
       </div>

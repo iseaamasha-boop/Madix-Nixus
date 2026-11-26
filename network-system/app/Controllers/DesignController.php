@@ -32,6 +32,7 @@ final class DesignController extends Controller
         $in['page_fx'] = $request->bool('page_fx') ? '1' : '0';
         $in['haptics'] = $request->bool('haptics') ? '1' : '0';
         $in['oled'] = $request->bool('oled') ? '1' : '0';
+        $in['glass'] = $request->bool('glass') ? '1' : '0';
         return Theme::sanitize($in);
     }
 
