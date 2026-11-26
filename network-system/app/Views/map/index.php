@@ -34,6 +34,7 @@ $config = [
     'canRename' => can('routers.manage'),
     // أدوات تُحمَّل عند الطلب فقط (البنود 93، 94، 92)
     'toolsSrc' => asset('js/map-tools.js'),
+    'map3d' => ['css' => asset('vendor/maplibre/maplibre-gl.css'), 'gl' => asset('vendor/maplibre/maplibre-gl.js'), 'src' => asset('js/map3d.js')],
 ];
 ?>
 <link rel="stylesheet" href="<?= e(asset('vendor/leaflet/leaflet.css')) ?>">
@@ -58,7 +59,10 @@ $config = [
         <label class="map-layer"><input type="checkbox" data-map-labels checked><span class="map-label-sample"><?= icon('tag') ?></span><span class="grow">أسماء الأجهزة والمواقع</span></label>
       </div>
       <div class="map-heat-areas" data-heat-areas hidden></div>
-      <button type="button" class="btn btn-sm" data-map-replay aria-pressed="false"><?= icon('history') ?>إعادة تشغيل اليوم</button>
+      <div class="map-tools-row">
+        <button type="button" class="btn btn-sm grow" data-map-replay aria-pressed="false"><?= icon('history') ?>إعادة تشغيل اليوم</button>
+        <button type="button" class="btn btn-sm" data-map-3d aria-pressed="false" hidden><?= icon('box') ?>3D</button>
+      </div>
       <div class="map-legend">
         <div class="map-legend-title">أجهزة MikroTik</div>
         <div><span class="mk-dot is-active"></span>متصل</div>

@@ -121,7 +121,7 @@
     if (!map.hasLayer(open)) { open.addTo(map); }
     if (!googleFailed && window.SN) {
       googleFailed = true;
-      SN.toast('warning', 'تعذّر تحميل خرائط Google، فتظهر الخريطة العادية. تحقق من مفتاح Google وتفعيل Map Tiles API.');
+      SN.toast('warning', 'تعذّر تحميل خرائط Google، فتظهر الخريطة العادية.');
     }
     if (window.console) { console.warn('Google Map Tiles:', err && err.message); }
   }

@@ -5367,4 +5367,6 @@ return [
     'حذف الراوتر' => 'Deleting router',
     'إضافة رابط على الخريطة:' => 'Adding a link on the map:',
     'حذف رابط على الخريطة' => 'Deleting a link on the map',
+    'الخريطة ثلاثية الأبعاد غير مدعومة على هذا الجهاز.' => 'The 3D map is not supported on this device.',
+    'تعذّر تحميل خرائط Google، فتظهر الخريطة العادية.' => 'Google Maps could not be loaded, so the regular map is shown.',
 ];

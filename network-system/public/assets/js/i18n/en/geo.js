@@ -122,7 +122,7 @@
     if (!map.hasLayer(open)) { open.addTo(map); }
     if (!googleFailed && window.SN) {
       googleFailed = true;
-      SN.toast('warning', 'Google Maps could not load, so the regular map is shown. Check the Google key and enable Map Tiles API.');
+      SN.toast('warning', 'Google Maps could not be loaded, so the regular map is shown.');
     }
     if (window.console) { console.warn('Google Map Tiles:', err && err.message); }
   }

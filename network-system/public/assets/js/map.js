@@ -738,13 +738,13 @@
       }
     }
   };
-  function tool(src, done) {
+  function tool(src, done, fail) {
     var key = 'sn' + src.replace(/\W/g, '');
     if (window[key]) { done(); return; }
     var s = document.createElement('script');
     s.src = src;
     s.onload = function () { window[key] = true; done(); };
-    s.onerror = function () { SN.toast('error', 'تعذّر التحميل.'); };
+    s.onerror = function () { SN.toast('error', 'تعذّر التحميل.'); if (fail) { fail(); } };
     document.head.appendChild(s);
   }
   var heatBox = document.querySelector('[data-map-heat]');
@@ -760,6 +760,34 @@
       var on = replayBtn.getAttribute('aria-pressed') !== 'true';
       replayBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
       tool(cfg.toolsSrc, function () { window.SNMapTools.replay(on); });
+    });
+  }
+
+  // البند 92: الخريطة ثلاثية الأبعاد (MapLibre GL المحلي) تُحمَّل عند الضغط فقط؛ الزر يظهر حيث يدعم المتصفح WebGL
+  var btn3d = document.querySelector('[data-map-3d]');
+  if (btn3d && cfg.map3d && ('WebGL2RenderingContext' in window || 'WebGLRenderingContext' in window)) {
+    btn3d.hidden = false;
+    var set3d = function (on) { btn3d.setAttribute('aria-pressed', on ? 'true' : 'false'); btn3d.classList.toggle('btn-primary', on); };
+    btn3d.addEventListener('click', function () {
+      if (btn3d.getAttribute('aria-pressed') === 'true') { window.SNMap3D.close(); set3d(false); return; }
+      btn3d.classList.add('is-loading');
+      var failed = function () { btn3d.classList.remove('is-loading'); };
+      // ملف أنماط المكتبة مع ملفيها بالتوازي، وتُفتح بعد وصول الثلاثة
+      var waiting = 2, ready = function () {
+        if (--waiting) { return; }
+        btn3d.classList.remove('is-loading');
+        window.SNMap3D.onClose = function () { set3d(false); };
+        if (window.SNMap3D.open()) { set3d(true); } else { btn3d.hidden = true; SN.toast('error', 'الخريطة ثلاثية الأبعاد غير مدعومة على هذا الجهاز.'); }
+      };
+      var css = document.querySelector('link[data-maplibre]');
+      if (css) { ready(); } else {
+        css = document.createElement('link');
+        css.rel = 'stylesheet'; css.href = cfg.map3d.css; css.setAttribute('data-maplibre', '');
+        css.onload = ready;
+        css.onerror = function () { SN.toast('error', 'تعذّر التحميل.'); failed(); };
+        document.head.appendChild(css);
+      }
+      tool(cfg.map3d.gl, function () { tool(cfg.map3d.src, ready, failed); }, failed);
     });
   }
 

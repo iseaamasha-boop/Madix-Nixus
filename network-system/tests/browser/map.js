@@ -7,6 +7,7 @@
  * - 59: نقاط ضوء تتحرك بـ transform على الروابط التي عليها حركة، وتُعاد بعد التكبير.
  * - 60: الخريطة الليلية تتبع الوضع الداكن والأسود.
  * - 93: طبقة حرارية عند تفعيلها فقط؛ 94: شريط إعادة تشغيل اليوم بخطوات 15 دقيقة.
+ * - 92: الخريطة ثلاثية الأبعاد تُحمَّل عند الضغط فقط، بأعمدة للأبراج، وتعود إلى 2D.
  * - راوتر باسمه على الخريطة، ورابط بينه وبين جهاز MikroTik بالنقر على الطرفين، وحذفه مع «تراجع».
  * - تقليل الحركة: بلا موجة ولا نقاط.
  */
@@ -51,7 +52,7 @@ async function open(browser, reduced) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ args: ['--no-proxy-server'] });
+  const browser = await chromium.launch({ args: ['--no-proxy-server', '--enable-unsafe-swiftshader', '--use-angle=swiftshader'] });
   const m = await open(browser, false);
   const p = m.page;
   ok(m.ms < 3000, 'map markers shown quickly (' + m.ms + 'ms)');
@@ -123,6 +124,17 @@ async function open(browser, reduced) {
   ok(s2.labels === labels0, 'tower labels updated in place (no duplicates)');
   await p.click('[data-rp-close]');
   ok(await p.evaluate(() => !document.querySelector('.map-replay')), 'replay closes back to the live map');
+  // 92: الخريطة ثلاثية الأبعاد
+  let lib = 0;
+  p.on('request', (rq) => { if (/maplibre-gl\.js|map3d\.js/.test(rq.url())) { lib++; } });
+  ok(lib === 0 && await p.isVisible('[data-map-3d]'), '3D button shown, library not loaded yet');
+  await p.click('[data-map-3d]');
+  await p.waitForFunction(() => window.SNMap3D && SNMap3D.map() && SNMap3D.map().getLayer('sn-cols'), null, { timeout: 20000 }).catch(() => null);
+  await p.waitForTimeout(1200);
+  const d3 = await p.evaluate(() => { const m = window.SNMap3D && SNMap3D.map(); return m ? { pitch: Math.round(m.getPitch()), cols: m.queryRenderedFeatures({ layers: ['sn-cols'] }).length } : null; });
+  ok(lib === 2 && d3 && d3.pitch > 30 && d3.cols > 0, '3D opens on demand with tower columns (' + JSON.stringify(d3) + ')');
+  await p.click('[data-map-3d-close]');
+  ok(await p.evaluate(() => !document.querySelector('.map-3d') && document.querySelector('[data-map-3d]').getAttribute('aria-pressed') === 'false'), 'back to the 2D map');
   // راوتر على الخريطة باسمه، ثم رابط بينه وبين جهاز MikroTik بالنقر على الطرفين
   const NAME = 'راوتر اختبار ' + Date.now() % 100000;
   await p.click('[data-map-act="router"]');

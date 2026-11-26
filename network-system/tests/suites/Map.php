@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 /*
  * المرحلة 5 (الخريطة).
- * 58: حالة الأبراج من أجهزة MikroTik عليها؛ 59: حركة كل جهاز لسرعة نقاط الضوء؛ التحديث المجمّع للخريطة ضمن الصلاحية والنطاق.
+ * 92: الخريطة ثلاثية الأبعاد عند الطلب فقط. 58: حالة الأبراج من أجهزة MikroTik عليها؛ 59: حركة كل جهاز لسرعة نقاط الضوء؛ التحديث المجمّع للخريطة ضمن الصلاحية والنطاق.
  * وسرعة بيانات الخريطة: «متصل الآن» للمشتركين باستعلام واحد (كان استعلاماً فرعياً لكل مشترك ≈ 4.4 ثانية لـ 5,000 مشترك).
  */
 
@@ -189,6 +189,27 @@ return [
         T::eq('31.5330000', (string) $pdo->query("SELECT lat FROM map_nodes WHERE id = $node")->fetchColumn(), 'moved');
         T::status(200, $h->ajax('POST', $t['path'] . '/map/links/' . $link . '/delete', []));
         T::eq(0, (int) $pdo->query("SELECT COUNT(*) FROM map_links WHERE id = $link")->fetchColumn(), 'link deleted');
+    },
+    '3D map: loaded on demand only, local MapLibre, light columns by clients (92)' => static function (Env $env): void {
+        $t = $env->tenant('a');
+        $page = $env->owner('a')->get($t['path'] . '/map')['body'];
+        T::contains('data-map-3d aria-pressed="false" hidden', $page, '3D button hidden until the browser shows WebGL');
+        T::notContains('maplibre-gl.js?', preg_replace('#<script type="application/json" id="map-config">.*?</script>#s', '', $page), 'MapLibre not loaded with the page');
+        T::notContains('map3d.js?', preg_replace('#<script type="application/json" id="map-config">.*?</script>#s', '', $page), '3D code not loaded with the page');
+        preg_match('#<script type="application/json" id="map-config">(.*?)</script>#s', $page, $m);
+        $cfg = json_decode($m[1] ?? '{}', true);
+        T::ok(str_contains($cfg['map3d']['gl'] ?? '', '/assets/vendor/maplibre/maplibre-gl.js'), 'local MapLibre (no CDN)');
+        T::ok(str_contains($cfg['map3d']['css'] ?? '', '/assets/vendor/maplibre/maplibre-gl.css'), 'local MapLibre styles');
+        T::ok(is_file(PUBLIC_PATH . '/assets/vendor/maplibre/LICENSE.txt'), 'library license kept');
+        $js = (string) file_get_contents(PUBLIC_PATH . '/assets/js/map3d.js');
+        T::contains("type: 'fill-extrusion'", $js, 'towers as columns');
+        T::contains('Math.sqrt(c)', $js, 'column height by connected clients');
+        T::contains('tile.openstreetmap.org', $js, 'same OSM tiles as the 2D map');
+        T::notContains('api.maptiler', $js, 'no external style or key');
+        T::contains("SN.live.on('map'", $js, 'live updates through the combined request');
+        $css = (string) file_get_contents(PUBLIC_PATH . '/assets/css/pages/map.css');
+        T::contains('@keyframes map-3d-in { from { opacity: 0; } to { opacity: 1; } }', $css, 'opens with opacity only');
+        T::contains('@media (prefers-reduced-motion: reduce) { .map-3d { animation: none; } }', $css, 'reduced motion');
     },
     'map motion: transform and opacity, reduced motion, night map' => static function (Env $env): void {
         $css = (string) file_get_contents(PUBLIC_PATH . '/assets/css/pages/map.css');
