@@ -192,6 +192,8 @@ return static function (Router $r): void {
     // ------------------------------------------------------------------
     $r->get('/', [DashboardController::class, 'index'], ['perm' => 'dashboard.view']);
     $r->get('/dashboard/data', [DashboardController::class, 'data'], ['perm' => 'dashboard.view']);
+    $r->post('/dashboard/layout', [DashboardController::class, 'layout'], ['perm' => 'dashboard.view']);
+    $r->post('/dashboard/layout/reset', [DashboardController::class, 'layoutReset'], ['perm' => 'dashboard.view']);
     // التحديثات المباشرة المجمّعة (كل مفتاح بصلاحيته)
     $r->get('/live', [\App\Controllers\LiveController::class, 'index']);
 

@@ -193,6 +193,25 @@ final class DashboardController extends Controller
     }
 
     /** تحديث دوري للأرقام الحية */
+    /** البند 108: الموظف يحفظ ترتيب لوحته لنفسه */
+    public function layout(Request $request): Response
+    {
+        $l = \App\Services\DashLayout::sanitize(\App\Services\DashLayout::NET, $request->str('layout'));
+        if (!$l) {
+            return json_response(['ok' => false, 'message' => 'ترتيب غير صالح.'], 422);
+        }
+        \App\Services\DashLayout::saveNet((int) Auth::id(), $l);
+        \App\Core\Audit::log('dashboard.layout', 'ترتيب لوحة التحكم', 'employee', (int) Auth::id());
+        return json_response(['ok' => true, 'message' => 'تم حفظ ترتيب لوحة التحكم.']);
+    }
+
+    public function layoutReset(Request $request): Response
+    {
+        \App\Services\DashLayout::resetNet((int) Auth::id());
+        \App\Core\Audit::log('dashboard.layout', 'إرجاع لوحة التحكم إلى الأصل', 'employee', (int) Auth::id());
+        return $request->wantsJson() ? json_response(['ok' => true, 'message' => 'أُعيدت لوحة التحكم إلى الأصل.']) : $this->ok('أُعيدت لوحة التحكم إلى الأصل.', '/');
+    }
+
     public function data(Request $request): Response
     {
         self::scheduleCron();

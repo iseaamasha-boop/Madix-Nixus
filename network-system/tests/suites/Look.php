@@ -264,6 +264,78 @@ return [
         T::contains('data-glass="1"', $env->owner('a')->request('GET', $env->tenant('a')['path'] . '/')['body'], 'networks get it');
         T::status(302, $a->post('/admin/design', ['oled' => '1']), 'turned off (other defaults kept)');
     },
+    'dashboard layout: per employee, admin default or for everyone, permissions kept (108)' => static function (Env $env): void {
+        $D = \App\Services\DashLayout::class;
+        // التنقية: مفاتيح معروفة بلا تكرار، مقاسات صالحة، وما نقص يُلحق في آخره
+        $l = $D::sanitize($D::NET, ['stats' => [['traffic', 'w'], ['nope', 's'], ['traffic', 's'], ['online', 'zz']], 'panels' => [['top', 'x']]]);
+        T::eq(['traffic', 'online', 'routers'], array_slice(array_keys($l['stats']), 0, 3), 'order kept, unknown and repeated dropped');
+        T::eq('w', $l['stats']['traffic'], 'valid size kept');
+        T::eq('s', $l['stats']['online'], 'invalid size falls back');
+        T::eq(count($D::NET['stats']), count($l['stats']), 'missing cards appended');
+        T::eq('top', array_key_first($l['panels']), 'panel order');
+        T::eq(null, $D::sanitize($D::NET, 'not json'), 'garbage refused');
+
+        $t = $env->tenant('a');
+        $pdo = $env->db($t['db']);
+        $json = ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
+        // ترتيب القطع ومقاساتها كما رسمها الخادم: [مفتاح:مقاس]
+        $order = static function (string $body, string $g): array {
+            preg_match('/data-dash-group="' . $g . '"(.*?)(data-dash-group=|<script)/s', $body, $part);
+            preg_match_all('/class="[^"]*?dsz-(\w)[^"]*" data-dash="([a-z]+)"/', $part[1] ?? '', $mm, PREG_SET_ORDER);
+            return array_map(static fn ($x) => $x[2] . ':' . $x[1], $mm);
+        };
+        $owner = $env->owner('a');
+        $body = $owner->request('GET', $t['path'] . '/')['body'];
+        T::contains('data-dash-edit=', $body, 'customize button');
+        T::eq(['chart:l', 'mikrotik:s', 'days:l', 'stock:s', 'logins:s', 'top:s', 'expiring:s'], $order($body, 'panels'), 'original panels');
+        $mine = ['stats' => [['traffic', 'w'], ['online', 's']], 'panels' => [['top', 'x'], ['chart', 'm']]];
+        $r = $owner->post($t['path'] . '/dashboard/layout', ['layout' => json_encode($mine)], $json);
+        T::status(200, $r, 'saved');
+        $body = $owner->request('GET', $t['path'] . '/')['body'];
+        T::eq(['top:x', 'chart:m'], array_slice($order($body, 'panels'), 0, 2), 'own layout drawn by the server');
+        T::eq('traffic:w', $order($body, 'stats')[0], 'own card order and size');
+        T::status(422, $owner->post($t['path'] . '/dashboard/layout', ['layout' => 'x'], $json), 'invalid layout refused');
+        T::ok((int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'dashboard.layout'")->fetchColumn() >= 1, 'audited');
+        // موظف آخر لا يتأثر، والبطاقات المالية لا تظهر لمن لا يملك صلاحيتها حتى لو كانت في الترتيب
+        $env->employee('a', 'dash108', 'DashPass12345', ['dashboard.view']);
+        $e = $env->owner('a', ['dash108', 'DashPass12345']);
+        $eb = $e->request('GET', $t['path'] . '/')['body'];
+        T::eq('chart:l', $order($eb, 'panels')[0], 'another employee keeps the original');
+        $e->post($t['path'] . '/dashboard/layout', ['layout' => json_encode(['stats' => [['sales', 'w'], ['collected', 'w']], 'panels' => []])], $json);
+        $eb = $e->request('GET', $t['path'] . '/')['body'];
+        T::notContains('data-dash="sales"', $eb, 'no financial card without permission');
+        T::notContains('data-dash="collected"', $eb, 'no financial card without permission (2)');
+        // المسؤول: ترتيب افتراضي لكل الأنظمة (لمن لم يرتّب لوحته)
+        $a = $env->admin();
+        $a->get('/admin/design');
+        $sys = ['stats' => [], 'panels' => [['logins', 'm'], ['stock', 'm']]];
+        T::status(302, $a->post('/admin/design/dashboard', ['mode' => 'default', 'layout' => json_encode($sys)]), 'default applied');
+        $env->employee('a', 'dash108b', 'DashPass12345', ['dashboard.view']);
+        $f = $env->owner('a', ['dash108b', 'DashPass12345']);
+        T::eq(['logins:m', 'stock:m'], array_slice($order($f->request('GET', $t['path'] . '/')['body'], 'panels'), 0, 2), 'employee without own layout gets the system default');
+        T::eq(['top:x', 'chart:m'], array_slice($order($owner->request('GET', $t['path'] . '/')['body'], 'panels'), 0, 2), 'own layout kept over the default');
+        // على الجميع: يتقدّم على الترتيبات السابقة دون حذفها
+        sleep(1);
+        T::status(302, $a->post('/admin/design/dashboard', ['mode' => 'all', 'layout' => json_encode($sys)]), 'applied to everyone');
+        T::eq(['logins:m', 'stock:m'], array_slice($order($owner->request('GET', $t['path'] . '/')['body'], 'panels'), 0, 2), 'everyone gets it');
+        T::ok(str_contains((string) $pdo->query("SELECT prefs FROM employees WHERE is_owner = 1 ORDER BY id LIMIT 1")->fetchColumn(), '"top"'), 'personal layout not deleted');
+        sleep(1);
+        $owner->post($t['path'] . '/dashboard/layout', ['layout' => json_encode($mine)], $json);
+        T::eq(['top:x', 'chart:m'], array_slice($order($owner->request('GET', $t['path'] . '/')['body'], 'panels'), 0, 2), 'a newer own layout wins again');
+        // إرجاع الأصل
+        T::status(200, $owner->post($t['path'] . '/dashboard/layout/reset', [], $json), 'reset');
+        T::eq(['logins:m', 'stock:m'], array_slice($order($owner->request('GET', $t['path'] . '/')['body'], 'panels'), 0, 2), 'back to the system layout');
+        T::status(302, $a->post('/admin/design/dashboard', ['mode' => 'reset']), 'system reset');
+        T::eq('chart:l', $order($owner->request('GET', $t['path'] . '/')['body'], 'panels')[0], 'back to the original');
+        T::ok((int) $env->db()->query("SELECT COUNT(*) FROM platform_activity WHERE action = 'platform.dashboard'")->fetchColumn() >= 3, 'platform log');
+        // لوحة المسؤول: ترتيبه لنفسه
+        $ab = $a->request('GET', '/admin')['body'];
+        T::eq('signups:l', $order($ab, 'panels')[0], 'admin original');
+        T::status(200, $a->post('/admin/layout', ['layout' => json_encode(['stats' => [['revenue', 'w']], 'panels' => [['activity', 'x']]])], $json), 'admin saved');
+        T::eq('activity:x', $order($a->request('GET', '/admin')['body'], 'panels')[0], 'admin layout drawn');
+        T::status(200, $a->post('/admin/layout/reset', [], $json), 'admin reset');
+        T::eq('signups:l', $order($a->request('GET', '/admin')['body'], 'panels')[0], 'admin back to original');
+    },
     'migration 19 adds the black value once' => static function (Env $env): void {
         $t = $env->tenant('a');
         $type = (string) $env->db($t['db'])->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employees' AND COLUMN_NAME = 'theme'")->fetchColumn();

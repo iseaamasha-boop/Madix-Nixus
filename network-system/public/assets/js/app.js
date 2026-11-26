@@ -1377,7 +1377,7 @@
     var list = [];
     var pick = function (el) { if (el && list.indexOf(el) === -1 && el.offsetParent !== null) { list.push(el); } };
     Array.prototype.forEach.call(content.children, function (el) {
-      if (el.matches('.stats, .grid, .stack, .admin-grid')) {
+      if (el.matches('.stats, .grid, .stack, .admin-grid, .dash-panels, .kpi-row')) {
         Array.prototype.forEach.call(el.children, function (c) {
           if (c.matches('.stack')) { Array.prototype.forEach.call(c.children, pick); } else { pick(c); }
         });
@@ -1393,7 +1393,7 @@
     // وتظهر متتالية حين تصل إليها: كل دفعة تبدأ من الصفر بتأخير 20ms لكل بطاقة (5 كحد أعلى)
     if (!('IntersectionObserver' in window)) { return; }
     var fold = window.innerHeight, waiting = [];
-    Array.prototype.forEach.call(content.querySelectorAll('.stats > *, .grid > *, .admin-grid > *'), function (el) {
+    Array.prototype.forEach.call(content.querySelectorAll('.stats > *, .grid > *, .admin-grid > *, .dash-panels > *'), function (el) {
       if (waiting.length >= 60 || el.parentElement.closest('.mx') || el.offsetParent === null || el.getBoundingClientRect().top <= fold) { return; }
       el.classList.add('mx', 'mx-wait');
       waiting.push(el);
@@ -1573,6 +1573,24 @@
     }, { every: 30000 });
   }
   $$('canvas[data-live-chart]').forEach(liveChart);
+
+  // تخصيص لوحة التحكم (البند 108): سكربت التخصيص يُحمَّل عند أول ضغطة على «تخصيص» فقط، ونموذج لوحة الأنظمة في استوديو التصميم
+  function dashScript(src, done) {
+    if (window.SNDash) { done(); return; }
+    var s = doc.createElement('script');
+    s.src = src;
+    s.async = true;
+    s.onload = function () { if (window.SNDash) { done(); } };
+    s.onerror = function () { toast('error', 'تعذّر التحميل.'); };
+    doc.head.appendChild(s);
+  }
+  on(doc, 'click', '[data-dash-edit]', function (e, b) {
+    e.preventDefault();
+    if (b.classList.contains('is-loading')) { return; }
+    b.classList.add('is-loading');
+    dashScript(b.getAttribute('data-dash-edit'), function () { b.classList.remove('is-loading'); window.SNDash.start(b); });
+  });
+  $$('[data-dash-form]').forEach(function (f) { dashScript(f.getAttribute('data-dash-form'), function () { window.SNDash.form(f); }); });
 
   // البطاقات الزجاجية (البند 46): إضاءة تتبع الفأرة فوق بطاقة الرقم؛ تتحرك بـ transform مرة لكل إطار، للفأرة فقط ولا مع تقليل الحركة
   (function () {

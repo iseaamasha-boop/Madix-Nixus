@@ -8,24 +8,41 @@ use App\Core\Tenant;
 $v->title = 'الرئيسية';
 $v->actions = '<a class="btn btn-primary" href="' . e(url('/admin/tenants/create')) . '">' . icon('plus') . 'حساب جديد</a>';
 $c = static fn (string $k) => (int) ($counts[$k] ?? 0);
+// البند 108: ترتيب المسؤول لنفسه يُطبَّق عند الرسم
+$L = \App\Services\DashLayout::admin();
+$sz = static fn (string $g, string $k): string => \App\Services\DashLayout::size($L, $g, $k);
+$S = [];
+$P = [];
+$v->actions = '<button type="button" class="btn" data-dash-edit="' . e(asset('js/dash-edit.js')) . '" data-dash-save="' . e(url('/admin/layout')) . '" data-dash-reset="' . e(url('/admin/layout/reset')) . '">'
+    . icon('layout-dashboard') . 'تخصيص</button>' . $v->actions;
 ?>
-<div class="kpi-row">
-  <a class="stat" href="<?= e(url('/admin/tenants')) ?>"><div class="stat-icon"><?= icon('building') ?></div><div class="stat-body"><div class="stat-label">كل الحسابات</div><div class="stat-value"><?= num($total) ?></div></div></a>
-  <a class="stat" href="<?= e(url('/admin/tenants', ['status' => 'trial'])) ?>"><div class="stat-icon is-info"><?= icon('clock') ?></div><div class="stat-body"><div class="stat-label">تجريبية</div><div class="stat-value"><?= num($c('trial')) ?></div></div></a>
-  <a class="stat" href="<?= e(url('/admin/tenants', ['status' => 'active'])) ?>"><div class="stat-icon is-success"><?= icon('circle-check') ?></div><div class="stat-body"><div class="stat-label">مفعّلة</div><div class="stat-value"><?= num($c('active')) ?></div></div></a>
-  <a class="stat" href="<?= e(url('/admin/tenants', ['status' => 'expired'])) ?>"><div class="stat-icon is-warning"><?= icon('triangle-alert') ?></div><div class="stat-body"><div class="stat-label">منتهية أو موقوفة</div><div class="stat-value"><?= num($c('expired') + $c('suspended')) ?></div></div></a>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'all') ?>" data-dash="all" href="<?= e(url('/admin/tenants')) ?>"><div class="stat-icon"><?= icon('building') ?></div><div class="stat-body"><div class="stat-label">كل الحسابات</div><div class="stat-value"><?= num($total) ?></div></div></a>
+<?php $S['all'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'trial') ?>" data-dash="trial" href="<?= e(url('/admin/tenants', ['status' => 'trial'])) ?>"><div class="stat-icon is-info"><?= icon('clock') ?></div><div class="stat-body"><div class="stat-label">تجريبية</div><div class="stat-value"><?= num($c('trial')) ?></div></div></a>
+<?php $S['trial'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'active') ?>" data-dash="active" href="<?= e(url('/admin/tenants', ['status' => 'active'])) ?>"><div class="stat-icon is-success"><?= icon('circle-check') ?></div><div class="stat-body"><div class="stat-label">مفعّلة</div><div class="stat-value"><?= num($c('active')) ?></div></div></a>
+<?php $S['active'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'expired') ?>" data-dash="expired" href="<?= e(url('/admin/tenants', ['status' => 'expired'])) ?>"><div class="stat-icon is-warning"><?= icon('triangle-alert') ?></div><div class="stat-body"><div class="stat-label">منتهية أو موقوفة</div><div class="stat-value"><?= num($c('expired') + $c('suspended')) ?></div></div></a>
+<?php $S['expired'] = ob_get_clean(); ?>
 <?php if (App\Core\AdminAuth::can(['billing.view', 'billing.manage'])): ?>
-  <a class="stat" href="<?= e(url('/admin/payments')) ?>"><div class="stat-icon is-success"><?= icon('banknote') ?></div><div class="stat-body"><div class="stat-label">إيرادات الشهر</div><div class="stat-value"><?= e(ltr(number_format($revenue, 0, '.', ',') . ' ' . App\Core\Platform::setting('platform.currency'))) ?></div><div class="stat-meta"><?= num($online) ?> نشطة الآن</div></div></a>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'revenue') ?>" data-dash="revenue" href="<?= e(url('/admin/payments')) ?>"><div class="stat-icon is-success"><?= icon('banknote') ?></div><div class="stat-body"><div class="stat-label">إيرادات الشهر</div><div class="stat-value"><?= e(ltr(number_format($revenue, 0, '.', ',') . ' ' . App\Core\Platform::setting('platform.currency'))) ?></div><div class="stat-meta"><?= num($online) ?> نشطة الآن</div></div></a>
+<?php $S['revenue'] = ob_get_clean(); ?>
   <?php endif; ?>
-</div>
+<div class="kpi-row" data-dash-group="stats"><?= \App\Services\DashLayout::render($L, 'stats', $S) ?></div>
 
-<div class="grid grid-main-side">
-  <div class="stack">
-    <div class="panel">
+<?php ob_start(); ?>
+    <div class="panel<?= $sz('panels', 'signups') ?>" data-dash="signups">
       <div class="panel-head"><h3><?= icon('chart-column') ?>الحسابات الجديدة خلال 30 يوماً</h3></div>
       <div class="panel-body"><div class="chart-box"><canvas id="signups-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div>
     </div>
-    <div class="panel">
+<?php $P['signups'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+    <div class="panel<?= $sz('panels', 'latest') ?>" data-dash="latest">
       <div class="panel-head"><h3><?= icon('building') ?>أحدث الحسابات</h3><a class="btn btn-sm" href="<?= e(url('/admin/tenants')) ?>">الكل</a></div>
       <?php if (!$latest): ?><div class="empty"><?= icon('building') ?><div>لا توجد حسابات.</div></div><?php else: ?>
       <div class="table-wrap"><table class="table">
@@ -43,9 +60,9 @@ $c = static fn (string $k) => (int) ($counts[$k] ?? 0);
       </table></div>
       <?php endif; ?>
     </div>
-  </div>
-  <div class="stack">
-    <div class="panel">
+<?php $P['latest'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+    <div class="panel<?= $sz('panels', 'ending') ?>" data-dash="ending">
       <div class="panel-head"><h3><?= icon('clock') ?>تنتهي قريباً</h3><span class="badge"><?= num(count($ending)) ?></span></div>
       <ul class="list">
         <?php foreach ($ending as $t): $left = Tenant::daysLeft($t); ?>
@@ -58,7 +75,9 @@ $c = static fn (string $k) => (int) ($counts[$k] ?? 0);
         <?php if (!$ending): ?><li class="list-item text-muted">لا يوجد.</li><?php endif; ?>
       </ul>
     </div>
-    <div class="panel">
+<?php $P['ending'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+    <div class="panel<?= $sz('panels', 'activity') ?>" data-dash="activity">
       <div class="panel-head"><h3><?= icon('activity') ?>آخر النشاط</h3><a class="btn btn-sm" href="<?= e(url('/admin/activity')) ?>">الكل</a></div>
       <ul class="list">
         <?php foreach ($activity as $a): ?>
@@ -71,8 +90,8 @@ $c = static fn (string $k) => (int) ($counts[$k] ?? 0);
         <?php if (!$activity): ?><li class="list-item text-muted">لا يوجد نشاط.</li><?php endif; ?>
       </ul>
     </div>
-  </div>
-</div>
+<?php $P['activity'] = ob_get_clean(); ?>
+<div class="dash-panels" data-dash-group="panels"><?= \App\Services\DashLayout::render($L, 'panels', $P) ?></div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var data = <?= json_encode($series) ?>;

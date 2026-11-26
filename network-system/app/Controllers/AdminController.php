@@ -85,6 +85,25 @@ final class AdminController extends Controller
     // الرئيسية
     // ------------------------------------------------------------------
 
+    /** البند 108: المسؤول يحفظ ترتيب لوحته لنفسه */
+    public function layout(Request $request): Response
+    {
+        $l = \App\Services\DashLayout::sanitize(\App\Services\DashLayout::ADMIN, $request->str('layout'));
+        if (!$l) {
+            return json_response(['ok' => false, 'message' => 'ترتيب غير صالح.'], 422);
+        }
+        \App\Services\DashLayout::saveAdmin((int) AdminAuth::id(), $l);
+        Platform::log(null, 'admin', 'admin.layout', 'ترتيب لوحة المسؤول', AdminAuth::user()['name'] ?? null);
+        return json_response(['ok' => true, 'message' => 'تم حفظ ترتيب لوحة التحكم.']);
+    }
+
+    public function layoutReset(Request $request): Response
+    {
+        \App\Services\DashLayout::saveAdmin((int) AdminAuth::id(), null);
+        Platform::log(null, 'admin', 'admin.layout', 'إرجاع لوحة المسؤول إلى الأصل', AdminAuth::user()['name'] ?? null);
+        return $request->wantsJson() ? json_response(['ok' => true, 'message' => 'أُعيدت لوحة التحكم إلى الأصل.']) : redirect('/admin');
+    }
+
     public function dashboard(Request $request): Response
     {
         $counts = DB::pairs('SELECT status, COUNT(*) FROM tenants GROUP BY status');

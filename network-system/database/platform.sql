@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS platform_admins (
   is_owner       TINYINT(1)   NOT NULL DEFAULT 0,
   permissions    TEXT         NULL,
   email          VARCHAR(190) NULL,
+  prefs          TEXT         NULL,
   PRIMARY KEY (id),
   UNIQUE KEY uq_platform_admins_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

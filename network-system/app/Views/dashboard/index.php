@@ -9,6 +9,13 @@ $v->actions = '<a class="btn" href="' . e(url('/sessions')) . '">' . icon('activ
 $hourLabels = array_map(static fn ($r) => substr($r['h'], 11, 5), $online24);
 $hourUsers = array_map(static fn ($r) => (int) $r['users'], $online24);
 $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
+// البند 108: ترتيب الموظف (أو ترتيب المنصة أو الأصل) يُطبَّق هنا عند الرسم؛ التعديل بزر «تخصيص» وسكربته يُحمَّل عند الضغط
+$L = \App\Services\DashLayout::net();
+$sz = static fn (string $g, string $k): string => \App\Services\DashLayout::size($L, $g, $k);
+$S = [];
+$P = [];
+$v->actions = '<button type="button" class="btn" data-dash-edit="' . e(asset('js/dash-edit.js')) . '" data-dash-save="' . e(url('/dashboard/layout')) . '" data-dash-reset="' . e(url('/dashboard/layout/reset')) . '"'
+    . (\App\Services\DashLayout::netCustom() ? ' data-dash-custom' : '') . '>' . icon('layout-dashboard') . 'تخصيص</button>' . $v->actions;
 ?>
 <?php if (!empty($onboard)): ?>
 <div class="panel onboard-card">
@@ -30,53 +37,66 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
 <div class="notice mb-3"><?= icon('link') ?><div>لم يُضبط الرابط العام للنظام. <a href="<?= e(url('/settings')) ?>">الإعدادات العامة</a></div></div>
 <?php endif; ?>
 
-<div class="stats">
-  <a class="stat" href="<?= e(url('/sessions')) ?>">
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'online') ?>" data-dash="online" href="<?= e(url('/sessions')) ?>">
     <div class="stat-icon is-success"><?= icon('activity') ?></div>
     <div class="stat-body"><div class="stat-label">المتصلون الآن</div><div class="stat-value" data-k="online"><?= num($kpi['online']) ?></div>
       <div class="stat-meta">هوتسبوت <span data-k="online_hs"><?= num($kpi['online_hs']) ?></span> · PPP <span data-k="online_ppp"><?= num($kpi['online_ppp']) ?></span></div></div>
   </a>
-  <a class="stat" href="<?= e(url('/routers')) ?>">
+<?php $S['online'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'routers') ?>" data-dash="routers" href="<?= e(url('/routers')) ?>">
     <div class="stat-icon"><?= icon('router') ?></div>
     <div class="stat-body"><div class="stat-label">أجهزة MikroTik المتصلة</div><div class="stat-value"><span data-k="routers_online"><?= num($kpi['routers_online']) ?></span> / <?= num($kpi['routers_total']) ?></div>
       <div class="stat-meta"><?= $kpi['routers_offline'] > 0 ? '<span class="down">' . num($kpi['routers_offline']) . ' منقطع</span>' : 'كل أجهزة MikroTik تعمل' ?></div></div>
   </a>
-  <a class="stat" href="<?= e(url('/cards', ['status' => 'active'])) ?>">
+<?php $S['routers'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'active') ?>" data-dash="active" href="<?= e(url('/cards', ['status' => 'active'])) ?>">
     <div class="stat-icon is-info"><?= icon('ticket') ?></div>
     <div class="stat-body"><div class="stat-label">الكروت النشطة</div><div class="stat-value"><?= num($kpi['cards_active']) ?></div>
       <div class="stat-meta">فُعّلت اليوم <?= num($kpi['activated_today']) ?></div></div>
   </a>
-  <a class="stat" href="<?= e(url('/cards', ['status' => 'new'])) ?>">
+<?php $S['active'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'available') ?>" data-dash="available" href="<?= e(url('/cards', ['status' => 'new'])) ?>">
     <div class="stat-icon is-violet"><?= icon('boxes') ?></div>
     <div class="stat-body"><div class="stat-label">الكروت المتاحة</div><div class="stat-value"><?= num($kpi['cards_available']) ?></div>
       <div class="stat-meta">مباعة غير مستخدمة <?= num($kpi['cards_sold']) ?></div></div>
   </a>
-  <a class="stat" href="<?= e(url('/subscribers')) ?>">
+<?php $S['available'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'subs') ?>" data-dash="subs" href="<?= e(url('/subscribers')) ?>">
     <div class="stat-icon is-success"><?= icon('users') ?></div>
     <div class="stat-body"><div class="stat-label">المشتركون الفعّالون</div><div class="stat-value"><?= num($kpi['subs_active']) ?></div>
       <div class="stat-meta"><?= $kpi['subs_expiring'] ? '<span class="down">' . num($kpi['subs_expiring']) . ' ينتهي قريباً</span> · ' : '' ?>منتهي <?= num($kpi['subs_expired']) ?></div></div>
   </a>
-  <?php if ($financial): ?>
-  <a class="stat" href="<?= e(url('/sales')) ?>">
+<?php $S['subs'] = ob_get_clean(); ?>
+<?php if ($financial): ?><?php ob_start(); ?>
+  <a class="stat<?= $sz('stats', 'sales') ?>" data-dash="sales" href="<?= e(url('/sales')) ?>">
     <div class="stat-icon is-warning"><?= icon('banknote') ?></div>
     <div class="stat-body"><div class="stat-label">مبيعات الكروت اليوم</div><div class="stat-value"><?= e(money($kpi['sales_today'])) ?></div>
       <div class="stat-meta"><?= num($kpi['sales_qty_today']) ?> كرت</div></div>
   </a>
-  <div class="stat">
+<?php $S['sales'] = ob_get_clean(); ?><?php endif; ?>
+<?php if ($financial): ?><?php ob_start(); ?>
+  <div class="stat<?= $sz('stats', 'collected') ?>" data-dash="collected">
     <div class="stat-icon is-success"><?= icon('wallet') ?></div>
     <div class="stat-body"><div class="stat-label">المحصّل اليوم</div><div class="stat-value"><?= e(money($kpi['collected_today'])) ?></div>
       <div class="stat-meta">ذمم مستحقة <?= e(money($kpi['debts'])) ?></div></div>
   </div>
-  <?php endif; ?>
-  <div class="stat">
+<?php $S['collected'] = ob_get_clean(); ?><?php endif; ?>
+<?php ob_start(); ?>
+  <div class="stat<?= $sz('stats', 'traffic') ?>" data-dash="traffic">
     <div class="stat-icon is-info"><?= icon('arrow-up-down') ?></div>
     <div class="stat-body"><div class="stat-label">حركة الإنترنت الآن</div><div class="stat-value" style="font-size:18px"><span data-k="rx"><?= e(fmt_rate($kpi['rx'])) ?></span></div>
       <div class="stat-meta">رفع <span data-k="tx"><?= e(fmt_rate($kpi['tx'])) ?></span></div></div>
   </div>
-</div>
+<?php $S['traffic'] = ob_get_clean(); ?>
+<div class="stats" data-dash-group="stats"><?= \App\Services\DashLayout::render($L, 'stats', $S) ?></div>
 
-<div class="grid grid-main-side mb-3">
-  <div class="panel">
+<?php ob_start(); ?>
+  <div class="panel<?= $sz('panels', 'chart') ?>" data-dash="chart">
     <div class="panel-head"><h2><?= icon('chart-line') ?>المتصلون والسرعة</h2>
       <div class="segmented seg-sm" role="radiogroup" aria-label="المدة">
         <label><input type="radio" name="online_range" value="live" checked data-range-tab><span><i class="live-dot" aria-hidden="true"></i>مباشر</span></label>
@@ -91,7 +111,9 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
       </div>
     </div>
   </div>
-  <div class="panel">
+<?php $P['chart'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <div class="panel<?= $sz('panels', 'mikrotik') ?>" data-dash="mikrotik">
     <div class="panel-head"><h3><?= icon('router') ?>حالة أجهزة MikroTik</h3><a class="btn btn-ghost btn-sm" href="<?= e(url('/routers')) ?>">الكل</a></div>
     <ul class="list" style="max-height:330px;overflow:auto">
       <?php foreach ($routers as $r): ?>
@@ -107,14 +129,15 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
       <?php if (!$routers): ?><li><div class="empty"><?= icon('router') ?><div>لا توجد أجهزة MikroTik.</div><?php if (can('routers.manage')): ?><a class="btn btn-primary btn-sm" href="<?= e(url('/routers/create')) ?>"><?= icon('plus') ?>إضافة جهاز MikroTik</a><?php endif; ?></div></li><?php endif; ?>
     </ul>
   </div>
-</div>
-
-<div class="grid grid-main-side mb-3">
-  <div class="panel">
+<?php $P['mikrotik'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <div class="panel<?= $sz('panels', 'days') ?>" data-dash="days">
     <div class="panel-head"><h2><?= icon('chart-column') ?><?= $financial ? 'المبيعات والتفعيلات خلال 30 يوماً' : 'تفعيل الكروت خلال 30 يوماً' ?></h2></div>
     <div class="panel-body"><div class="chart-box"><canvas id="days-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div></div>
   </div>
-  <div class="panel">
+<?php $P['days'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <div class="panel<?= $sz('panels', 'stock') ?>" data-dash="stock">
     <div class="panel-head"><h3><?= icon('layers') ?>مخزون الباقات</h3><a class="btn btn-ghost btn-sm" href="<?= e(url('/categories')) ?>">الباقات</a></div>
     <ul class="list" style="max-height:330px;overflow:auto">
       <?php foreach ($stock as $c):
@@ -131,10 +154,9 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
       <?php if (!$stock): ?><li><div class="empty"><?= icon('layers') ?><div>لا توجد باقات.</div></div></li><?php endif; ?>
     </ul>
   </div>
-</div>
-
-<div class="grid grid-3">
-  <div class="panel">
+<?php $P['stock'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <div class="panel<?= $sz('panels', 'logins') ?>" data-dash="logins">
     <div class="panel-head"><h3><?= icon('log-in') ?>آخر عمليات الدخول</h3><?php if (can('hotspot.log')): ?><a class="btn btn-ghost btn-sm" href="<?= e(url('/hotspot/log')) ?>">السجل</a><?php endif; ?></div>
     <ul class="list">
       <?php foreach ($recent as $l): ?>
@@ -150,7 +172,9 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
       <?php if (!$recent): ?><li><div class="empty"><?= icon('log-in') ?><div>لا توجد عمليات دخول بعد.</div></div></li><?php endif; ?>
     </ul>
   </div>
-  <div class="panel">
+<?php $P['logins'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <div class="panel<?= $sz('panels', 'top') ?>" data-dash="top">
     <div class="panel-head"><h3><?= icon('trending-up') ?>الأعلى استهلاكاً الآن</h3></div>
     <ul class="list">
       <?php foreach ($topUsers as $t): ?>
@@ -170,7 +194,9 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
       <?php if (!$topUsers): ?><li><div class="empty"><?= icon('trending-up') ?><div>لا توجد جلسات نشطة.</div></div></li><?php endif; ?>
     </ul>
   </div>
-  <div class="panel">
+<?php $P['top'] = ob_get_clean(); ?>
+<?php ob_start(); ?>
+  <div class="panel<?= $sz('panels', 'expiring') ?>" data-dash="expiring">
     <?php if ($expiring): ?>
       <div class="panel-head"><h3><?= icon('calendar-clock') ?>اشتراكات تنتهي قريباً</h3><a class="btn btn-ghost btn-sm" href="<?= e(url('/subscribers', ['state' => 'expiring'])) ?>">الكل</a></div>
       <ul class="list">
@@ -199,7 +225,8 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
       </ul>
     <?php endif; ?>
   </div>
-</div>
+<?php $P['expiring'] = ob_get_clean(); ?>
+<div class="dash-panels" data-dash-group="panels"><?= \App\Services\DashLayout::render($L, 'panels', $P) ?></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {

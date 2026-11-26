@@ -36,6 +36,24 @@ final class DesignController extends Controller
         return Theme::sanitize($in);
     }
 
+    /** البند 108: ترتيب لوحة تحكم الشبكات على كل الأنظمة (كافتراضي أو على الجميع)، أو إرجاعه للأصل */
+    public function dashboard(Request $request): Response
+    {
+        $mode = $request->str('mode');
+        if ($mode === 'reset') {
+            \App\Services\DashLayout::resetSystem();
+            Platform::log(null, 'admin', 'platform.dashboard', 'إرجاع لوحة تحكم الأنظمة إلى الأصل', AdminAuth::user()['name'] ?? null);
+            return $this->ok('أُعيدت لوحة تحكم الأنظمة إلى الأصل.', '/admin/design#dash');
+        }
+        $l = \App\Services\DashLayout::sanitize(\App\Services\DashLayout::NET, $request->str('layout'));
+        if (!$l || !in_array($mode, ['default', 'all'], true)) {
+            return $this->backWithErrors($request, ['layout' => 'ترتيب غير صالح.'], '/admin/design#dash');
+        }
+        \App\Services\DashLayout::applySystem($l, $mode === 'all');
+        Platform::log(null, 'admin', 'platform.dashboard', $mode === 'all' ? 'تطبيق ترتيب لوحة التحكم على كل الموظفين في كل الأنظمة' : 'ترتيب افتراضي للوحة تحكم الأنظمة', AdminAuth::user()['name'] ?? null);
+        return $this->ok($mode === 'all' ? 'طُبّق الترتيب على كل الأنظمة.' : 'صار الترتيب افتراضياً لكل الأنظمة.', '/admin/design#dash');
+    }
+
     public function save(Request $request): Response
     {
         $t = $this->values($request);

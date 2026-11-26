@@ -226,3 +226,31 @@ $fields = static function (string $name, array $opts) use ($t): string {
     </div>
   </div>
 </form>
+
+<?php
+// البند 108: ترتيب لوحة تحكم الشبكات لكل الأنظمة: كافتراضي (لمن لم يرتّب لوحته) أو على الجميع
+[$dashSys, $dashAt] = \App\Services\DashLayout::system();
+$dashL = $dashSys ?? \App\Services\DashLayout::NET;
+?>
+<div class="panel mt-3" id="dash">
+  <div class="panel-head"><h3><?= icon('layout-dashboard') ?>ترتيب لوحة تحكم الأنظمة</h3>
+    <?php if ($dashSys): ?><span class="badge <?= $dashAt ? 'badge-warning' : 'badge-info' ?>"><?= $dashAt ? 'على الجميع منذ ' . e(fmt_date(date('Y-m-d H:i:s', $dashAt))) : 'افتراضي' ?></span><?php endif; ?>
+  </div>
+  <form method="post" action="<?= e(url('/admin/design/dashboard')) ?>" class="panel-body" data-dash-form="<?= e(asset('js/dash-edit.js')) ?>">
+    <?= csrf_field() ?>
+    <input type="hidden" name="layout" value="<?= e(json_encode(\App\Services\DashLayout::pack($dashL))) ?>">
+    <div class="dash-mini">
+      <div class="stats" data-dash-group="stats">
+        <?php foreach ($dashL['stats'] as $k => $s): ?><div class="dash-mini-item dsz-<?= e($s) ?>" data-dash="<?= e($k) ?>"><?= e(\App\Services\DashLayout::NET_LABELS[$k] ?? $k) ?></div><?php endforeach; ?>
+      </div>
+      <div class="dash-panels" data-dash-group="panels">
+        <?php foreach ($dashL['panels'] as $k => $s): ?><div class="dash-mini-item is-panel dsz-<?= e($s) ?>" data-dash="<?= e($k) ?>"><?= e(\App\Services\DashLayout::NET_LABELS[$k] ?? $k) ?></div><?php endforeach; ?>
+      </div>
+    </div>
+    <div class="form-actions mt-3">
+      <button class="btn btn-primary" name="mode" value="default"><?= icon('check') ?>تطبيق كافتراضي</button>
+      <button class="btn" name="mode" value="all" data-confirm="يتقدّم هذا الترتيب على ترتيبات كل الموظفين الحالية في كل الأنظمة."><?= icon('users') ?>تطبيق على الجميع</button>
+      <?php if ($dashSys): ?><button class="btn btn-ghost" name="mode" value="reset"><?= icon('rotate-ccw') ?>الأصل</button><?php endif; ?>
+    </div>
+  </form>
+</div>

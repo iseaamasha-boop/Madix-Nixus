@@ -58,6 +58,9 @@ return static function (Router $r): void {
     $r->post('/admin/login', [AdminController::class, 'login'], ['auth' => false, 'adminGuest' => true]);
     $r->post('/admin/logout', [AdminController::class, 'logout'], $a);
     $r->get('/admin', [AdminController::class, 'dashboard'], $a);
+    $r->post('/admin/layout', [AdminController::class, 'layout'], $a);
+    $r->post('/admin/layout/reset', [AdminController::class, 'layoutReset'], $a);
+    $r->post('/admin/design/dashboard', [DesignController::class, 'dashboard'], $a + ['aperm' => 'design.manage']);
     $r->get('/admin/tenants', [AdminController::class, 'tenants'], $a + ['aperm' => ['tenants.view', 'tenants.manage', 'tenants.access']]);
     $r->get('/admin/tenants/create', [AdminController::class, 'tenant_create'], $a + ['aperm' => 'tenants.manage']);
     $r->post('/admin/tenants', [AdminController::class, 'tenant_store'], $a + ['aperm' => 'tenants.manage']);

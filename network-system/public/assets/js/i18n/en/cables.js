@@ -131,7 +131,7 @@
   function section(ic, head, body, extra) {
     return '<section class="cb-sec' + (extra ? ' ' + extra : '') + '"><h4>' + icon(ic) + esc(head) + '</h4>' + body + '</section>';
   }
-  // رسم الكابل: Device in جهة Start, and Other end in جهة End, وكل زوج بطوله المقاس وعلامة القطع or التماس
+  // رسم الكابل: Device in جهة Start, and Other end in جهة End, وكل زوج بطوله Size:  وعلامة القطع or التماس
   function cable(r) {
     var pairs = r.pairs || [];
     var dists = pairs.map(function (p) { return p.m; }).filter(function (m) { return m !== null && m !== undefined; });

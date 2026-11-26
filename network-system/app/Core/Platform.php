@@ -338,7 +338,7 @@ final class Platform
     }
 
     /** إصدار جداول المنصة — يُرفع عند إضافة جداول جديدة إلى platform.sql */
-    public const SCHEMA = 9;
+    public const SCHEMA = 10;
 
     /** أعمدة تُضاف إلى الجداول القائمة عند الترقية */
     private const COLUMNS = [
@@ -375,6 +375,8 @@ final class Platform
             'is_owner'       => 'TINYINT(1) NOT NULL DEFAULT 0',
             'permissions'    => 'TEXT NULL',
             'email'          => 'VARCHAR(190) NULL',
+            // البند 108: تفضيلات المسؤول الشخصية (ترتيب لوحة المسؤول)
+            'prefs'          => 'TEXT NULL',
         ],
     ];
 

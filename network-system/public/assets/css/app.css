@@ -1598,6 +1598,36 @@ dialog.modal::backdrop { animation: fade-in var(--dur-4) ease; }
 .status-pill { display: inline-flex; align-items: center; gap: var(--space-1h); }
 .tenant-link { direction: ltr; font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .kpi-row { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-3h); margin-bottom: 18px; }
+/* البند 108: لوحة التحكم المرتبة: شبكة 12 عموداً، اللوحة ثلث (s) أو نصف (m) أو ثلثان (l) أو كامل العرض (x)، وبطاقة الرقم عادية أو عريضة (w) */
+.dash-panels { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 18px; }
+.dash-panels > * { grid-column: span 4; min-width: 0; }
+.dash-panels > .dsz-m { grid-column: span 6; }
+.dash-panels > .dsz-l { grid-column: span 8; }
+.dash-panels > .dsz-x { grid-column: span 12; }
+.stats > .dsz-w, .kpi-row > .dsz-w { grid-column: span 2; }
+@media (max-width: 1100px) {
+  .dash-panels > *, .dash-panels > .dsz-m { grid-column: span 6; }
+  .dash-panels > .dsz-l, .dash-panels > .dsz-x { grid-column: span 12; }
+}
+@media (max-width: 760px) { .dash-panels > *, .dash-panels > .dsz-m, .dash-panels > .dsz-l { grid-column: span 12; } }
+@media (max-width: 330px) { .stats > .dsz-w { grid-column: auto; } }
+/* نموذج لوحة الأنظمة المصغّر في استوديو التصميم */
+.dash-mini .stats { margin-bottom: 12px; }
+.dash-mini-item { position: relative; display: flex; align-items: center; min-height: 52px; padding: 10px 12px; padding-inline-end: 80px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); font-size: 13px; font-weight: 600; color: var(--text-2); }
+.dash-mini-item.is-panel { min-height: 84px; align-items: flex-start; }
+/* وضع التخصيص */
+.dash-editing [data-dash] { position: relative; outline: 2px dashed color-mix(in srgb, var(--primary) 45%, transparent); outline-offset: 3px; cursor: default; }
+.dash-editing [data-dash] > :not(.dash-tools) { pointer-events: none; }
+.dash-tools { position: absolute; z-index: 3; top: 6px; inset-inline-end: 6px; display: flex; gap: 4px; }
+.dash-tools button { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text-2); box-shadow: var(--shadow-sm); cursor: pointer; }
+.dash-tools button:hover, .dash-tools button:focus-visible { color: var(--primary); border-color: var(--primary); }
+.dash-tools [data-dash-drag] { cursor: grab; touch-action: none; }
+.dash-tools .icon { width: 16px; height: 16px; }
+[data-dash].is-dash-dragging { z-index: 6; box-shadow: var(--shadow-lg); opacity: .94; }
+.is-dash-sorting, .is-dash-sorting * { cursor: grabbing !important; user-select: none; }
+.dash-bar { position: fixed; z-index: var(--z-popover); inset-inline: 0; bottom: 16px; margin-inline: auto; width: max-content; max-width: calc(100vw - 24px); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-lg); animation: dash-bar-in var(--dur-5) var(--ease-pop); }
+@keyframes dash-bar-in { from { transform: translateY(12px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .dash-bar { animation: none; } }
 @media (max-width: 1100px) { .kpi-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .trial-bar, .announce-bar, .imp-bar { display: flex; align-items: center; justify-content: center; gap: var(--space-2h); flex-wrap: wrap; padding: 9px 16px; font-size: 13.5px; text-align: center; }
