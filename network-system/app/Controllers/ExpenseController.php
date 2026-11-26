@@ -119,6 +119,21 @@ final class ExpenseController extends Controller
         return $this->ok('تم تسجيل المصروف.', '/expenses', ['month' => substr($day, 0, 7)]);
     }
 
+    /** التعديل المباشر في جدول المصاريف: البيان */
+    public function inline(Request $request, int $id): Response
+    {
+        $x = DB::row('SELECT * FROM expenses WHERE id = ?', [$id]);
+        $this->notFoundUnless($x);
+        return $this->inlineField($request, 'expenses', $x, [
+            'description' => ['البيان', static function (string $v): ?string {
+                if (mb_strlen($v) > 255) {
+                    throw new \RuntimeException('البيان أطول من 255 حرفاً.');
+                }
+                return $v === '' ? null : $v;
+            }, static fn ($v) => (string) ($v ?? '')],
+        ], 'expense.update', 'expense', 'مصروف ' . money((float) $x['amount']));
+    }
+
     public function destroy(Request $request, int $id): Response
     {
         $x = DB::row('SELECT * FROM expenses WHERE id = ?', [$id]);

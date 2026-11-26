@@ -10,7 +10,7 @@ $v->title = 'المناطق';
         <tbody>
         <?php foreach ($areas as $a): ?>
           <tr>
-            <td class="cell-title"><?= e($a['name']) ?></td>
+            <td class="cell-title"<?php if (can('areas.manage')): ?> data-edit="<?= e(url('/areas/' . $a['id'] . '/inline')) ?>" data-field="name" data-value="<?= e($a['name']) ?>"<?php endif; ?>><?= e($a['name']) ?></td>
             <td class="num"><a href="<?= e(url('/routers', ['area' => $a['id']])) ?>"><?= num($a['routers']) ?></a></td>
             <td class="num"><a href="<?= e(url('/subscribers', ['area' => $a['id']])) ?>"><?= num($a['subscribers']) ?></a></td>
             <td class="num"><?= num($a['distributors']) ?></td>

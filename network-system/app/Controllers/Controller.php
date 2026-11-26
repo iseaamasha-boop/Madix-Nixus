@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Audit;
+use App\Core\DB;
 use App\Core\HttpException;
 use App\Core\Request;
 use App\Core\Response;
@@ -89,6 +91,46 @@ abstract class Controller
             return redirect($redirect, $query);
         }
         return $this->ok($message, $redirect, $query);
+    }
+
+    /**
+     * التعديل المباشر في الجدول (البند 79): حقل واحد معروف مسبقاً، بتحقق وصلاحية المسار، ويُسجَّل في سجل العمليات.
+     * $fields: الحقل => [الاسم الظاهر، دالة تتحقق وتعيد القيمة المحفوظة (أو ترمي RuntimeException برسالة)، دالة العرض اختيارية]
+     * $after: يُستدعى بعد الحفظ (مزامنة جهاز MikroTik مثلاً) بالحقل والقيمة
+     */
+    protected function inlineField(Request $request, string $table, array $row, array $fields, string $audit, string $entity, string $title, ?callable $after = null): Response
+    {
+        $field = $request->str('field');
+        if (!isset($fields[$field])) {
+            return json_response(['ok' => false, 'message' => 'هذا الحقل لا يُعدَّل من الجدول.'], 422);
+        }
+        [$label, $check] = $fields[$field];
+        $show = $fields[$field][2] ?? static fn ($v) => (string) $v;
+        try {
+            $value = $check(is_scalar($request->input('value')) ? trim((string) $request->input('value')) : '');
+        } catch (\RuntimeException $e) {
+            return json_response(['ok' => false, 'message' => $e->getMessage()], 422);
+        }
+        $old = $row[$field] ?? null;
+        if ((string) $old !== (string) $value) {
+            $data = [$field => $value];
+            if (array_key_exists('updated_at', $row)) {
+                $data['updated_at'] = now();
+            }
+            try {
+                DB::update($table, $data, 'id = ?', [(int) $row['id']]);
+            } catch (\PDOException $e) {
+                if (($e->errorInfo[1] ?? 0) === 1062) {
+                    return json_response(['ok' => false, 'message' => 'القيمة مستخدمة من قبل.'], 422);
+                }
+                throw $e;
+            }
+            Audit::log($audit, 'تعديل ' . $title . ': ' . $label . ' من «' . (string) $old . '» إلى «' . (string) $value . '»', $entity, (int) $row['id'], ['field' => $field, 'from' => $old, 'to' => $value]);
+            if ($after) {
+                $after($field, $value);
+            }
+        }
+        return json_response(['ok' => true, 'message' => 'تم الحفظ.', 'value' => (string) $value, 'display' => $show($value)]);
     }
 
     /** الحذف مع لقطة التراجع؛ يعيد رمز التراجع (null إن تعذّرت اللقطة، والحذف يتم على كل حال) */

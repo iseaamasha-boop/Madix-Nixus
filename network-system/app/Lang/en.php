@@ -5295,4 +5295,13 @@ return [
     'تعذّرت المزامنة مع جهاز MikroTik، وستُعاد تلقائياً.' => 'Syncing with the MikroTik device failed and will be retried automatically.',
     'تراجع عن: ' => 'Undid: ',
     'يعمل منذ' => 'Up for',
+    'تعذّر الحفظ.' => 'Could not save.',
+    'هذا الحقل لا يُعدَّل من الجدول.' => 'This field cannot be edited from the table.',
+    'القيمة مستخدمة من قبل.' => 'This value is already in use.',
+    'الاسم مطلوب (حتى 120 حرفاً).' => 'Name is required (up to 120 characters).',
+    'رقم الهاتف غير صحيح.' => 'Invalid phone number.',
+    'اسم الباقة مطلوب (حتى 100 حرف).' => 'Plan name is required (up to 100 characters).',
+    'السعر غير صحيح.' => 'Invalid price.',
+    'اسم المنطقة مطلوب (حتى 100 حرف).' => 'Area name is required (up to 100 characters).',
+    'البيان أطول من 255 حرفاً.' => 'Description is longer than 255 characters.',
 ];

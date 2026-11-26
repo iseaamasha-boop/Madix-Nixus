@@ -79,7 +79,7 @@ $showPass = can('subscribers.passwords');
               <span class="status-dot <?= (int) $s['online'] > 0 ? 'is-online' : 'is-unknown' ?>" title="<?= (int) $s['online'] > 0 ? 'متصل الآن' : 'غير متصل' ?>"></span>
               <div>
                 <a class="cell-title" href="<?= e(url('/subscribers/' . $s['id'])) ?>"><?= e($s['full_name']) ?></a>
-                <div class="cell-sub"><?= $s['phone'] ? '<span class="mono">' . e($s['phone']) . '</span>' : '' ?><?= $s['area_name'] ? ($s['phone'] ? ' · ' : '') . e($s['area_name']) : '' ?></div>
+                <div class="cell-sub"><?php if (can('subscribers.manage')): ?><span class="mono" data-edit="<?= e(url('/subscribers/' . $s['id'] . '/inline')) ?>" data-field="phone" data-value="<?= e((string) $s['phone']) ?>" data-type="tel" data-empty="—"><?= $s['phone'] ? e($s['phone']) : '<span class="text-muted">—</span>' ?></span><?= $s['area_name'] ? ' · ' . e($s['area_name']) : '' ?><?php else: ?><?= $s['phone'] ? '<span class="mono">' . e($s['phone']) . '</span>' : '' ?><?= $s['area_name'] ? ($s['phone'] ? ' · ' : '') . e($s['area_name']) : '' ?><?php endif; ?></div>
               </div>
             </div>
           </td>

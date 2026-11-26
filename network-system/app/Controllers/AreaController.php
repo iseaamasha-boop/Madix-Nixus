@@ -39,6 +39,21 @@ final class AreaController extends Controller
         return $this->ok('تم حفظ المنطقة.', '/areas');
     }
 
+    /** التعديل المباشر في جدول المناطق: الاسم */
+    public function inline(Request $request, int $id): Response
+    {
+        $area = DB::row('SELECT * FROM areas WHERE id = ?', [$id]);
+        $this->notFoundUnless($area);
+        return $this->inlineField($request, 'areas', $area, [
+            'name' => ['الاسم', static function (string $v): string {
+                if ($v === '' || mb_strlen($v) > 100) {
+                    throw new \RuntimeException('اسم المنطقة مطلوب (حتى 100 حرف).');
+                }
+                return $v;
+            }],
+        ], 'area.update', 'area', 'المنطقة ' . $area['name']);
+    }
+
     public function destroy(Request $request, int $id): Response
     {
         $area = DB::row('SELECT * FROM areas WHERE id = ?', [$id]);

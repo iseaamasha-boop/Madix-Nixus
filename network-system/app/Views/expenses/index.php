@@ -73,7 +73,7 @@ $op = static fn (string $k) => $parErr ? (string) old($k) : '';
         <tr>
           <td class="nowrap exp-date"><?= e(fmt_date($x['spent_on'])) ?></td>
           <td class="exp-kind"><span class="badge <?= $badge ?>"><?= icon($ic) ?><?= e($label) ?></span></td>
-          <td class="exp-desc"><div class="cell-title"><?= $x['description'] !== null ? e($x['description']) : '<span class="text-muted">—</span>' ?></div>
+          <td class="exp-desc"><div class="cell-title"<?php if ($manage): ?> data-edit="<?= e(url('/expenses/' . $x['id'] . '/inline')) ?>" data-field="description" data-value="<?= e((string) $x['description']) ?>" data-empty="—"<?php endif; ?>><?= $x['description'] !== null ? e($x['description']) : '<span class="text-muted">—</span>' ?></div>
             <?php if ($x['site_name'] !== null || $x['by_name'] !== null): ?><div class="cell-sub"><?= e(implode(' · ', array_filter([$x['site_name'], $x['by_name']]))) ?></div><?php endif; ?></td>
           <td class="text-end nowrap exp-amount"><b><?= e(money((float) $x['amount'])) ?></b></td>
           <?php if ($manage): ?>

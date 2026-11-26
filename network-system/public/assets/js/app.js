@@ -974,6 +974,41 @@
     });
   })();
 
+  // التعديل المباشر في الجدول (البند 79): النقر على خلية [data-edit] أو Enter عليها؛ js/inline.js يُحمَّل عند أول استعمال
+  (function () {
+    var meta = doc.querySelector('meta[name="palette-src"]');
+    var src = meta && meta.getAttribute('data-inline');
+    if (!src) { return; }
+    var loading = false, waiting = null;
+    function load() {
+      if (loading || window.SNInline) { return; }
+      loading = true;
+      var s = doc.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = function () { if (window.SNInline && waiting) { window.SNInline.start(waiting); waiting = null; } };
+      s.onerror = function () { loading = false; };
+      doc.head.appendChild(s);
+    }
+    function edit(cell) {
+      if (window.SNInline) { window.SNInline.start(cell); return; }
+      waiting = cell;
+      load();
+    }
+    var cells = $$('[data-edit]');
+    if (!cells.length) { return; }
+    cells.forEach(function (c) { if (!c.hasAttribute('tabindex')) { c.tabIndex = 0; } });
+    // صفحة فيها خلايا قابلة للتعديل: السكربت (1KB) يُحمَّل بعد اكتمال الصفحة وقت الفراغ، فيكون أول تعديل فورياً
+    window.addEventListener('load', function () { (window.requestIdleCallback || function (f) { setTimeout(f, 300); })(load, { timeout: 2000 }); });
+    on(doc, 'click', '[data-edit]', function (e, cell) {
+      if (e.target.closest('a, button, input') || cell.classList.contains('is-editing')) { return; }
+      edit(cell);
+    });
+    on(doc, 'keydown', '[data-edit]', function (e, cell) {
+      if ((e.key === 'Enter' || e.key === 'F2') && e.target === cell) { e.preventDefault(); edit(cell); }
+    });
+  })();
+
   // البحث العام
   on(doc, 'keydown', '[data-global-search]', function (e, el) {
     if (e.key === 'Enter' && el.value.trim() !== '') {

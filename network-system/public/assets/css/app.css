@@ -585,6 +585,15 @@ select.input-sm { padding-inline-end: 30px; background-position: left 8px center
 .table th.sortable.is-asc > a::after, .table th.sortable.is-desc > a::after { opacity: 1; border-top-color: var(--primary); }
 .table th.sortable.is-asc > a::after { transform: rotate(180deg); }
 .table th.num.sortable > a { flex-direction: row-reverse; }
+/* التعديل المباشر في الجدول (js/inline.js) */
+[data-edit] { cursor: text; border-radius: var(--control-radius-xs); outline-offset: 2px; transition: background-color var(--dur-2); }
+@media (hover: hover) { [data-edit]:hover { background: var(--surface-3); box-shadow: 0 0 0 3px var(--surface-3); } }
+[data-edit]:focus-visible { outline: 2px solid var(--primary-ring); }
+[data-edit].is-editing { background: none; box-shadow: none; }
+[data-edit].is-saving { opacity: .6; }
+[data-edit].is-saved { background: var(--success-soft, var(--primary-soft)); box-shadow: 0 0 0 3px var(--success-soft, var(--primary-soft)); }
+.inline-input { min-width: 120px; width: 100%; max-width: 280px; }
+
 /* المعاينة السريعة (js/preview.js) */
 .qp-card {
   position: fixed; z-index: var(--z-popover); width: 300px; max-width: calc(100vw - 16px);

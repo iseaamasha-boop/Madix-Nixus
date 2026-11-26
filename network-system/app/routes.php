@@ -263,6 +263,7 @@ return static function (Router $r): void {
     $r->get('/areas', [AreaController::class, 'index'], ['perm' => 'areas.manage']);
     $r->post('/areas', [AreaController::class, 'save'], ['perm' => 'areas.manage']);
     $r->post('/areas/{id}/delete', [AreaController::class, 'destroy'], ['perm' => 'areas.manage']);
+    $r->post('/areas/{id}/inline', [AreaController::class, 'inline'], ['perm' => 'areas.manage']);
 
     // خريطة الشبكة والمواقع
     $r->get('/map', [MapController::class, 'index'], ['perm' => 'map.view']);
@@ -370,6 +371,7 @@ return static function (Router $r): void {
     $r->get('/plans/{id}/edit', [PlanController::class, 'edit'], ['perm' => 'plans.manage']);
     $r->post('/plans/{id}', [PlanController::class, 'update'], ['perm' => 'plans.manage']);
     $r->post('/plans/{id}/delete', [PlanController::class, 'destroy'], ['perm' => 'plans.manage']);
+    $r->post('/plans/{id}/inline', [PlanController::class, 'inline'], ['perm' => 'plans.manage']);
 
     $r->get('/subscribers', [SubscriberController::class, 'index'], ['perm' => 'subscribers.view']);
     $r->get('/subscribers/export', [SubscriberController::class, 'export'], ['perm' => 'subscribers.view']);
@@ -384,6 +386,7 @@ return static function (Router $r): void {
     $r->get('/subscribers/{id}/edit', [SubscriberController::class, 'edit'], ['perm' => 'subscribers.manage']);
     $r->post('/subscribers/{id}', [SubscriberController::class, 'update'], ['perm' => 'subscribers.manage']);
     $r->post('/subscribers/{id}/delete', [SubscriberController::class, 'destroy'], ['perm' => 'subscribers.delete']);
+    $r->post('/subscribers/{id}/inline', [SubscriberController::class, 'inline'], ['perm' => 'subscribers.manage']);
     $r->post('/subscribers/{id}/renew', [SubscriberController::class, 'renew'], ['perm' => 'subscribers.renew']);
     $r->post('/subscribers/{id}/transaction', [SubscriberController::class, 'transaction'], ['perm' => 'subscribers.payments']);
     $r->post('/subscribers/{id}/status', [SubscriberController::class, 'status'], ['perm' => 'subscribers.status']);
@@ -474,6 +477,7 @@ return static function (Router $r): void {
     $r->get('/expenses/export', [\App\Controllers\ExpenseController::class, 'export'], ['perm' => 'expenses.view']);
     $r->post('/expenses', [\App\Controllers\ExpenseController::class, 'save'], ['perm' => 'expenses.manage']);
     $r->post('/expenses/{id}/delete', [\App\Controllers\ExpenseController::class, 'destroy'], ['perm' => 'expenses.manage']);
+    $r->post('/expenses/{id}/inline', [\App\Controllers\ExpenseController::class, 'inline'], ['perm' => 'expenses.manage']);
     $r->post('/expenses/partners', [\App\Controllers\ExpenseController::class, 'partnerSave'], ['perm' => 'profit.manage']);
     $r->post('/expenses/partners/{id}/delete', [\App\Controllers\ExpenseController::class, 'partnerDestroy'], ['perm' => 'profit.manage']);
 

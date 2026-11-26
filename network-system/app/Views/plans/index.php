@@ -27,7 +27,7 @@ if (can('plans.manage')) {
             <div class="cell-sub"><?= $p['is_active'] ? '' : '<span class="badge badge-outline">موقوفة</span> ' ?><?= e($p['notes'] ?? '') ?></div>
           </td>
           <td><span class="badge <?= $p['service'] === 'ppp' ? 'badge-primary' : 'badge-info' ?>"><?= $p['service'] === 'ppp' ? 'PPPoE' : 'هوتسبوت' ?></span></td>
-          <td class="nowrap"><?= e(money($p['price'])) ?></td>
+          <td class="nowrap"<?php if (can('plans.manage')): ?> data-edit="<?= e(url('/plans/' . $p['id'] . '/inline')) ?>" data-field="price" data-value="<?= e((string) $p['price']) ?>" data-type="decimal"<?php endif; ?>><?= e(money($p['price'])) ?></td>
           <td class="nowrap"><?= e(num($p['duration_days'])) ?> يوم</td>
           <td class="nowrap"><?= e(Units::describeRate($p)) ?></td>
           <td class="nowrap">

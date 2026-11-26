@@ -138,6 +138,28 @@ final class PlanController extends Controller
         return $this->ok('تم حفظ الباقة.', '/plans');
     }
 
+    /** التعديل المباشر في جدول الباقات: الاسم والسعر */
+    public function inline(Request $request, int $id): Response
+    {
+        $plan = DB::row('SELECT * FROM plans WHERE id = ?', [$id]);
+        $this->notFoundUnless($plan);
+        return $this->inlineField($request, 'plans', $plan, [
+            'name' => ['الاسم', static function (string $v): string {
+                if ($v === '' || mb_strlen($v) > 100) {
+                    throw new \RuntimeException('اسم الباقة مطلوب (حتى 100 حرف).');
+                }
+                return $v;
+            }],
+            'price' => ['السعر', static function (string $v): string {
+                $v = latin_digits($v);
+                if (!is_numeric($v) || (float) $v < 0 || (float) $v > 1000000) {
+                    throw new \RuntimeException('السعر غير صحيح.');
+                }
+                return number_format((float) $v, 2, '.', '');
+            }, static fn ($v) => money((float) $v)],
+        ], 'plan.update', 'plan', 'الباقة ' . $plan['name']);
+    }
+
     public function destroy(Request $request, int $id): Response
     {
         $plan = DB::row('SELECT * FROM plans WHERE id = ?', [$id]);

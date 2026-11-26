@@ -230,6 +230,31 @@ final class SubscriberController extends Controller
         return view('subscribers/form', $this->formData($sub, $request));
     }
 
+    /** التعديل المباشر في جدول المشتركين: الاسم والهاتف */
+    public function inline(Request $request, int $id): Response
+    {
+        $sub = $this->find($id);
+        return $this->inlineField($request, 'subscribers', $sub, [
+            'full_name' => ['الاسم', static function (string $v): string {
+                if ($v === '' || mb_strlen($v) > 120) {
+                    throw new RuntimeException('الاسم مطلوب (حتى 120 حرفاً).');
+                }
+                return $v;
+            }],
+            'phone' => ['الهاتف', static function (string $v): ?string {
+                $v = latin_digits(str_replace(' ', '', $v));
+                if ($v !== '' && !preg_match('/^\+?[0-9]{6,20}$/', $v)) {
+                    throw new RuntimeException('رقم الهاتف غير صحيح.');
+                }
+                return $v === '' ? null : $v;
+            }],
+        ], 'subscriber.update', 'subscriber', 'المشترك ' . $sub['full_name'], static function (string $field) use ($id): void {
+            if ($field === 'full_name') {
+                SubscriberService::sync($id);
+            }
+        });
+    }
+
     /** المعاينة السريعة (البند 73): أهم بيانات المشترك عند المرور على رابطه، بصلاحية العرض ونطاق أجهزة MikroTik نفسيهما */
     public function preview(Request $request, int $id): Response
     {
