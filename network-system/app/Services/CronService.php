@@ -78,6 +78,9 @@ final class CronService
                 self::guard(static fn () => self::lowStockAlerts());
             }
             // لقطات التراجع المنتهية (البند 71) لا تبقى بعد مدتها
+            if (self::every('presence', 600)) {
+                self::guard(static fn () => Presence::cleanup());
+            }
             if (self::every('undo', 600)) {
                 self::guard(static fn () => DB::query('DELETE FROM undo_actions WHERE expires_at < ?', [date('Y-m-d H:i:s')]));
             }

@@ -12,7 +12,7 @@ use Throwable;
 final class Migrator
 {
     /** نسخة البنية التي تتوقعها الشيفرة الحالية */
-    public const VERSION = 19;
+    public const VERSION = 20;
 
     private static bool $checked = false;
 
@@ -183,6 +183,10 @@ final class Migrator
                 if ($type !== '' && !str_contains($type, "'black'")) {
                     DB::query("ALTER TABLE employees MODIFY COLUMN theme ENUM('system','light','dark','black') NOT NULL DEFAULT 'light'");
                 }
+                break;
+            case 20:
+                // من يفتح الصفحة نفسها الآن (البند 107)
+                self::createTables(['presence']);
                 break;
         }
     }

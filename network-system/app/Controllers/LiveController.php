@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
@@ -21,6 +22,10 @@ final class LiveController extends Controller
             'dashboard' => ['dashboard.view', static function (Request $r): array {
                 DashboardController::scheduleCron();
                 return DashboardController::liveData();
+            }],
+            // البند 107: نبضة هذا التبويب، ومن غيره على الصفحة نفسها الآن (أي موظف داخل، في شبكته فقط)
+            'presence' => [null, static function (Request $r): array {
+                return \App\Services\Presence::enabled() ? \App\Services\Presence::ping((int) Auth::id(), $r->str('tab'), $r->str('p')) : [];
             }],
         ];
     }

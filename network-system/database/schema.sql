@@ -1153,6 +1153,16 @@ CREATE TABLE IF NOT EXISTS speed_caps (
 -- ---------------------------------------------------------------------------
 -- التراجع عن الحذف: لقطة الصفوف المحذوفة (وما حُذف معها أو انفصل عنها) لدقائق، تُعاد كما كانت بزر «تراجع»
 -- ---------------------------------------------------------------------------
+-- البند 107: من يفتح الصفحة نفسها الآن (صف لكل تبويب، يُنظَّف دورياً)
+CREATE TABLE IF NOT EXISTS presence (
+  employee_id INT UNSIGNED NOT NULL,
+  tab         CHAR(32)     NOT NULL,
+  path_key    CHAR(16)     NOT NULL,
+  seen_at     DATETIME     NOT NULL,
+  PRIMARY KEY (employee_id, tab),
+  KEY idx_presence_page (path_key, seen_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS undo_actions (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
   token       CHAR(32)     NOT NULL,

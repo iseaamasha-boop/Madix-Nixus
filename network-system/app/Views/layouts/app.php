@@ -56,6 +56,7 @@ $presetLabel = $user['is_owner'] ? 'المالك' : (Permissions::PRESETS[$user[
       </div>
       <div class="topbar-spacer"></div>
       <div class="topbar-actions">
+        <?php if (\App\Services\Presence::enabled()): ?><div class="presence" data-presence hidden></div><?php endif; ?>
         <?php if (\App\Services\Assistant::visible()): ?>
         <a class="icon-btn ai-btn" href="<?= e(url('/assistant')) ?>" aria-label="المساعد الذكي" title="المساعد الذكي"><?= icon('sparkles') ?></a>
         <?php endif; ?>

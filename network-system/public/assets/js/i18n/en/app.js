@@ -1492,15 +1492,21 @@
   // and no طلبات ما دام التبويب مخفياً; عند العودة إليه or عودة Connection تُحدَّث فوراً
   // ------------------------------------------------------------------------
   var live = (function () {
-    var subs = {}, timer = null, every = 30000, busy = false;
+    var subs = {}, timer = null, due = 0, every = 30000, busy = false, params = [];
     function keys() { return Object.keys(subs); }
-    function schedule(ms) { clearTimeout(timer); timer = setTimeout(tick, ms); }
+    function extra() {
+      var q = '';
+      params.forEach(function (f) { var o = f() || {}; Object.keys(o).forEach(function (k) { q += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(o[k]); }); });
+      return q;
+    }
+    function schedule(ms) { clearTimeout(timer); due = Date.now() + ms; timer = setTimeout(tick, ms); }
     function tick() {
       clearTimeout(timer);
+      timer = null;
       if (!keys().length || doc.hidden || busy) { return; }
       busy = true;
       var answered = false;
-      fetch(base + '/live?k=' + encodeURIComponent(keys().join(',')), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+      fetch(base + '/live?k=' + encodeURIComponent(keys().join(',')) + extra(), { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
         .then(function (r) {
           answered = true;
           if (net.isDown()) { net.up(); }
@@ -1525,8 +1531,11 @@
     return {
       on: function (key, fn, opts) {
         (subs[key] = subs[key] || []).push(fn);
+        if (opts && opts.query) { params.push(opts.query); }
         if (opts && opts.every) { every = Math.max(5000, Math.min(every, opts.every)); }
-        schedule(opts && opts.now ? 0 : every);
+        // Subscription لاحق لا يؤخر طلباً أقرب كان منتظراً (Subscription “Now” then Subscription Normal مثلاً)
+        var ms = opts && opts.now ? 0 : every;
+        if (!timer || Date.now() + ms < due) { schedule(ms); }
       },
       refresh: tick
     };
@@ -1565,6 +1574,36 @@
     }, { every: 30000 });
   }
   $$('canvas[data-live-chart]').forEach(liveChart);
+
+  // ------------------------------------------------------------------------
+  // “مين Present هلأ” (البند 107): صور employees الذين يفتحون هذه Page Now, in Top bar.
+  // النبضة داخل التحديث المجمّع Every 20 seconds والتبويب Shown only (يتوقف حين يُخفى); لكل تبويب Number Static ما دام مفتوحاً
+  // ------------------------------------------------------------------------
+  (function () {
+    var box = $('[data-presence]');
+    if (!box) { return; }
+    var tab = '';
+    try { tab = sessionStorage.getItem('mnx-tab') || ''; } catch (e) { tab = ''; }
+    if (!/^[A-Za-z0-9]{8,32}$/.test(tab)) {
+      tab = uid().slice(0, 16);
+      try { sessionStorage.setItem('mnx-tab', tab); } catch (e) { /* بلا تخزين: Number لهذه Page only */ }
+    }
+    var shown = '';
+    live.on('presence', function (list) {
+      list = Array.isArray(list) ? list : [];
+      var key = list.map(function (p) { return p.id; }).join(',');
+      if (key === shown) { return; }
+      var old = shown ? shown.split(',') : [];
+      shown = key;
+      var max = 4, html = list.slice(0, max).map(function (p) {
+        return '<span class="avatar av sm' + (old.indexOf(String(p.id)) === -1 ? ' is-new' : '') + '" style="--h:' + (parseInt(p.h, 10) || 0) + '" title="' + esc(p.name) + '">' + esc(p.i) + '</span>';
+      }).join('');
+      if (list.length > max) { html += '<span class="presence-more">+' + (list.length - max) + '</span>'; }
+      box.innerHTML = html;
+      box.setAttribute('aria-label', list.map(function (p) { return p.name; }).join(', '));
+      box.hidden = !list.length;
+    }, { every: 20000, now: true, query: function () { return { p: location.pathname, tab: tab }; } });
+  })();
   // تبويبات مختصرة داخل panel: <input type="radio" data-range-tab value="x"> تُظهر [data-range-box="x"] in Board نفسها
   on(doc, 'change', '[data-range-tab]', function (e, r) {
     var scope = r.closest('.panel') || doc;

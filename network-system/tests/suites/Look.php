@@ -144,6 +144,63 @@ return [
         $b = $bucket($seed($e->request('GET', $t['path'] . '/')['body']));
         T::eq([20, 6000, 3000], array_slice($b[0] ?? [0, 0, 0, 0], 1), 'scoped employee sees only own MikroTik device');
     },
+    'who is here now: same page, same network, within 45 seconds (107)' => static function (Env $env): void {
+        $ta = $env->tenant('a');
+        $tb = $env->tenant('presence', 3, 10);
+        $pa = $env->db($ta['db']);
+        $json = ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
+        $tabA = 'TabOwnerA1234567';
+        $ping = static fn ($h, array $t, string $path, string $tab) => $h->request('GET', $t['path'] . '/live?k=presence&p=' . rawurlencode($path) . '&tab=' . $tab, null, $json)['json']['data']['presence'] ?? null;
+        $owner = $env->owner('a');
+        // موظف واحد فعّال: لا مكان للصور ولا شيء يُرجع
+        $pa->exec("UPDATE employees SET status = 'disabled' WHERE is_owner = 0");
+        $env->cli('cli/migrate.php');
+        T::notContains('data-presence', $owner->request('GET', $ta['path'] . '/subscribers')['body'], 'one employee: nothing on the page');
+        T::eq([], $ping($owner, $ta, $ta['path'] . '/subscribers', $tabA), 'one employee: nothing returned');
+        T::eq(0, (int) $pa->query('SELECT COUNT(*) FROM presence')->fetchColumn(), 'one employee: nothing stored');
+        // موظف ثانٍ
+        $id2 = $env->employee('a', 'here107', 'HerePass12345', ['subscribers.view']);
+        $env->cli('cli/migrate.php');
+        $emp = $env->owner('a', ['here107', 'HerePass12345']);
+        T::contains('data-presence', $owner->request('GET', $ta['path'] . '/subscribers')['body'], 'two employees: place on the page');
+        $path = $ta['path'] . '/subscribers';
+        T::eq([], $ping($owner, $ta, $path, $tabA), 'alone on the page');
+        $seen = $ping($emp, $ta, $path, 'TabEmployee12345');
+        T::eq([1], [count($seen)], 'the employee sees the owner');
+        $back = $ping($owner, $ta, $path, $tabA);
+        T::eq($id2, $back[0]['id'] ?? null, 'the owner sees the employee');
+        T::eq(avatar_hue($id2), $back[0]['h'], 'with the same avatar colour');
+        T::eq(avatar_initials('موظف here107'), $back[0]['i'], 'and initials');
+        // صفحة أخرى، والتبويب نفسه ينتقل: يخرج من الصفحة الأولى فوراً
+        T::eq([], $ping($owner, $ta, $ta['path'] . '/cards', 'TabOwnerB1234567'), 'another page: nobody');
+        $ping($emp, $ta, $ta['path'] . '/cards', 'TabEmployee12345');
+        T::eq(1, count($ping($owner, $ta, $ta['path'] . '/cards', 'TabOwnerB1234567')), 'employee followed to the other page');
+        T::eq([], $ping($owner, $ta, $path, $tabA), 'and left the first page');
+        // بعد 45 ثانية بلا نبضة يخرج
+        $pa->exec("UPDATE presence SET seen_at = NOW() - INTERVAL 50 SECOND WHERE employee_id = " . $id2);
+        T::eq([], $ping($owner, $ta, $ta['path'] . '/cards', 'TabOwnerB1234567'), 'gone after 45 seconds');
+        // رقم تبويب غير صالح أو مسار خارجي: لا يُخزَّن
+        $before = (int) $pa->query('SELECT COUNT(*) FROM presence')->fetchColumn();
+        $ping($owner, $ta, $path, 'bad tab!');
+        $ping($owner, $ta, 'https://example.com/x', $tabA);
+        T::eq($before, (int) $pa->query('SELECT COUNT(*) FROM presence')->fetchColumn(), 'invalid tab or path ignored');
+        // شبكة أخرى على المسار نفسه لا تظهر
+        $env->employee('presence', 'here107b', 'HerePass12345', ['subscribers.view']);
+        $env->cli('cli/migrate.php');
+        $ob = $env->owner('presence');
+        $ping($ob, $tb, $path, 'TabOtherNet12345');
+        $ping($emp, $ta, $path, 'TabEmployee12345');
+        $ids = array_column($ping($owner, $ta, $path, $tabA), 'id');
+        T::eq([$id2], $ids, 'only employees of the same network');
+        // التنظيف الدوري
+        $pa->exec("UPDATE presence SET seen_at = NOW() - INTERVAL 2 HOUR");
+        $pa->exec("INSERT INTO presence (employee_id, tab, path_key, seen_at) VALUES (1, 'FreshTab12345678', 'abc', NOW())");
+        $pa->exec("DELETE FROM settings WHERE `key` = 'cron.step_presence'");
+        $env->cli('cli/cron.php');
+        T::eq(1, (int) $pa->query('SELECT COUNT(*) FROM presence')->fetchColumn(), 'old rows cleaned, fresh kept');
+        $pa->exec("DELETE FROM employees WHERE username = 'here107'");
+        $pa->exec("UPDATE employees SET status = 'active' WHERE is_owner = 0 AND username <> 'here107'");
+    },
     'migration 19 adds the black value once' => static function (Env $env): void {
         $t = $env->tenant('a');
         $type = (string) $env->db($t['db'])->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employees' AND COLUMN_NAME = 'theme'")->fetchColumn();
