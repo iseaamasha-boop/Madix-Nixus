@@ -96,6 +96,9 @@ final class TweetSms
      */
     public static function call(string $op, array $fields, string $apiKey, int $timeout = 25): array
     {
+        if (\App\Platform\Demo::active()) {
+            return ['ok' => false, 'code' => null, 'desc' => \App\Platform\Demo::MESSAGE, 'raw' => '', 'data' => [], 'transport' => true];
+        }
         $payload = http_build_query(['api_key' => $apiKey] + $fields);
         $url = self::base() . '/' . $op;
         $body = null;

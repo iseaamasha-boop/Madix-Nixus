@@ -338,7 +338,7 @@ final class Platform
     }
 
     /** إصدار جداول المنصة — يُرفع عند إضافة جداول جديدة إلى platform.sql */
-    public const SCHEMA = 10;
+    public const SCHEMA = 11;
 
     /** أعمدة تُضاف إلى الجداول القائمة عند الترقية */
     private const COLUMNS = [
@@ -359,6 +359,8 @@ final class Platform
             'stat_sales'        => 'DECIMAL(12,2) NULL',
             'stat_login_at'     => 'DATETIME NULL',
             'stats_at'          => 'DATETIME NULL',
+            // البند 105: الشبكة التجريبية («جرّب الآن»)
+            'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',
         ],
         'tenant_payments' => [
             'invoice_no'  => 'VARCHAR(30) NULL',

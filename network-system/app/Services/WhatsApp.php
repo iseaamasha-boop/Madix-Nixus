@@ -134,6 +134,9 @@ final class WhatsApp
      */
     private static function http(string $method, string $path, ?array $body, array $with = [], int $timeout = 15): array
     {
+        if (\App\Platform\Demo::active()) {
+            return ['status' => 0, 'data' => null, 'error' => \App\Platform\Demo::MESSAGE];
+        }
         $token = $with['token'] ?? self::token();
         if (!function_exists('curl_init')) {
             return ['status' => 0, 'data' => null, 'error' => 'cURL غير متوفر'];

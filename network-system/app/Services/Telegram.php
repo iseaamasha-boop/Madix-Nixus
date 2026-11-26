@@ -66,6 +66,9 @@ final class Telegram
      */
     public static function call(string $method, array $params = [], int $timeout = 10, ?string $token = null): array
     {
+        if (\App\Platform\Demo::active()) {
+            return ['ok' => false, 'description' => \App\Platform\Demo::MESSAGE];
+        }
         $token ??= self::token();
         if ($token === '') {
             throw new RuntimeException('أدخل رمز البوت.');
@@ -348,6 +351,9 @@ final class Telegram
      */
     public static function sendDocument(string $token, string|int $chatId, string $path, string $name, string $caption = '', int $timeout = 300): array
     {
+        if (\App\Platform\Demo::active()) {
+            throw new RuntimeException(\App\Platform\Demo::MESSAGE);
+        }
         if ($token === '' || !is_file($path)) {
             throw new RuntimeException('أدخل رمز البوت.');
         }

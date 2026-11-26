@@ -3329,3 +3329,5 @@ body:has(.app-footer) .toasts { bottom: calc(20px + var(--footbar-h) + env(safe-
 [data-theme-pref="black"] .sidebar { --nav-glow: transparent; }
 [data-theme-pref="black"] .av { --av-bg: hsl(var(--h) 30% 18%); }
 @supports (color: oklch(0 0 0)) { [data-theme-pref="black"] .av { --av-bg: oklch(.26 .06 var(--h)); } }
+/* البند 105: علامة الشبكة التجريبية بجانب اسم الشبكة */
+.demo-badge { margin-inline-start: 8px; font-size: 11px; padding: 1px 8px; flex: none; }

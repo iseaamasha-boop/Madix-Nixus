@@ -125,7 +125,7 @@
       roundRect(ctx, ex, ey, ew, lineH + padY * 2, (el.radius || 0) * px);
       ctx.fill();
     }
-    // خط الأساس كما يحسبه المتصفح: Half الفراغ + الصعود
+    // خط الأساس كما يحسبه Browser: Half الفراغ + الصعود
     var m = ctx.measureText(text);
     var asc = m.fontBoundingBoxAscent, desc = m.fontBoundingBoxDescent;
     var baseY;
@@ -276,7 +276,7 @@
               pages.push({ jpeg: jpeg, width: canvas.width, height: canvas.height });
               canvas.width = canvas.height = 0;
               if (opts.onProgress) { opts.onProgress(p + 1, total); }
-              // إعطاء المتصفح فرصة لتحديث Interface بين Pages
+              // إعطاء Browser فرصة لتحديث Interface بين Pages
               return new Promise(function (r) { setTimeout(r, 0); });
             });
           });

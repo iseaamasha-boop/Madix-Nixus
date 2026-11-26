@@ -318,7 +318,7 @@
   on(doc, 'click', '[data-sidebar-close]', function () { doc.body.classList.remove('sidebar-open'); });
 
   // ------------------------------------------------------------------------
-  // Sidebar: طي Sections (يُحفظ in المتصفح), البحث السريع (Ctrl+K), and Fade حواف التمرير
+  // Sidebar: طي Sections (يُحفظ in Browser), البحث السريع (Ctrl+K), and Fade حواف التمرير
   // ------------------------------------------------------------------------
   (function () {
     var side = $('.sidebar[data-nav]'), nav = side && $('[data-nav-scroll]', side);
@@ -478,7 +478,7 @@
       var kbd = $('.nav-kbd bdi', side);
       if (kbd) { kbd.textContent = '⌘ K'; }
     }
-    // العودة للصفحة from ذاكرة المتصفح قد تُبقي Text البحث
+    // العودة للصفحة from ذاكرة Browser قد تُبقي Text البحث
     if (search.value) { filter(); }
     window.addEventListener('pageshow', function () { if (search.value || nav.classList.contains('is-searching')) { filter(); } });
   })();
@@ -1434,7 +1434,7 @@
   });
 
   // Preview Network logo before saving
-  // System logo (Admin panel): Preview before saving, and File SVG يُرسم in المتصفح صورةَ PNG شفافة 1024×1024 before Upload
+  // System logo (Admin panel): Preview before saving, and File SVG يُرسم in Browser صورةَ PNG شفافة 1024×1024 before Upload
   // (Server لا يقبل SVG in Folder Upload لأنه قد يحوي شيفرة)
   on(doc, 'change', '[data-brand-logo-input]', function (e, input) {
     var form = input.closest('[data-brand-logo]');
@@ -1625,7 +1625,7 @@
   // ------------------------------------------------------------------------
   // أصوات خفيفة (البند 57): Off إلا لمن شغّلها from حسابه (data-sounds on Page). تُولَّد بـ Web Audio بلا Files:
   // “تشينغ” yet Save Sale, and Alert حين يصل Alert drops New for the MikroTik device or منطقة (from التحديث المجمّع).
-  // المتصفح لا يسمح بالصوت before أول تفاعل مع Location: السياق يُفتح عند أول ضغطة or Key
+  // Browser لا يسمح بالصوت before أول تفاعل مع Location: السياق يُفتح عند أول ضغطة or Key
   // ------------------------------------------------------------------------
   var sound = (function () {
     var on = root.getAttribute('data-sounds') === '1', ctx = null;

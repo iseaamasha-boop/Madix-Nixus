@@ -1,0 +1,9 @@
+app/Data/ipcountry.bin — IP address to country, used only to show the country of visitors of the demo network
+in the platform admin panel. Built from the "geo-whois-asn-country" database of the ip-location-db project
+(https://github.com/sapics/ip-location-db), IPv4 at /24 and IPv6 at /32 granularity.
+
+The statistics data provided by NRO is licensed under a Creative Commons Attribution 4.0 International License
+(https://creativecommons.org/licenses/by/4.0/). Copyright Holder: Number Resource Organization (NRO), https://www.nro.net/
+
+Format: "IPC1", uint32 n4, uint32 n6 (big endian), then n4 + n6 records of (uint32 start, 2-byte country code);
+each record covers from its start to the next record's start; country "\0\0" means unknown.

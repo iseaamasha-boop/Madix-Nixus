@@ -151,6 +151,8 @@ return static function (Router $r): void {
     $r->post('/logout', [AuthController::class, 'logout']);
     if (\App\Core\Platform::enabled()) {
         $r->get('/auth/ticket/{token:[a-f0-9]{64}}', [TicketController::class, 'redeem'], ['auth' => false]);
+        // البند 105: دخول زائر الشبكة التجريبية بلا تسجيل (في غيرها: غير موجود)
+        $r->get('/start', [\App\Controllers\DemoController::class, 'start'], ['auth' => false]);
         $r->post('/impersonation/exit', [TicketController::class, 'exitImpersonation']);
         $r->post('/networks/{id}/switch', [TicketController::class, 'switchNetwork']);
         // اشتراك المنصة والدعم من داخل نظام الزبون

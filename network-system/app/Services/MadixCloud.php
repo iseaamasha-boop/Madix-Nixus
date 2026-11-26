@@ -45,6 +45,9 @@ final class MadixCloud
      */
     public static function call(string $route, array $query = [], ?array $body = null, array $with = [], int $timeout = 12): array
     {
+        if (\App\Platform\Demo::active()) {
+            return ['ok' => false, 'status' => 0, 'data' => null, 'message' => \App\Platform\Demo::MESSAGE];
+        }
         $base = $with['base'] ?? self::base();
         $key = $with['key'] ?? self::key();
         if ($base === '' || $key === '') {

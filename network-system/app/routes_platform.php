@@ -82,6 +82,11 @@ return static function (Router $r): void {
     $r->get('/admin/design/preview', [DesignController::class, 'preview'], $a + ['aperm' => 'design.manage']);
     $r->get('/admin/landing', [DesignController::class, 'landing'], $a + ['aperm' => 'design.manage']);
     $r->post('/admin/landing', [DesignController::class, 'saveLanding'], $a + ['aperm' => 'design.manage']);
+    // البند 105 و105+: الشبكة التجريبية وزوارها
+    $r->get('/admin/demo', [\App\Controllers\AdminDemoController::class, 'index'], $a + ['aperm' => 'design.manage']);
+    $r->post('/admin/demo', [\App\Controllers\AdminDemoController::class, 'toggle'], $a + ['aperm' => 'design.manage']);
+    $r->post('/admin/demo/reset', [\App\Controllers\AdminDemoController::class, 'reset'], $a + ['aperm' => 'design.manage']);
+    $r->get('/admin/demo/visits/{id}', [\App\Controllers\AdminDemoController::class, 'visit'], $a + ['aperm' => 'design.manage']);
     $r->get('/admin/sms', [AdminSmsController::class, 'index'], $a + ['aperm' => ['messages.send', 'settings.manage']]);
     $r->post('/admin/sms', [AdminSmsController::class, 'send'], $a + ['aperm' => 'messages.send']);
     $r->post('/admin/sms/settings', [AdminSmsController::class, 'settings'], $a + ['aperm' => 'settings.manage']);

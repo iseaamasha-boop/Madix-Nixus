@@ -10,7 +10,7 @@
 
   // ------------------------------------------------------------------------
   // Google Maps (Map Tiles API): Working حين يضع Platform admin or Owner of Account Key Google,
-  // وإلا تبقى الخرائط Open كما هي. الجلسة تُحفظ in المتصفح until انتهائها فلا تُطلب مع Every Page.
+  // وإلا تبقى الخرائط Open كما هي. الجلسة تُحفظ in Browser until انتهائها فلا تُطلب مع Every Page.
   // ------------------------------------------------------------------------
   var geoCfg = (function () {
     var n = document.querySelector('[data-sn-geo]');

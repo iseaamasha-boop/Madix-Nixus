@@ -49,6 +49,7 @@ $nav = [
     ['المظهر', [
         ['التصاميم والحركة', '/admin/design', 'palette', 0, 'design.manage'],
         ['صفحة الهبوط', '/admin/landing', 'layout-grid', 0, 'design.manage'],
+        ['الشبكة التجريبية', '/admin/demo', 'play', 0, 'design.manage'],
     ]],
     ['الإدارة', array_merge(
         [['فريق الإدارة', '/admin/team', 'user-cog', 0, 'owner']],

@@ -49,7 +49,7 @@ $presetLabel = $user['is_owner'] ? 'المالك' : (Permissions::PRESETS[$user[
   <div class="main">
     <header class="topbar">
       <button type="button" class="icon-btn menu-toggle" data-sidebar-toggle aria-label="القائمة"><?= icon('menu') ?></button>
-      <a class="topbar-brand" href="<?= e(url('/')) ?>"><?= Brand::networkMark() ?><span class="topbar-brand-name"><?= e($networkName) ?></span></a>
+      <a class="topbar-brand" href="<?= e(url('/')) ?>"><?= Brand::networkMark() ?><span class="topbar-brand-name"><?= e($networkName) ?></span><?php if (\App\Platform\Demo::active()): ?><span class="badge badge-warning demo-badge">تجريبي</span><?php endif; ?></a>
       <div class="topbar-search">
         <?= icon('search') ?>
         <input type="search" data-global-search placeholder="بحث عن كرت، مشترك، عنوان MAC..." aria-label="بحث" autocomplete="off">

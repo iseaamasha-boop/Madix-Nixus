@@ -30,7 +30,7 @@ $v->actions = '<a class="btn" href="' . e(url('/admin/tenants/import')) . '">' .
         <tr>
           <td><a class="cell-title" href="<?= e(url('/admin/tenants/' . $t['id'])) ?>"><?= e($t['name']) ?></a><div class="tenant-link">/<?= e($t['slug']) ?></div></td>
           <td class="text-sm"><?= e($t['owner_name']) ?><?php if ($t['phone']): ?><div class="cell-sub"><a class="mono" href="https://wa.me/<?= e(preg_replace('/\D/', '', preg_replace('/^0/', '970', $t['phone']))) ?>" target="_blank" rel="noopener"><?= e($t['phone']) ?></a></div><?php endif; ?></td>
-          <td><span class="badge <?= $sc ?>"><?= $sl ?></span></td>
+          <td><span class="badge <?= $sc ?>"><?= $sl ?></span><?php if ((int) ($t['is_demo'] ?? 0) === 1): ?> <span class="badge badge-warning">تجريبي</span><?php endif; ?></td>
           <td class="nowrap text-sm"><?php if (in_array($t['status'], ['trial', 'active'], true)): ?><?= $left === null ? 'مفتوح' : ($left === 0 ? '<span class="text-danger">اليوم</span>' : num((int) $left) . ' يوم') ?><?php else: ?>—<?php endif; ?></td>
           <td class="nowrap text-sm"><?= $t['last_seen_at'] ? e(time_ago($t['last_seen_at'])) : '—' ?></td>
           <td class="nowrap text-sm"><?= e(fmt_date($t['created_at'])) ?></td>

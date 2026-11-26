@@ -27,6 +27,10 @@ final class Client
 
     public function connect(string $username, string $password): void
     {
+        // البند 105: لا اتصال بأي جهاز MikroTik من الشبكة التجريبية
+        if (\App\Platform\Demo::active()) {
+            throw new MikroTikException(\App\Platform\Demo::MESSAGE);
+        }
         $this->open();
         $reply = $this->talk(['/login', '=name=' . $username, '=password=' . $password], true);
         if ($reply['trap'] !== null) {

@@ -764,7 +764,7 @@
     });
   }
 
-  // البند 92: Map ثلاثية الأبعاد (MapLibre GL المحلي) تُحمَّل عند الضغط only; الزر يظهر حيث يدعم المتصفح WebGL
+  // البند 92: Map ثلاثية الأبعاد (MapLibre GL المحلي) تُحمَّل عند الضغط only; الزر يظهر حيث يدعم Browser WebGL
   var btn3d = document.querySelector('[data-map-3d]');
   if (btn3d && cfg.map3d && ('WebGL2RenderingContext' in window || 'WebGLRenderingContext' in window)) {
     btn3d.hidden = false;

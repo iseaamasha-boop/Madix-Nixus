@@ -226,7 +226,8 @@ final class CronService
                 @unlink($f);
             }
         }
-        if (Settings::bool('backup.auto')) {
+        // الشبكة التجريبية تعود إلى أصلها كل ساعة: لا نسخ احتياطية لها
+        if (Settings::bool('backup.auto') && !\App\Platform\Demo::active()) {
             try {
                 BackupService::create(false);
                 BackupService::prune(max(1, Settings::int('backup.keep', 14)));

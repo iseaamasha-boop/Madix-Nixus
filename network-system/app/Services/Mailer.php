@@ -23,6 +23,9 @@ final class Mailer
      */
     public static function send(array $cfg, string $to, string $subject, string $html, string $text): array
     {
+        if (\App\Platform\Demo::active()) {
+            return ['ok' => false, 'message' => \App\Platform\Demo::MESSAGE];
+        }
         $to = trim($to);
         if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
             return ['ok' => false, 'message' => 'عنوان البريد غير صالح.'];

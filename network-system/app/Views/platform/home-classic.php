@@ -37,6 +37,8 @@ $links = array_filter([
     'faq' => $faq ? 'الأسئلة' : null,
 ]);
 $cta = $signup ? url('/signup') : url('/login');
+// البند 105: «جرّب الآن» حين تكون الشبكة التجريبية مفتوحة
+$try = \App\Platform\Demo::landingUrl();
 ?>
 <a class="lp-skip" href="#main">تخطَّ إلى المحتوى</a>
 
@@ -79,7 +81,8 @@ $cta = $signup ? url('/signup') : url('/login');
       <p class="lp-lead"><?= e(L::get('hero_text')) ?></p>
       <div class="lp-hero-cta">
         <a class="lp-btn lp-btn-primary lp-btn-lg lp-btn-shine" href="<?= e($cta) ?>"><?= e($signup ? L::get('cta_primary') : L::get('cta_secondary')) ?><?= icon('chevron-left', 'lp-arrow') ?></a>
-        <?php if ($signup): ?><a class="lp-btn lp-btn-glass lp-btn-lg" href="<?= e(url('/login')) ?>"><?= icon('log-in') ?><?= e(L::get('cta_secondary')) ?></a><?php endif; ?>
+        <?php if ($try !== null): ?><a class="lp-btn lp-btn-glass lp-btn-lg" href="<?= e($try) ?>" rel="nofollow" data-lp-try><?= icon('play') ?>جرّب الآن</a>
+        <?php elseif ($signup): ?><a class="lp-btn lp-btn-glass lp-btn-lg" href="<?= e(url('/login')) ?>"><?= icon('log-in') ?><?= e(L::get('cta_secondary')) ?></a><?php endif; ?>
       </div>
       <?php if ($signup): ?><div class="lp-note"><?= icon('circle-check') ?><span><?= e(L::get('trial_note')) ?></span></div><?php endif; ?>
     </div>
@@ -350,6 +353,7 @@ $cta = $signup ? url('/signup') : url('/login');
       </div>
       <div class="lp-cta-btns">
         <a class="lp-btn lp-btn-white lp-btn-lg" href="<?= e($cta) ?>"><?= e($signup ? L::get('cta_primary') : L::get('cta_secondary')) ?></a>
+        <?php if ($try !== null): ?><a class="lp-btn lp-btn-glass lp-btn-lg" href="<?= e($try) ?>" rel="nofollow"><?= icon('play') ?>جرّب الآن</a><?php endif; ?>
         <a class="lp-btn lp-btn-glass lp-btn-lg" href="<?= e($whatsapp) ?>" target="_blank" rel="noopener"><?= icon('message-circle') ?>واتساب</a>
       </div>
     </div>

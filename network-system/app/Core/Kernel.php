@@ -138,6 +138,9 @@ final class Kernel
                     $response = self::isStateless($request->path)
                         ? Response::json(['ok' => false, 'message' => 'الخدمة متوقفة مؤقتاً.'], 403)
                         : view('platform/blocked', ['tenant' => $tenant], 'split');
+                } elseif ((int) ($tenant['is_demo'] ?? 0) === 1 && \App\Platform\Demo::building()) {
+                    // الشبكة التجريبية تُعاد إلى أصلها الآن (جداولها تُبنى من جديد): صفحة انتظار قصيرة قبل أي استعلام
+                    $response = \App\Platform\Demo::buildingResponse($request);
                 } else {
                     if (!self::isStateless($request->path)) {
                         Session::start($request->isHttps());
@@ -147,7 +150,11 @@ final class Kernel
                     if (($tenant['last_seen_at'] === null || strtotime($tenant['last_seen_at']) < time() - 300) && !Auth::impersonating() && !str_starts_with($request->path, '/auth/ticket/')) {
                         Platform::exec('UPDATE tenants SET last_seen_at = ? WHERE id = ?', [date('Y-m-d H:i:s'), $tenant['id']]);
                     }
-                    if (Tenant::readonlyBlocks($tenant, $request->method, $request->path)) {
+                    // البند 105: الشبكة التجريبية — حد للطلبات، والممنوع فيها، وصفحة التجهيز كل ساعة
+                    $demo = (int) ($tenant['is_demo'] ?? 0) === 1;
+                    if ($demo && ($blocked = \App\Platform\Demo::guard($request)) !== null) {
+                        $response = $blocked;
+                    } elseif (Tenant::readonlyBlocks($tenant, $request->method, $request->path)) {
                         // انتهى الاشتراك وفترة السماح: يبقى العرض متاحاً ويتوقف التعديل حتى التجديد
                         $message = 'الحساب في وضع القراءة فقط حتى تجديد الاشتراك.';
                         if (self::isStateless($request->path) || $request->wantsJson()) {
@@ -160,6 +167,9 @@ final class Kernel
                         $router = new Router();
                         (require APP_PATH . '/routes.php')($router);
                         $response = $router->dispatch($request);
+                        if ($demo) {
+                            \App\Platform\Demo::track($request, $response);
+                        }
                     }
                 }
             }
@@ -235,6 +245,10 @@ final class Kernel
             'X-Content-Type-Options' => 'nosniff',
             'Referrer-Policy'        => 'same-origin',
         ];
+        // الشبكة التجريبية لا تُفهرس في محركات البحث (كل ردودها)
+        if (\App\Platform\Demo::active()) {
+            $response->headers += ['X-Robots-Tag' => 'noindex, nofollow'];
+        }
         if (!self::isStateless($request->path)) {
             // صفحات العرض: «private, no-cache» تسمح بالرجوع للخلف الفوري (bfcache) وتمنع أي وسيط من حفظها، والمتصفح يسأل الخادم
             // عند كل فتح عادي. صفحات الدخول والحساب والإعدادات وما فيه أسرار تبقى «no-store»، والخروج يمسح ذاكرة المتصفح

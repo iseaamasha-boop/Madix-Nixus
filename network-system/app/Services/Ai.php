@@ -580,6 +580,9 @@ final class Ai
 
     private static function http(array $body, int $timeout, bool $beta): array
     {
+        if (\App\Platform\Demo::active()) {
+            return ['status' => 0, 'data' => null, 'error' => \App\Platform\Demo::MESSAGE];
+        }
         if (!function_exists('curl_init')) {
             return ['status' => 0, 'data' => null, 'error' => 'cURL غير متوفر'];
         }
@@ -718,6 +721,9 @@ final class Ai
     /** @return array{status:int, data:?array, error:string} */
     private static function geminiHttp(string $method, string $url, ?array $body, int $timeout): array
     {
+        if (\App\Platform\Demo::active()) {
+            return ['status' => 0, 'data' => null, 'error' => \App\Platform\Demo::MESSAGE];
+        }
         if (!function_exists('curl_init')) {
             return ['status' => 0, 'data' => null, 'error' => 'cURL غير متوفر'];
         }

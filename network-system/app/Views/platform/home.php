@@ -104,9 +104,12 @@ $cta = $signup ? url('/signup') : url('/login');
       <p class="lp-lead"><?= e(L::get('hero_text')) ?></p>
       <div class="lp-hero-cta">
         <a class="lp-btn lp-btn-primary lp-btn-lg lp-btn-shine" href="<?= e($cta) ?>"><?= e($signup ? L::get('cta_primary') : L::get('cta_secondary')) ?><?= icon('chevron-left', 'lp-arrow') ?></a>
+        <?php if (($try = \App\Platform\Demo::landingUrl()) !== null): ?>
+        <a class="lp-btn lp-btn-soft lp-btn-lg" href="<?= e($try) ?>" rel="nofollow" data-lp-try><?= icon('play') ?>جرّب الآن</a>
+        <?php endif; ?>
         <?php if ($video !== ''): ?>
         <a class="lp-btn lp-btn-soft lp-btn-lg" href="https://www.youtube.com/watch?v=<?= e($video) ?>" target="_blank" rel="noopener" data-lp-video="<?= e($video) ?>"><span class="lp-play"><?= icon('play') ?></span>شاهد العرض</a>
-        <?php elseif ($signup): ?>
+        <?php elseif ($signup && $try === null): ?>
         <a class="lp-btn lp-btn-soft lp-btn-lg" href="<?= e(url('/login')) ?>"><?= icon('log-in') ?><?= e(L::get('cta_secondary')) ?></a>
         <?php endif; ?>
       </div>

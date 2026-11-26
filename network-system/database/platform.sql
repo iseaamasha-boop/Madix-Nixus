@@ -379,3 +379,34 @@ CREATE TABLE IF NOT EXISTS platform_bot_messages (
   KEY idx_pbot_msg_created (created_at),
   CONSTRAINT fk_pbot_msg_chat FOREIGN KEY (chat_id) REFERENCES platform_bot_chats (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
+-- البند 105: زوار الشبكة التجريبية («جرّب الآن») — لا بيانات شخصية: معرّف عشوائي في ملف تعريف، والجهاز والمتصفح والدولة (ملف محلي) والمصدر
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS demo_visits (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  visitor     CHAR(24)     NOT NULL,
+  started_at  DATETIME     NOT NULL,
+  last_at     DATETIME     NOT NULL,
+  pages       SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  device      VARCHAR(10)  NULL,
+  browser     VARCHAR(30)  NULL,
+  os          VARCHAR(30)  NULL,
+  country     CHAR(2)      NULL,
+  source      VARCHAR(120) NULL,
+  lang        VARCHAR(10)  NULL,
+  PRIMARY KEY (id),
+  KEY idx_demo_visits_visitor (visitor, id),
+  KEY idx_demo_visits_started (started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS demo_pageviews (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  visit_id    INT UNSIGNED NOT NULL,
+  path        VARCHAR(190) NOT NULL,
+  title       VARCHAR(120) NULL,
+  created_at  DATETIME(3)  NOT NULL,
+  PRIMARY KEY (id),
+  KEY idx_demo_pv_visit (visit_id, created_at),
+  CONSTRAINT fk_demo_pv_visit FOREIGN KEY (visit_id) REFERENCES demo_visits (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
