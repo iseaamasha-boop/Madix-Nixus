@@ -47,7 +47,28 @@
 .mk { display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: #fff; border: 2.5px solid #fff; box-shadow: 0 3px 10px rgba(15, 23, 42, .35); flex: none; }
 .mk .icon { width: 55%; height: 55%; }
 .mk.mk-sm { width: 24px; height: 24px; border-width: 2px; box-shadow: none; }
-.mk-site { background: linear-gradient(135deg, #2453d6, #1e3a8a); border-radius: var(--radius-sm); }
+.mk-site { background: linear-gradient(135deg, #2453d6, #1e3a8a); border-radius: var(--radius-sm); position: relative; }
+/* البند 58: البرج ينبض بالأخضر وهو يعمل وبالأحمر حين ينقطع، مع موجة حوله (transform وopacity فقط) */
+.mk-site.is-up { box-shadow: 0 0 0 2.5px #16a34a, 0 3px 10px rgba(15, 23, 42, .35); }
+.mk-site.is-down { box-shadow: 0 0 0 2.5px #dc2626, 0 3px 10px rgba(15, 23, 42, .35); }
+.mk-site.is-up::before, .mk-site.is-up::after, .mk-site.is-down::before, .mk-site.is-down::after {
+  content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 2px solid; pointer-events: none;
+  animation: site-wave 2.4s ease-out infinite;
+}
+.mk-site.is-up::before, .mk-site.is-up::after { border-color: rgba(22, 163, 74, .8); }
+.mk-site.is-down::before, .mk-site.is-down::after { border-color: rgba(220, 38, 38, .9); animation-duration: 1.4s; }
+.mk-site::after { animation-delay: -1.2s; }
+.mk-site.is-down::after { animation-delay: -.7s; }
+@keyframes site-wave { from { transform: scale(1); opacity: .9; } to { transform: scale(2.1); opacity: 0; } }
+/* البند 59: نقاط الضوء على الروابط */
+.flow-dot { position: absolute; left: 0; top: 0; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: radial-gradient(circle, #fff 0 30%, rgba(96, 165, 250, .95) 45%, rgba(37, 99, 235, 0) 72%); will-change: transform, opacity; }
+.flow-dot.is-fiber { background: radial-gradient(circle, #fff 0 30%, rgba(251, 146, 60, .95) 45%, rgba(249, 115, 22, 0) 72%); }
+.flow-dot.is-cable { background: radial-gradient(circle, #fff 0 30%, rgba(148, 163, 184, .95) 45%, rgba(100, 116, 139, 0) 72%); }
+.flow-dot.is-other { background: radial-gradient(circle, #fff 0 30%, rgba(192, 132, 252, .95) 45%, rgba(168, 85, 247, 0) 72%); }
+@media (prefers-reduced-motion: reduce) {
+  .mk-site.is-up::before, .mk-site.is-up::after, .mk-site.is-down::before, .mk-site.is-down::after { animation: none; opacity: 0; }
+  .flow-dot { display: none; }
+}
 .mk-router.is-online { background: #16a34a; }
 .mk-router.is-offline { background: #dc2626; position: relative; }
 /* نبض جهاز MikroTik المنقطع: حلقة خلف العلامة تكبر وتختفي (transform وopacity فقط) */
@@ -74,6 +95,10 @@
 .leaflet-control-layers-expanded { direction: rtl; text-align: right; }
 .leaflet-control-attribution { font-size: 10px; }
 [data-theme="dark"] .tiles-street { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.9); }
+/* البند 60: الخريطة الليلية تتبع وضع النظام بلا مفاتيح؛ بالأسود الكامل أغمق */
+[data-theme-pref="black"] .tiles-street { filter: invert(1) hue-rotate(180deg) brightness(.72) contrast(1.05); }
+[data-theme="dark"] .leaflet-container { background: #0b1020; }
+[data-theme-pref="black"] .leaflet-container { background: #000; }
 .pop { min-width: 190px; }
 .pop-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 .pop-sub { color: var(--muted); font-size: 12.5px; margin-bottom: 4px; }

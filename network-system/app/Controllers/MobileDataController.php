@@ -257,12 +257,20 @@ final class MobileDataController extends Controller
         $total = (int) DB::value("SELECT COUNT(*) FROM subscribers s WHERE $where", $params);
         $page = MobileController::page($request);
         $rows = DB::rows(
-            "SELECT s.*, p.name AS plan_name, p.service, a.name AS area_name, r.name AS router_name,
-                    (SELECT COUNT(*) FROM sessions x WHERE x.subscriber_id = s.id AND x.stopped_at IS NULL) AS online
+            "SELECT s.*, p.name AS plan_name, p.service, a.name AS area_name, r.name AS router_name
              FROM subscribers s JOIN plans p ON p.id = s.plan_id LEFT JOIN areas a ON a.id = s.area_id LEFT JOIN routers r ON r.id = s.router_id
              WHERE $where ORDER BY s.id DESC" . self::offset($page),
             $params
         );
+        // المتصلون الآن لمشتركي الصفحة باستعلام واحد بفهرس المشترك (بدل استعلام فرعي لكل صف يمر على كل الجلسات المفتوحة)
+        if ($rows) {
+            $ids = array_map(static fn ($r) => (int) $r['id'], $rows);
+            $open = DB::pairs('SELECT subscriber_id, COUNT(*) FROM sessions WHERE subscriber_id IN (' . implode(',', array_fill(0, count($ids), '?')) . ') AND stopped_at IS NULL GROUP BY subscriber_id', $ids);
+            foreach ($rows as &$r) {
+                $r['online'] = (int) ($open[$r['id']] ?? 0);
+            }
+            unset($r);
+        }
         [$baseWhere, $baseParams] = SubscriberController::listWhere($f, false);
         $counts = [];
         foreach (array_keys(SubscriberController::STATES) as $state) {

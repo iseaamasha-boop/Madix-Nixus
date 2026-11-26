@@ -97,9 +97,10 @@ final class MapController extends Controller
             'id' => (int) $r['id'], 'name' => $r['name'], 'status' => $r['status'],
             'lat' => (float) $r['plat'], 'lng' => (float) $r['plng'], 'own' => $r['lat'] !== null,
             'clients' => (int) $r['active_hotspot'] + (int) $r['active_ppp'], 'cpu' => $r['cpu_load'] !== null ? (int) $r['cpu_load'] : null,
-            'site' => $r['site_name'],
+            'site' => $r['site_name'], 'site_id' => $r['site_id'] !== null ? (int) $r['site_id'] : null,
+            'bps' => (int) $r['rx_bps'] + (int) $r['tx_bps'],
         ], DB::rows(
-            "SELECT r.id, r.name, r.status, r.lat, r.lng, r.active_hotspot, r.active_ppp, r.cpu_load, s.name AS site_name,
+            "SELECT r.id, r.name, r.status, r.lat, r.lng, r.active_hotspot, r.active_ppp, r.cpu_load, r.site_id, r.rx_bps, r.tx_bps, s.name AS site_name,
                     COALESCE(r.lat, s.lat) AS plat, COALESCE(r.lng, s.lng) AS plng
              FROM routers r LEFT JOIN sites s ON s.id = r.site_id
              WHERE COALESCE(r.lat, s.lat) IS NOT NULL AND COALESCE(r.lng, s.lng) IS NOT NULL$rScope ORDER BY r.name",
@@ -108,17 +109,19 @@ final class MapController extends Controller
 
         $subscribers = [];
         if (can('subscribers.view')) {
+            // المتصلون الآن مرة واحدة من فهرس الجلسات المفتوحة، بدل استعلام فرعي لكل مشترك
+            // (كان يمر على كل الجلسات المفتوحة لكل مشترك: 5,000 × 1,500 صف ≈ 4.4 ثانية لبيانات الخريطة)
+            $online = array_flip(array_map('intval', DB::column('SELECT DISTINCT subscriber_id FROM sessions WHERE stopped_at IS NULL AND subscriber_id IS NOT NULL')));
             foreach (DB::rows(
                 "SELECT s.id, s.full_name, s.status, s.expires_at, s.lat, s.lng, p.name AS plan_name, st.name AS site_name,
-                        COALESCE(s.lat, st.lat) AS plat, COALESCE(s.lng, st.lng) AS plng,
-                        EXISTS (SELECT 1 FROM sessions x WHERE x.subscriber_id = s.id AND x.stopped_at IS NULL) AS online
+                        COALESCE(s.lat, st.lat) AS plat, COALESCE(s.lng, st.lng) AS plng
                  FROM subscribers s JOIN plans p ON p.id = s.plan_id LEFT JOIN sites st ON st.id = s.site_id
                  WHERE s.lat IS NOT NULL AND s.lng IS NOT NULL$sScope ORDER BY s.full_name LIMIT 5000",
                 $sParams
             ) as $s) {
                 $subscribers[] = [
                     'id' => (int) $s['id'], 'name' => $s['full_name'], 'plan' => $s['plan_name'], 'site' => $s['site_name'],
-                    'state' => SubscriberRules::displayState($s), 'online' => (bool) $s['online'],
+                    'state' => SubscriberRules::displayState($s), 'online' => isset($online[(int) $s['id']]),
                     'lat' => (float) $s['plat'], 'lng' => (float) $s['plng'],
                 ];
             }
@@ -141,6 +144,19 @@ final class MapController extends Controller
                 'routers' => (int) DB::value("SELECT COUNT(*) FROM routers r LEFT JOIN sites s ON s.id = r.site_id WHERE COALESCE(r.lat, s.lat) IS NULL$rScope", $rParams),
             ],
         ]);
+    }
+
+    /**
+     * البندان 58 و59: حالة أجهزة MikroTik وحركتها الحالية للخريطة (داخل التحديث المجمّع /live كل 30 ثانية، ضمن نطاق الموظف)
+     * @return list<array{id:int,status:string,clients:int,bps:int}>
+     */
+    public static function live(): array
+    {
+        [$scope, $params] = Auth::routerScope('r.id');
+        return array_map(static fn ($r) => [
+            'id' => (int) $r['id'], 'status' => (string) $r['status'], 'clients' => (int) $r['active_hotspot'] + (int) $r['active_ppp'],
+            'bps' => (int) $r['rx_bps'] + (int) $r['tx_bps'],
+        ], DB::rows('SELECT r.id, r.status, r.active_hotspot, r.active_ppp, r.rx_bps, r.tx_bps FROM routers r WHERE r.is_active = 1' . $scope, $params));
     }
 
     /** تحريك عنصر على الخريطة */

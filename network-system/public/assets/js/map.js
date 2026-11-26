@@ -105,7 +105,13 @@
   }
   var subDrag = false;      // العلامات الحالية قابلة للسحب (وضع التحريك)
 
-  function siteIcon(s) { return SNGeo.icon((cfg.siteTypes[s.type] || {}).icon || 'map-pin', 'mk-site', 34); }
+  // البند 58: حالة البرج من أجهزة MikroTik المركّبة عليه: كلها متصلة «is-up»، أحدها منقطع «is-down»، بلا أجهزة أو حالة مجهولة «is-idle»
+  function siteState(id) {
+    var up = 0, down = 0;
+    data.routers.forEach(function (r) { if (r.site_id === id) { if (r.status === 'online') { up++; } else if (r.status === 'offline') { down++; } } });
+    return down ? 'is-down' : (up ? 'is-up' : 'is-idle');
+  }
+  function siteIcon(s) { return SNGeo.icon((cfg.siteTypes[s.type] || {}).icon || 'map-pin', 'mk-site ' + siteState(s.id), 34); }
   function routerIcon(r) { return SNGeo.icon('router', 'mk-router ' + (ROUTER_STATUS[r.status] || ROUTER_STATUS.unknown)[2], 28); }
   function subIcon(s) { return SNGeo.dot((SUB_STATE[s.state] || SUB_STATE.active)[2] + (s.online ? ' is-online' : '')); }
 
@@ -161,7 +167,7 @@
       bindDrag(m, 'site', s.id);
       label(m, s.name, 'is-site', 20);
       return m;
-    }, function (m, s) { m.setLatLng([s.lat, s.lng]); m.setIcon(siteIcon(s)); m.setPopupContent(sitePopup(s)); label(m, s.name, 'is-site', 20); });
+    }, function (m, s) { m.setLatLng([s.lat, s.lng]); siteClass(m, s); m.setPopupContent(sitePopup(s)); label(m, s.name, 'is-site', 20); });
     sync('routers', data.routers, function (r) {
       var m = L.marker([r.lat, r.lng], { icon: routerIcon(r), draggable: mode === 'move', zIndexOffset: 400 }).bindPopup(routerPopup(r));
       bindDrag(m, 'router', r.id);
@@ -235,6 +241,68 @@
     return html + '</div>';
   }
 
+  // تحديث حالة علامة دون استبدالها (لا تُعاد حركة النبض من أولها ولا تُغلق نافذتها)
+  function siteClass(m, s) {
+    var el = m.getElement && m.getElement(), mk = el && el.querySelector('.mk');
+    if (!mk) { m.setIcon(siteIcon(s)); return; }
+    var st = siteState(s.id);
+    ['is-up', 'is-down', 'is-idle'].forEach(function (c) { mk.classList.toggle(c, c === st); });
+  }
+  function routerClass(m, r) {
+    var el = m.getElement && m.getElement(), mk = el && el.querySelector('.mk');
+    var st = (ROUTER_STATUS[r.status] || ROUTER_STATUS.unknown)[2];
+    if (!mk) { m.setIcon(routerIcon(r)); return; }
+    ['is-online', 'is-offline', 'is-unknown'].forEach(function (c) { mk.classList.toggle(c, c === st); });
+  }
+
+  // ------------------------------------------------------------------------
+  // البند 59: نقاط ضوء تمشي على الروابط بين الأبراج، وسرعتها حسب الحركة الحقيقية على الرابط
+  // (حركة أجهزة MikroTik في الطرف الأقل حركة: ما يعبر الرابط لا يزيد عنها). عناصر في طبقة خاصة تتحرك بـ transform فقط
+  // بين طرفي الرابط؛ تُعاد مواضعها بعد التكبير، ولا نقاط حين لا حركة أو مع تقليل الحركة
+  // ------------------------------------------------------------------------
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var flowPane = map.createPane('flowPane');
+  flowPane.style.zIndex = 450;
+  flowPane.style.pointerEvents = 'none';
+  function siteBps(id) {
+    var sum = 0, any = false;
+    data.routers.forEach(function (r) { if (r.site_id === id) { any = true; sum += r.bps || 0; } });
+    return any ? sum : null;
+  }
+  function linkBps(l) {
+    var a = siteBps(l.a.id), b = siteBps(l.b.id);
+    if (a === null) { return b || 0; }
+    if (b === null) { return a; }
+    return Math.min(a, b);
+  }
+  function flow() {
+    flowPane.innerHTML = '';
+    if (reduceMotion || !map.hasLayer(groups.links) || !document.body.animate) { return; }
+    data.links.forEach(function (l) {
+      var bps = linkBps(l);
+      if (!bps) { return; }
+      var a = map.latLngToLayerPoint([l.a.lat, l.a.lng]), b = map.latLngToLayerPoint([l.b.lat, l.b.lng]);
+      var len = a.distanceTo(b);
+      if (len < 24) { return; }
+      // المدة: ميجابت أكثر ← أسرع (بين 1.2 و7 ثوانٍ لكل 300 بكسل تقريباً)، وعدد النقاط حسب الطول
+      var mbps = bps / 1e6, per300 = Math.max(1200, Math.min(7000, 7000 / (1 + Math.log10(1 + mbps))));
+      var dur = per300 * Math.max(0.5, len / 300), n = Math.max(2, Math.min(6, Math.round(len / 120)));
+      for (var i = 0; i < n; i++) {
+        var dot = document.createElement('i');
+        dot.className = 'flow-dot is-' + l.type;
+        flowPane.appendChild(dot);
+        dot.animate([
+          { transform: 'translate(' + a.x + 'px,' + a.y + 'px)', opacity: 0 },
+          { opacity: 1, offset: 0.12 },
+          { opacity: 1, offset: 0.88 },
+          { transform: 'translate(' + b.x + 'px,' + b.y + 'px)', opacity: 0 }
+        ], { duration: dur, iterations: Infinity, delay: -dur * i / n, easing: 'linear' });
+      }
+    });
+  }
+  map.on('zoomstart', function () { flowPane.style.visibility = 'hidden'; });
+  map.on('zoomend', function () { flow(); flowPane.style.visibility = ''; });
+
   function load() {
     return SN.api(cfg.dataUrl, { silent: true }).then(function (d) {
       data = d;
@@ -242,6 +310,7 @@
       var fit = firstLoad && !cfg.savedView && !/[?&]focus=/.test(window.location.search);
       if (fit) { fitAll(); }
       render();
+      flow();
       var un = d.unplaced || {};
       var box = document.querySelector('[data-unplaced]');
       if (box) {
@@ -276,6 +345,25 @@
 
   map.on('moveend', function () { if (subDrag) { render(); } });
 
+  var flowKey = '';
+  SN.live.on('map', function (list) {
+    if (!Array.isArray(list) || !data.routers.length) { return; }
+    var byId = {};
+    list.forEach(function (r) { byId[r.id] = r; });
+    data.routers.forEach(function (r) {
+      var n = byId[r.id];
+      if (!n) { return; }
+      var changed = n.status !== r.status;
+      r.status = n.status; r.clients = n.clients; r.bps = n.bps;
+      var m = markers.routers[r.id];
+      if (m && changed) { routerClass(m, r); label(m, r.name, 'is-router ' + (ROUTER_STATUS[r.status] || ROUTER_STATUS.unknown)[2], 17); }
+    });
+    data.sites.forEach(function (s) { var m = markers.sites[s.id]; if (m) { siteClass(m, s); } });
+    // سرعة النقاط تتغير فقط حين تتغير الحركة على رابط ما بوضوح (أكثر من الضعف أو أقل من النصف)
+    var key = data.links.map(function (l) { var v = linkBps(l); return v ? Math.round(Math.log2(v)) : 0; }).join(',');
+    if (key !== flowKey) { flowKey = key; flow(); }
+  }, { every: 30000 });
+
   function fitAll() {
     var pts = [];
     data.sites.forEach(function (s) { pts.push([s.lat, s.lng]); });
@@ -294,6 +382,7 @@
     var apply = function () {
       var g = groups[cb.getAttribute('data-layer')];
       if (cb.checked) { map.addLayer(g); } else { map.removeLayer(g); }
+      if (cb.getAttribute('data-layer') === 'links') { flow(); }
       try { localStorage.setItem(key, cb.checked ? '1' : '0'); } catch (e) { /* التخزين غير متاح */ }
       if (typeof declutterSoon === 'function') { declutterSoon(); }
     };

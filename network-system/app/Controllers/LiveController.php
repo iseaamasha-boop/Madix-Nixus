@@ -23,6 +23,8 @@ final class LiveController extends Controller
                 DashboardController::scheduleCron();
                 return DashboardController::liveData();
             }],
+            // البندان 58 و59: حالة أجهزة MikroTik وحركتها لصفحة الخريطة
+            'map' => ['map.view', static fn (Request $r): array => MapController::live()],
             // البند 57: رقم آخر تنبيه انقطاع (جهاز MikroTik أو انقطاع منطقة) ضمن نطاق الموظف؛ المتصفح يعزف تنبيهاً حين يزيد
             'sound' => ['alerts.view', static function (Request $r): array {
                 [$scope, $params] = Auth::routerScope('a.router_id', true);
