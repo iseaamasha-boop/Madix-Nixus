@@ -60,6 +60,26 @@
 .mk-site::after { animation-delay: -1.2s; }
 .mk-site.is-down::after { animation-delay: -.7s; }
 @keyframes site-wave { from { transform: scale(1); opacity: .9; } to { transform: scale(2.1); opacity: 0; } }
+/* البند 93: الطبقة الحرارية وأكثر المناطق استهلاكاً */
+.map-heat { position: absolute; left: 0; top: 0; pointer-events: none; opacity: .78; }
+.map-label-sample.is-heat { background: color-mix(in srgb, #f97316 18%, transparent); color: #ea580c; }
+.map-heat-areas { display: grid; gap: 6px; font-size: 12.5px; }
+.heat-row { position: relative; display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: var(--radius-sm); overflow: hidden; isolation: isolate; }
+.heat-row i { position: absolute; inset-block: 0; inset-inline-start: 0; z-index: -1; width: 100%; background: linear-gradient(90deg, #22c55e, #facc15, #ef4444); opacity: .18; transform-origin: right; transform: scaleX(var(--w-scale, 1)); }
+[dir="ltr"] .heat-row i { transform-origin: left; }
+.heat-row b { font-weight: 600; color: var(--text-2); }
+/* البند 94: شريط إعادة تشغيل اليوم فوق الخريطة */
+.map-canvas-wrap { position: relative; min-width: 0; }
+.map-replay { position: absolute; z-index: var(--z-map-overlay, 500); inset-inline: 16px; bottom: 16px; display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--surface) 94%, transparent); box-shadow: var(--shadow-lg); }
+.map-replay.is-loading { opacity: .7; }
+.map-replay-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.map-replay-time { font-size: 18px; font-variant-numeric: tabular-nums; min-width: 56px; }
+.map-replay-stat { display: inline-flex; align-items: center; gap: 4px; color: var(--text-2); font-weight: 600; }
+.map-replay-stat .icon { width: 15px; height: 15px; }
+.map-replay-stat.is-down { color: var(--danger); }
+.map-replay [data-rp-close] { margin-inline-start: auto; }
+.map-replay input[type="range"] { width: 100%; accent-color: var(--primary); }
+.map-replay [data-rp-date] { width: auto; flex: none; }
 /* البند 59: نقاط الضوء على الروابط */
 .flow-dot { position: absolute; left: 0; top: 0; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: radial-gradient(circle, #fff 0 30%, rgba(96, 165, 250, .95) 45%, rgba(37, 99, 235, 0) 72%); will-change: transform, opacity; }
 .flow-dot.is-fiber { background: radial-gradient(circle, #fff 0 30%, rgba(251, 146, 60, .95) 45%, rgba(249, 115, 22, 0) 72%); }

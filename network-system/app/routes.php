@@ -270,6 +270,8 @@ return static function (Router $r): void {
     // خريطة الشبكة والمواقع
     $r->get('/map', [MapController::class, 'index'], ['perm' => 'map.view']);
     $r->get('/map/data', [MapController::class, 'data'], ['perm' => 'map.view']);
+    $r->get('/map/heat', [MapController::class, 'heat'], ['perm' => 'map.view']);
+    $r->get('/map/replay', [MapController::class, 'replay'], ['perm' => 'map.view']);
     $r->post('/map/position', [MapController::class, 'position'], ['perm' => 'map.manage']);
     $r->post('/map/view', [MapController::class, 'saveView'], ['perm' => 'map.manage']);
     $r->post('/map/router', [MapController::class, 'placeRouter'], ['perm' => 'map.manage']);

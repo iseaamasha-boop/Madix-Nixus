@@ -190,8 +190,18 @@
   function label(m, text, cls, dy) {
     var t = m.getTooltip();
     if (t && m._snLabel === text + cls) { return; }
-    if (t) { m.unbindTooltip(); }
     m._snLabel = text + cls;
+    // Refresh Name الظاهر in مكانه (Redo Link Name الدائم كانت تترك القديم in Page)
+    if (t) {
+      t.options.className = 'mk-label ' + cls;
+      var el = t.getElement();
+      if (el) {
+        Array.prototype.slice.call(el.classList).forEach(function (c) { if (/^is-/.test(c) && c !== 'is-clash') { el.classList.remove(c); } });
+        cls.split(/\s+/).forEach(function (c) { if (c) { el.classList.add(c); } });
+      }
+      m.setTooltipContent(esc(text));
+      return;
+    }
     m.bindTooltip(esc(text), { permanent: true, direction: 'bottom', offset: [0, dy], className: 'mk-label ' + cls, opacity: 1, interactive: false });
   }
 
@@ -346,9 +356,11 @@
 
   map.on('moveend', function () { if (subDrag) { render(); } });
 
-  var flowKey = '';
+  var flowKey = '', replaying = false;
   SN.live.on('map', function (list) {
     if (!Array.isArray(list) || !data.routers.length) { return; }
+    // أثناء Reboot days: الأبراج تعرض ذلك Time, and Status الحالية تُطبَّق عند الإغلاق
+    if (replaying) { list.forEach(function (n) { data.routers.forEach(function (r) { if (r.id === n.id) { r.status = n.status; r.clients = n.clients; r.bps = n.bps; } }); }); return; }
     var byId = {};
     list.forEach(function (r) { byId[r.id] = r; });
     data.routers.forEach(function (r) {
@@ -620,7 +632,46 @@
     });
   }
 
+  // ------------------------------------------------------------------------
+  // أدوات تُحمَّل عند الطلب: الطبقة الحرارية and Reboot Today (map-tools.js), and Map ثلاثية الأبعاد (map3d.js)
+  // ------------------------------------------------------------------------
+  window.SNMap = {
+    map: map, cfg: cfg, url: url, markers: markers, label: label,
+    data: function () { return data; },
+    siteState: siteState,
+    replaying: function (on) {
+      replaying = !!on;
+      if (!replaying) {
+        data.sites.forEach(function (s) { var m = markers.sites[s.id]; if (m) { siteClass(m, s); label(m, s.name, 'is-site', 20); } });
+      }
+    }
+  };
+  function tool(src, done) {
+    var key = 'sn' + src.replace(/\W/g, '');
+    if (window[key]) { done(); return; }
+    var s = document.createElement('script');
+    s.src = src;
+    s.onload = function () { window[key] = true; done(); };
+    s.onerror = function () { SN.toast('error', 'Could not load.'); };
+    document.head.appendChild(s);
+  }
+  var heatBox = document.querySelector('[data-map-heat]');
+  if (heatBox) {
+    heatBox.addEventListener('change', function () {
+      var on = heatBox.checked;
+      tool(cfg.toolsSrc, function () { window.SNMapTools.heat(on); });
+    });
+  }
+  var replayBtn = document.querySelector('[data-map-replay]');
+  if (replayBtn) {
+    replayBtn.addEventListener('click', function () {
+      var on = replayBtn.getAttribute('aria-pressed') !== 'true';
+      replayBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      tool(cfg.toolsSrc, function () { window.SNMapTools.replay(on); });
+    });
+  }
+
   load();
-  setInterval(function () { if (!document.hidden) { load(); } }, 60000);
+  setInterval(function () { if (!document.hidden && !replaying) { load(); } }, 60000);
   window.addEventListener('resize', function () { map.invalidateSize(); });
 })(window, document);

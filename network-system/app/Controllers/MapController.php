@@ -159,6 +159,84 @@ final class MapController extends Controller
         ], DB::rows('SELECT r.id, r.status, r.active_hotspot, r.active_ppp, r.rx_bps, r.tx_bps FROM routers r WHERE r.is_active = 1' . $scope, $params));
     }
 
+    /**
+     * البند 93: الاستهلاك الحقيقي لكل برج ولكل منطقة خلال آخر 24 ساعة (من الجلسات)، ضمن نطاق الموظف.
+     * استعلامان بالفهرس (جلسات بدأت في آخر 24 ساعة + المفتوحة الأقدم) بدل المرور على كل الجلسات، ومخزّن 10 دقائق.
+     */
+    public function heat(Request $request): Response
+    {
+        \App\Core\Session::release();
+        [$scope, $params] = Auth::routerScope('r.id');
+        $since = date('Y-m-d H:i:s', time() - 86400);
+        $out = \App\Core\Cache::remember('map.heat', [substr(now(), 0, 15)], ['sessions', 'routers', 'sites', 'areas'], static function () use ($scope, $params, $since): array {
+            $rows = DB::rows(
+                "SELECT s.id, s.lat, s.lng, a.name AS area, SUM(t.b) AS bytes FROM (
+                    SELECT x.router_id, x.bytes_in + x.bytes_out AS b FROM sessions x WHERE x.started_at >= ?
+                    UNION ALL
+                    SELECT x.router_id, x.bytes_in + x.bytes_out AS b FROM sessions x WHERE x.stopped_at IS NULL AND x.started_at < ?
+                 ) t JOIN routers r ON r.id = t.router_id JOIN sites s ON s.id = r.site_id LEFT JOIN areas a ON a.id = s.area_id
+                 WHERE s.lat IS NOT NULL AND s.lng IS NOT NULL$scope GROUP BY s.id, s.lat, s.lng, a.name",
+                array_merge([$since, $since], $params)
+            );
+            $areas = [];
+            foreach ($rows as $r) {
+                $k = (string) ($r['area'] ?? '');
+                $areas[$k] = ($areas[$k] ?? 0) + (int) $r['bytes'];
+            }
+            arsort($areas);
+            return [
+                'sites' => array_map(static fn ($r) => [(int) $r['id'], (float) $r['lat'], (float) $r['lng'], (int) $r['bytes']], $rows),
+                'areas' => array_map(static fn ($k, $v) => [$k === '' ? null : $k, $v], array_keys($areas), array_values($areas)),
+            ];
+        }, 600);
+        return json_response(['ok' => true] + $out);
+    }
+
+    /**
+     * البند 94: إعادة تشغيل يوم: لكل برج ولكل 15 دقيقة عدد أجهزة MikroTik المتصلة والمنقطعة والمتصلين،
+     * من قراءات المراقبة المخزنة أصلاً (router_metrics، مدة الاحتفاظ retention.metrics_days) فلا جدول جديد.
+     */
+    public function replay(Request $request): Response
+    {
+        \App\Core\Session::release();
+        $keep = max(1, Settings::int('retention.metrics_days', 30));
+        $date = $request->str('date');
+        $today = date('Y-m-d');
+        $min = date('Y-m-d', time() - ($keep - 1) * 86400);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || $date > $today || $date < $min || strtotime($date) === false) {
+            $date = $today;
+        }
+        $start = strtotime($date . ' 00:00:00');
+        [$scope, $params] = Auth::routerScope('r.id');
+        $rows = DB::rows(
+            "SELECT r.site_id, m.router_id, FLOOR((UNIX_TIMESTAMP(m.created_at) - ?) / 900) AS slot,
+                    MAX(m.online) AS up, AVG(COALESCE(m.active_hotspot, 0) + COALESCE(m.active_ppp, 0)) AS clients
+             FROM router_metrics m JOIN routers r ON r.id = m.router_id
+             WHERE m.created_at >= ? AND m.created_at < ? AND r.site_id IS NOT NULL$scope
+             GROUP BY r.site_id, m.router_id, slot",
+            array_merge([$start, date('Y-m-d H:i:s', $start), date('Y-m-d H:i:s', $start + 86400)], $params)
+        );
+        // لكل برج 96 خانة: 0 (لا قراءات) أو [متصلة، منقطعة، المتصلون]
+        $sites = [];
+        foreach ($rows as $r) {
+            $sid = (int) $r['site_id'];
+            $slot = (int) $r['slot'];
+            if ($slot < 0 || $slot > 95) {
+                continue;
+            }
+            $sites[$sid] ??= array_fill(0, 96, 0);
+            $cell = $sites[$sid][$slot] ?: [0, 0, 0];
+            if ((int) $r['up'] === 1) {
+                $cell[0]++;
+                $cell[2] += (int) round((float) $r['clients']);
+            } else {
+                $cell[1]++;
+            }
+            $sites[$sid][$slot] = $cell;
+        }
+        return json_response(['ok' => true, 'date' => $date, 'min' => $min, 'max' => $today, 'start' => $start, 'sites' => $sites]);
+    }
+
     /** تحريك عنصر على الخريطة */
     public function position(Request $request): Response
     {

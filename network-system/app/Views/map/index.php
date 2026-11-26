@@ -31,12 +31,14 @@ $config = [
     'routers' => $routers,
     'routerUrl' => url('/map/router'),
     'canRename' => can('routers.manage'),
+    // أدوات تُحمَّل عند الطلب فقط (البنود 93، 94، 92)
+    'toolsSrc' => asset('js/map-tools.js'),
 ];
 ?>
 <link rel="stylesheet" href="<?= e(asset('vendor/leaflet/leaflet.css')) ?>">
 <?= Geo::clientConfig() ?>
 <div class="map-shell">
-  <div class="map-canvas panel" id="net-map" data-mode=""></div>
+  <div class="map-canvas-wrap"><div class="map-canvas panel" id="net-map" data-mode=""></div></div>
   <aside class="map-panel panel">
     <div class="panel-body stack" style="gap:14px">
       <div class="topbar-search" style="max-width:none">
@@ -50,8 +52,11 @@ $config = [
         <label class="map-layer"><input type="checkbox" data-layer="subscribers" checked><span class="mk-dot is-active"></span><span class="grow">المشتركون</span><b data-count="subscribers">0</b></label>
         <?php endif; ?>
         <label class="map-layer"><input type="checkbox" data-layer="links" checked><span class="map-line is-wireless"></span><span class="grow">الروابط</span><b data-count="links">0</b></label>
+        <label class="map-layer"><input type="checkbox" data-map-heat><span class="map-label-sample is-heat"><?= icon('flame') ?></span><span class="grow">الاستهلاك (آخر 24 ساعة)</span></label>
         <label class="map-layer"><input type="checkbox" data-map-labels checked><span class="map-label-sample"><?= icon('tag') ?></span><span class="grow">أسماء الأجهزة والمواقع</span></label>
       </div>
+      <div class="map-heat-areas" data-heat-areas hidden></div>
+      <button type="button" class="btn btn-sm" data-map-replay aria-pressed="false"><?= icon('history') ?>إعادة تشغيل اليوم</button>
       <div class="map-legend">
         <div class="map-legend-title">أجهزة MikroTik</div>
         <div><span class="mk-dot is-active"></span>متصل</div>

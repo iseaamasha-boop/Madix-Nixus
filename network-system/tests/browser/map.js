@@ -6,6 +6,7 @@
  * - 58: كل برج بحالة أجهزة MikroTik عليه (is-up / is-down / is-idle) بموجة؛ تغيّر حالة جهاز يصل مع التحديث المجمّع بلا إعادة تحميل.
  * - 59: نقاط ضوء تتحرك بـ transform على الروابط التي عليها حركة، وتُعاد بعد التكبير.
  * - 60: الخريطة الليلية تتبع الوضع الداكن والأسود.
+ * - 93: طبقة حرارية عند تفعيلها فقط؛ 94: شريط إعادة تشغيل اليوم بخطوات 15 دقيقة.
  * - تقليل الحركة: بلا موجة ولا نقاط.
  */
 'use strict';
@@ -92,6 +93,35 @@ async function open(browser, reduced) {
     setTimeout(() => { window.fetch = orig; res({ before, after: document.querySelectorAll('.leaflet-marker-icon .mk-site.is-down').length }); }, 1500);
   }));
   ok(changed.after > changed.before, 'live status reaches the towers without reload (' + changed.before + ' → ' + changed.after + ' down)');
+  // 93: الطبقة الحرارية تُحمَّل عند تفعيلها فقط
+  let tools = 0;
+  p.on('request', (rq) => { if (/map-tools\.js/.test(rq.url())) { tools++; } });
+  ok(tools === 0, 'map tools not loaded with the page');
+  await p.click('label.map-layer:has([data-map-heat])');
+  await p.waitForSelector('canvas.map-heat', { timeout: 8000 }).catch(() => null);
+  await p.waitForTimeout(400);
+  const heat = await p.evaluate(() => {
+    const c = document.querySelector('canvas.map-heat');
+    if (!c) { return null; }
+    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    let n = 0; for (let i = 3; i < d.length; i += 400) { if (d[i]) { n++; } }
+    return { n, areas: document.querySelectorAll('.heat-row').length };
+  });
+  ok(tools === 1 && heat && heat.n > 0, 'heat layer drawn from real usage (' + (heat ? heat.n : 0) + ' samples)');
+  ok(heat && heat.areas > 0, 'top areas listed');
+  await p.click('label.map-layer:has([data-map-heat])');
+  ok(await p.evaluate(() => !document.querySelector('canvas.map-heat')), 'heat layer removed when turned off');
+  // 94: إعادة تشغيل اليوم
+  await p.click('[data-map-replay]');
+  await p.waitForSelector('.map-replay [data-rp-slider]', { timeout: 8000 });
+  await p.waitForTimeout(600);
+  const labels0 = await p.evaluate(() => document.querySelectorAll('.mk-label.is-site').length);
+  const slot = async (v) => { await p.evaluate((v) => { const sl = document.querySelector('[data-rp-slider]'); sl.value = v; sl.dispatchEvent(new Event('input', { bubbles: true })); }, v); return p.evaluate(() => ({ time: document.querySelector('[data-rp-time]').textContent, labels: document.querySelectorAll('.mk-label.is-site').length })); };
+  const s1 = await slot(40), s2 = await slot(41);
+  ok(s1.time === '10:00' && s2.time === '10:15', 'timeline moves in 15 minute steps');
+  ok(s2.labels === labels0, 'tower labels updated in place (no duplicates)');
+  await p.click('[data-rp-close]');
+  ok(await p.evaluate(() => !document.querySelector('.map-replay')), 'replay closes back to the live map');
   ok(m.errors.length === 0, 'no JavaScript errors' + (m.errors.length ? ': ' + m.errors.join(' | ') : ''));
   await m.ctx.close();
 
