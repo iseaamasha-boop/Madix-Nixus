@@ -4,7 +4,8 @@ use App\Controllers\ReportController;
 
 $v->title = 'التقارير';
 $query = ['type' => $type] + ($preset !== '' ? ['preset' => $preset] : ['from' => $from, 'to' => $to]);
-$v->actions = '<a class="btn btn-primary" href="' . e(url('/reports/print', $query)) . '">' . icon('printer') . 'طباعة التقرير</a>';
+$v->actions = (can('reports.view') || can('reports.financial') ? '<a class="btn" href="' . e(url('/reports/year')) . '">' . icon('sparkles') . 'ملخص السنة</a>' : '')
+    . '<a class="btn btn-primary" href="' . e(url('/reports/print', $query)) . '">' . icon('printer') . 'طباعة التقرير</a>';
 $cell = ReportController::cell(...);
 $numeric = ReportController::NUMERIC;
 ?>

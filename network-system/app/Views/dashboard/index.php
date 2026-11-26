@@ -22,12 +22,14 @@ $v->actions = '<button type="button" class="btn" data-dash-edit="' . e(asset('js
   <div class="onboard-main">
     <span class="wizard-hero-icon"><?= icon('router') ?></span>
     <div>
-      <div class="wizard-hero-title">اربط جهاز MikroTik بـ 3 خطوات</div>
-      <div class="onboard-steps"><span><?= icon('circle-dot', 'icon-sm') ?>اسم الجهاز</span><span><?= icon('circle-dot', 'icon-sm') ?>أمر واحد في Terminal</span><span><?= icon('circle-dot', 'icon-sm') ?>متابعة حية حتى يجهز للكروت</span></div>
+      <div class="wizard-hero-title">لا توجد أجهزة MikroTik</div>
     </div>
   </div>
-  <a class="btn btn-primary btn-lg" href="<?= e(url('/routers/connect')) ?>"><?= icon('link') ?>ابدأ الربط</a>
+  <a class="btn btn-primary btn-lg" href="<?= e(url('/routers/connect')) ?>"><?= icon('link') ?>ربط جهاز MikroTik</a>
 </div>
+<?php endif; ?>
+<?php if (\App\Services\YearSummary::season() && (can('reports.view') || can('reports.financial'))): ?>
+<a class="panel year-banner" href="<?= e(url('/reports/year')) ?>"><?= icon('sparkles') ?><span class="grow">ملخص سنة <span dir="ltr"><?= \App\Services\YearSummary::defaultYear() ?></span></span><?= icon('chevron-left') ?></a>
 <?php endif; ?>
 <?php if ($cronStale && can('settings.manage')): ?>
 <div class="notice notice-warning mb-3"><?= icon('clock') ?><div><div class="notice-title">المهمة المجدولة لا تعمل بانتظام</div>

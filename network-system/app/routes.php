@@ -448,6 +448,8 @@ return static function (Router $r): void {
     $r->get('/reports', [ReportController::class, 'index'], ['perm' => ['reports.view', 'reports.financial', 'inventory.view']]);
     $r->get('/reports/export', [ReportController::class, 'export'], ['perm' => ['reports.view', 'reports.financial', 'inventory.view']]);
     $r->get('/reports/print', [ReportController::class, 'print'], ['perm' => ['reports.view', 'reports.financial', 'inventory.view']]);
+    // البند 106: ملخص السنة
+    $r->get('/reports/year', [ReportController::class, 'year'], ['perm' => ['reports.view', 'reports.financial']]);
 
     // ------------------------------------------------------------------
     // الإدارة

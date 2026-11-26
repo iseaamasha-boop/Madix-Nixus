@@ -5,7 +5,7 @@ use App\Core\Request;
 $v->title = 'أجهزة MikroTik';
 if (can('routers.manage')) {
     $v->actions = '<a class="btn" href="' . e(url('/routers/create')) . '">' . icon('plus') . 'إضافة يدوية</a>'
-        . '<a class="btn btn-primary" href="' . e(url('/routers/connect')) . '">' . icon('link') . 'ربط جهاز بـ 3 خطوات</a>';
+        . '<a class="btn btn-primary" href="' . e(url('/routers/connect')) . '">' . icon('link') . 'ربط جهاز MikroTik</a>';
 }
 // أجهزة لم يكتمل معالج ربطها
 $pendingConnect = [];
@@ -99,7 +99,7 @@ $req = Request::current();
       <?php endforeach; ?>
       <?php if (!$routers): ?>
         <tr><td colspan="10"><div class="empty"><?= icon('router') ?><div class="empty-title">لا توجد أجهزة MikroTik</div>
-          <?php if (can('routers.manage')): ?><a class="btn btn-primary" href="<?= e(url('/routers/connect')) ?>"><?= icon('link') ?>ربط جهاز بـ 3 خطوات</a><?php endif; ?></div></td></tr>
+          <?php if (can('routers.manage')): ?><a class="btn btn-primary" href="<?= e(url('/routers/connect')) ?>"><?= icon('link') ?>ربط جهاز MikroTik</a><?php endif; ?></div></td></tr>
       <?php endif; ?>
       </tbody>
     </table>

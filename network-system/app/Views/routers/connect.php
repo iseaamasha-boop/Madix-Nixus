@@ -3,7 +3,7 @@
  * معالج ربط جهاز MikroTik — الخطوة 1: الاسم وطريقة الاتصال.
  * @var App\Core\View $v @var bool $tunnel @var array $areas @var bool $panelOk @var bool $first
  */
-$v->title = 'اربط جهازك بـ 3 خطوات';
+$v->title = 'ربط جهاز MikroTik';
 $v->breadcrumbs = [['أجهزة MikroTik', '/routers'], ['ربط جهاز', null]];
 $method = (string) old('method', $tunnel ? 'tunnel' : 'public');
 if (!$tunnel) {

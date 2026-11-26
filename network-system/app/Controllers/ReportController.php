@@ -50,6 +50,21 @@ final class ReportController extends Controller
     // الفترة والتجميع
     // ---------------------------------------------------------------------
 
+    /** البند 106: ملخص السنة (عرض قصصي يُحفظ صورة في المتصفح) */
+    public function year(Request $request): Response
+    {
+        $years = \App\Services\YearSummary::years();
+        $year = $request->int('year', \App\Services\YearSummary::defaultYear());
+        if (!in_array($year, $years, true)) {
+            $year = \App\Services\YearSummary::defaultYear();
+        }
+        return view('reports/year', [
+            'summary' => \App\Services\YearSummary::build($year),
+            'years' => $years,
+            'money' => can('reports.financial'),
+        ]);
+    }
+
     private function available(): array
     {
         return array_filter(self::TYPES, static fn ($t) => can($t[2]));

@@ -2,7 +2,7 @@
 /* ==========================================================================
    السحب والإفلات لإعادة Order (البند 80): مقبض [.drag-handle] داخل صفوف [data-sortable] (جدول or قائمة).
    الفأرة واللمس (Pointer Events), والصفوف المجاورة تنزاح بحركة transform only; panel المفاتيح: Alt مع الأسهم on المقبض.
-   Order الجديد يُحفظ in الخلفية (بمفتاح Deny Frequency), والفشل يعيد Order السابق مع message.
+   Order الجديد يُحفظ in الخلفية (بمفتاح Deny Frequency), والفشل يعيد Order Previous مع message.
    ========================================================================== */
 (function (window, document) {
   'use strict';

@@ -1,0 +1,52 @@
+/* ==========================================================================
+   البند 106: ملخص السنة — بطاقة قصصية بمقاس الجوال (9:16) داكنة في كل الأوضاع.
+   الشرائح تتبدّل بـ opacity وtransform فقط (300ms)، وبلا JavaScript تظهر كلها متتالية.
+   ========================================================================== */
+.year-wrap { display: grid; justify-items: center; gap: var(--space-4, 16px); }
+.year-years { display: flex; gap: 6px; flex-wrap: wrap; }
+.year-story { position: relative; width: min(420px, 100%); border-radius: 24px; overflow: hidden; color: #fff; isolation: isolate;
+  background: radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--primary) 75%, #0b1124) 0%, #0b1124 62%) #0b1124;
+  box-shadow: 0 30px 60px -30px rgba(2, 6, 23, .7); }
+.year-story.is-ready { aspect-ratio: 9 / 16; }
+.year-progress { position: absolute; top: 14px; inset-inline: 14px; z-index: 3; display: flex; gap: 4px; }
+.year-story:not(.is-ready) .year-progress { display: none; }
+.year-progress i { flex: 1; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .25); overflow: hidden; position: relative; }
+.year-progress i::after { content: ""; position: absolute; inset: 0; background: #fff; transform: scaleX(0); transform-origin: right center; transition: transform .3s ease; }
+[dir="ltr"] .year-progress i::after { transform-origin: left center; }
+.year-progress i.is-done::after, .year-progress i.is-on::after { transform: none; }
+.year-slide { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 52px 26px 40px; text-align: center; }
+.year-story:not(.is-ready) .year-slide + .year-slide { border-top: 1px solid rgba(255, 255, 255, .1); }
+.year-story.is-ready .year-slide { position: absolute; inset: 0; opacity: 0; transform: translateY(16px) scale(.98); transition: opacity .3s ease, transform .3s ease; pointer-events: none; }
+.year-story.is-ready .year-slide.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.year-cap { display: inline-flex; align-items: center; gap: 8px; margin: 0; font-size: 15px; color: rgba(255, 255, 255, .82); }
+.year-cap .icon { width: 18px; height: 18px; }
+.year-big { font-size: clamp(56px, 17vw, 86px); font-weight: 800; line-height: 1.05; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.year-mid { font-size: clamp(30px, 9vw, 42px); font-weight: 800; line-height: 1.25; text-wrap: balance; }
+.year-line { margin: 0; font-size: 15px; color: rgba(255, 255, 255, .85); }
+.year-line b { color: #fff; }
+.year-net-name { margin: 0; font-size: 22px; font-weight: 800; color: #fff; }
+.year-logo .net-mark { --size: 76px; border-radius: 22px; font-size: 32px; }
+.year-bars { display: flex; align-items: flex-end; gap: 4px; width: 100%; height: 34%; min-height: 120px; padding-bottom: 18px; }
+.year-bars span { flex: 1; height: var(--h); border-radius: 4px 4px 2px 2px; background: rgba(255, 255, 255, .26); position: relative; transform-origin: 50% 100%; }
+.year-bars span.is-best { background: linear-gradient(#fde68a, #f59e0b); }
+.year-bars small { position: absolute; top: 100%; inset-inline: -6px; margin-top: 4px; font-size: 9px; color: rgba(255, 255, 255, .7); text-align: center; white-space: nowrap; }
+.year-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; margin: 6px 0 0; }
+.year-grid div { padding: 10px 8px; border-radius: 14px; background: rgba(255, 255, 255, .08); min-width: 0; }
+.year-grid dt { font-size: 12px; color: rgba(255, 255, 255, .75); }
+.year-grid dd { margin: 2px 0 0; font-size: 17px; font-weight: 800; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.year-brand { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: rgba(255, 255, 255, .85); }
+.year-nav { position: absolute; top: 40px; bottom: 0; z-index: 2; width: 34%; padding: 0; border: 0; background: transparent; color: transparent; cursor: pointer; }
+.year-nav.is-prev { inset-inline-start: 0; }
+.year-nav.is-next { inset-inline-end: 0; }
+.year-nav:focus-visible { color: #fff; outline-offset: -4px; }
+.year-story:not(.is-ready) .year-nav { display: none; }
+.year-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+/* دخول عناصر الشريحة (قصير) */
+.year-story.is-ready .year-slide.is-on .year-bars span { animation: year-grow .3s ease both; animation-delay: calc(var(--i, 0) * 18ms); }
+.year-story.is-ready .year-slide.is-on .year-grid div { animation: year-pop .3s ease both; }
+@keyframes year-grow { from { transform: scaleY(.1); opacity: 0; } }
+@keyframes year-pop { from { transform: translateY(8px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .year-story.is-ready .year-slide, .year-progress i::after { transition: none; }
+  .year-story.is-ready .year-slide.is-on .year-bars span, .year-story.is-ready .year-slide.is-on .year-grid div { animation: none; }
+}

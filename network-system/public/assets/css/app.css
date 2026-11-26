@@ -3331,3 +3331,7 @@ body:has(.app-footer) .toasts { bottom: calc(20px + var(--footbar-h) + env(safe-
 @supports (color: oklch(0 0 0)) { [data-theme-pref="black"] .av { --av-bg: oklch(.26 .06 var(--h)); } }
 /* البند 105: علامة الشبكة التجريبية بجانب اسم الشبكة */
 .demo-badge { margin-inline-start: 8px; font-size: 11px; padding: 1px 8px; flex: none; }
+/* البند 106: بطاقة ملخص السنة على لوحة التحكم (من 15 ديسمبر إلى 15 يناير) */
+.year-banner { display: flex; align-items: center; gap: var(--space-3, 12px); padding: var(--space-3, 12px) var(--space-4, 16px); margin-bottom: var(--space-4, 16px); color: inherit; text-decoration: none; font-weight: 700; }
+.year-banner > .icon:first-child { color: var(--primary); }
+[dir="ltr"] .year-banner > .icon:last-child { transform: scaleX(-1); }

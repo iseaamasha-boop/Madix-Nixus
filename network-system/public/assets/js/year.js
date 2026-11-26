@@ -1,0 +1,157 @@
+/* ==========================================================================
+   البند 106: ملخص السنة — عرض قصصي (تقدّم تلقائي كل 5 ثوانٍ، ونقر على الجانبين أو الأسهم للتنقل)،
+   وصورة للنشر تُرسم في المتصفح نفسه (لوحة رسم 1080×1350، بلا أي خدمة خارجية) عليها شعار الشبكة وMADIX.
+   ========================================================================== */
+(function (window, document) {
+  'use strict';
+
+  var story = document.querySelector('[data-year-story]');
+  var node = document.getElementById('year-data');
+  if (!story || !node || !window.SN) { return; }
+  var SN = window.SN;
+  var data = JSON.parse(node.textContent);
+  var slides = Array.prototype.slice.call(story.querySelectorAll('[data-slide]'));
+  var marks = Array.prototype.slice.call(story.querySelectorAll('.year-progress i'));
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var rtl = document.documentElement.getAttribute('dir') !== 'ltr';
+  var current = 0, timer = 0, AUTO = 5000;
+
+  story.classList.add('is-ready');
+
+  function show(i) {
+    current = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('is-on', k === current);
+      s.setAttribute('aria-hidden', k === current ? 'false' : 'true');
+    });
+    marks.forEach(function (m, k) { m.classList.toggle('is-done', k < current); m.classList.toggle('is-on', k === current); });
+    slides[current].querySelectorAll('[data-count]').forEach(function (el) {
+      el.textContent = '0';
+      SN.countTo(el, Number(el.getAttribute('data-count')) || 0);
+    });
+    clearTimeout(timer);
+    // تقدّم تلقائي (بلا تقدّم لمن يفضّل تقليل الحركة: التنقل يدوي)
+    if (!reduce && current < slides.length - 1) {
+      timer = setTimeout(function () { show(current + 1); }, AUTO);
+    }
+  }
+  story.querySelector('[data-year-next]').addEventListener('click', function () { show(current + 1); });
+  story.querySelector('[data-year-prev]').addEventListener('click', function () { show(current - 1); });
+  document.addEventListener('keydown', function (e) {
+    if (e.target.closest && e.target.closest('input, textarea, select')) { return; }
+    if (e.key === 'ArrowLeft') { show(current + (rtl ? 1 : -1)); }
+    else if (e.key === 'ArrowRight') { show(current + (rtl ? -1 : 1)); }
+  });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { clearTimeout(timer); } else { show(current); } });
+  show(0);
+
+  // ------------------------------------------------------------------------
+  // الصورة: تُرسم من الأرقام نفسها في الصفحة
+  // ------------------------------------------------------------------------
+  function image(src) {
+    return new Promise(function (resolve) {
+      if (!src) { resolve(null); return; }
+      var img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = function () { resolve(null); };
+      img.src = src;
+    });
+  }
+  function box(g, x, y, w, h, r) {
+    g.beginPath();
+    if (g.roundRect) { g.roundRect(x, y, w, h, r); } else { g.rect(x, y, w, h); }
+    g.fill();
+  }
+  function poster() {
+    var W = 1080, H = 1350;
+    var canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    var g = canvas.getContext('2d');
+    var brand = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#2453d6';
+    var font = getComputedStyle(document.body).fontFamily;
+    return Promise.all([document.fonts ? document.fonts.ready : null, image(data.logo), image(data.mark)]).then(function (r) {
+      var logo = r[1], mark = r[2], cx = W / 2;
+      var bg = g.createLinearGradient(W, 0, 0, H);
+      bg.addColorStop(0, brand);
+      bg.addColorStop(0.55, '#0b1124');
+      bg.addColorStop(1, '#05070f');
+      g.fillStyle = bg;
+      g.fillRect(0, 0, W, H);
+      g.direction = rtl ? 'rtl' : 'ltr';
+      g.textAlign = 'center';
+      // شعار الشبكة (أو أول حرف من اسمها)
+      g.save();
+      g.fillStyle = logo ? '#ffffff' : 'rgba(255,255,255,.14)';
+      box(g, cx - 72, 78, 144, 144, 36);
+      if (logo) {
+        g.drawImage(logo, cx - 60, 90, 120, 120);
+      } else {
+        g.fillStyle = '#ffffff';
+        g.font = '800 76px ' + font;
+        g.textBaseline = 'middle';
+        g.fillText(String(data.network).trim().charAt(0) || 'M', cx, 154);
+      }
+      g.restore();
+      g.fillStyle = '#ffffff';
+      g.textBaseline = 'alphabetic';
+      g.font = '800 56px ' + font;
+      g.fillText(data.network, cx, 310, W - 140);
+      g.font = '800 170px ' + font;
+      g.fillText(String(data.year), cx, 490);
+      // البطاقات: عمودان
+      var cw = (W - 200) / 2, ch = 168, gap = 40, top = 560;
+      data.lines.forEach(function (line, i) {
+        var col = i % 2, row = Math.floor(i / 2);
+        var x = 80 + (rtl ? 1 - col : col) * (cw + gap), y = top + row * (ch + 28);
+        g.fillStyle = 'rgba(255,255,255,.09)';
+        box(g, x, y, cw, ch, 28);
+        g.fillStyle = 'rgba(255,255,255,.75)';
+        g.font = '600 30px ' + font;
+        g.fillText(line[0], x + cw / 2, y + 60, cw - 40);
+        g.fillStyle = '#ffffff';
+        g.font = '800 50px ' + font;
+        g.fillText(line[1], x + cw / 2, y + 128, cw - 40);
+      });
+      // MADIX
+      g.direction = 'ltr';
+      g.font = '700 34px ' + font;
+      var label = 'MADIX NEXUS', tw = g.measureText(label).width, total = tw + (mark ? 56 : 0), sx = cx - total / 2;
+      if (mark) { g.drawImage(mark, sx, H - 118, 44, 44); }
+      g.textAlign = 'left';
+      g.fillStyle = 'rgba(255,255,255,.9)';
+      g.fillText(label, sx + (mark ? 56 : 0), H - 84);
+      return new Promise(function (resolve) { canvas.toBlob(resolve, 'image/png'); });
+    });
+  }
+
+  var save = document.querySelector('[data-year-save]');
+  if (save) {
+    save.addEventListener('click', function () {
+      save.classList.add('is-loading');
+      poster().then(function (blob) {
+        save.classList.remove('is-loading');
+        if (!blob) { SN.toast('error', 'تعذّر إنشاء الصورة.'); return; }
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = data.file;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+      });
+    });
+  }
+  var share = document.querySelector('[data-year-share]');
+  if (share && navigator.share && navigator.canShare && window.File) {
+    try {
+      share.hidden = !navigator.canShare({ files: [new File(['x'], 'x.png', { type: 'image/png' })] });
+    } catch (e) { share.hidden = true; }
+    share.addEventListener('click', function () {
+      poster().then(function (blob) {
+        if (!blob) { return; }
+        navigator.share({ files: [new File([blob], data.file, { type: 'image/png' })], title: data.network + ' ' + data.year }).catch(function () {});
+      });
+    });
+  }
+  window.SNYear = { poster: poster, show: show };
+})(window, document);
