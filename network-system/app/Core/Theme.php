@@ -360,9 +360,11 @@ final class Theme
         return '<link rel="preload" href="' . e($main[2]) . '" as="font" type="font/woff2" crossorigin>'
             . '<style id="font-main">' . self::face($main[0], $main[1], $main[2], $main[3]) . '</style>'
             . '<script>(function(){var F=' . $json . ',B=' . $brandFaces . ',K="mnx-fonts",V="' . $version . '",d=document;'
-            . 'function css(){var c="";F.forEach(function(f){c+="@font-face{font-family:\""+f[0]+"\";font-weight:"+f[1]+";font-style:normal;font-display:swap;src:url(\""+f[2]+"\") format(\"woff2\");unicode-range:"+f[3]+"}"});return c}'
-            . 'function add(c){var s=d.createElement("style");s.textContent=c;d.head.appendChild(s)}function all(){add(css()+B)}'
-            . 'var on=false;try{on=localStorage.getItem(K)===V}catch(e){}if(on){all();return}'
+            . 'function css(p){var c="";F.forEach(function(f){c+="@font-face{font-family:\""+f[0]+"\";font-weight:"+f[1]+";font-style:normal;font-display:"+(p||"swap")+";src:url(\""+f[2]+"\") format(\"woff2\");unicode-range:"+f[3]+"}"});return c}'
+            . 'function add(c){var s=d.createElement("style");s.textContent=c;d.head.appendChild(s)}function all(p){add(css(p)+B)}'
+            // الأوزان المحفوظة في ذاكرة المتصفح تُعلَن مقدماً بـ optional: تُستعمل فوراً إن كانت محفوظة، وإن مُسحت الذاكرة
+            // تبقى الصفحة بخطها البديل بلا قفزة في التخطيط حين تصل (وتكون جاهزة في الصفحة التالية)
+            . 'var on=false;try{on=localStorage.getItem(K)===V}catch(e){}if(on){all("optional");return}'
             // الأوزان الأخرى بعد أول رسم للصفحة ثم وقت فراغ المتصفح: لا تنافس الصفحة نفسها على الشبكة أبداً
             . 'function go(){if(!window.FontFace||!d.fonts){all();return}'
             . 'var L=F.map(function(f){return new FontFace(f[0],"url(\""+f[2]+"\") format(\"woff2\")",{weight:String(f[1]),unicodeRange:f[3],display:"swap"})});'
