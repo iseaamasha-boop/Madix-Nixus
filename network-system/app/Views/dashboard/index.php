@@ -77,10 +77,18 @@ $dayLabels = array_map(static fn ($d) => substr($d, 5), array_keys($days));
 
 <div class="grid grid-main-side mb-3">
   <div class="panel">
-    <div class="panel-head"><h2><?= icon('chart-line') ?>المتصلون خلال 24 ساعة</h2></div>
+    <div class="panel-head"><h2><?= icon('chart-line') ?>المتصلون والسرعة</h2>
+      <div class="segmented seg-sm" role="radiogroup" aria-label="المدة">
+        <label><input type="radio" name="online_range" value="live" checked data-range-tab><span><i class="live-dot" aria-hidden="true"></i>مباشر</span></label>
+        <label><input type="radio" name="online_range" value="24h" data-range-tab><span>24 ساعة</span></label>
+      </div>
+    </div>
     <div class="panel-body">
-      <?php if ($online24): ?><div class="chart-box"><canvas id="online-chart" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div>
+      <div class="chart-box" data-range-box="live"><canvas id="live-chart" role="img" aria-label="المتصلون والسرعة خلال آخر ساعة" data-live-chart="<?= e(json_encode($live1h)) ?>" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div>
+      <div data-range-box="24h" hidden>
+      <?php if ($online24): ?><div class="chart-box"><canvas id="online-chart" role="img" aria-label="المتصلون خلال 24 ساعة" data-lib="<?= e(asset('vendor/chart.umd.min.js')) ?>"></canvas></div>
       <?php else: ?><div class="empty"><?= icon('chart-line') ?><div>تظهر البيانات بعد أول مزامنة لأجهزة MikroTik.</div></div><?php endif; ?>
+      </div>
     </div>
   </div>
   <div class="panel">

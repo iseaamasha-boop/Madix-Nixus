@@ -5311,4 +5311,11 @@ return [
     'إعادة ترتيب باقات الاشتراك' => 'Reordered subscription plans',
     'إعادة ترتيب باقات الكروت' => 'Reordered card packages',
     'إعادة ترتيب إعلانات صفحة الهوتسبوت' => 'Reordered hotspot page ads',
+    // المرحلة 4
+    'المتصلون والسرعة' => 'Online users and speed',
+    'المتصلون والسرعة خلال آخر ساعة' => 'Online users and speed in the last hour',
+    '24 ساعة' => '24 hours',
+    'أسود' => 'Black',
+    'أسود (OLED)' => 'Black (OLED)',
+    'الوضع الأسود الكامل (OLED)' => 'Full black mode (OLED)',
 ];

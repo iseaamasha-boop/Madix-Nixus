@@ -1183,7 +1183,11 @@
           tooltip: {
             rtl: true, textDirection: 'rtl', backgroundColor: t.surface, titleColor: t.textStrong, bodyColor: t.textStrong,
             borderColor: t.border, borderWidth: 1, padding: 10, cornerRadius: 8, boxPadding: 4,
-            callbacks: config.tooltip ? { label: function (ctx) { return ' ' + ctx.dataset.label + ': ' + config.tooltip(ctx.parsed.y); } } : {}
+            callbacks: (function () {
+              var cb = config.tooltip ? { label: function (ctx) { return ' ' + ctx.dataset.label + ': ' + config.tooltip(ctx.parsed.y, ctx); } } : {};
+              if (config.xTime) { cb.title = function (items) { return items.length ? hhmm(items[0].parsed.x, true) : ''; }; }
+              return cb;
+            })()
           }
         },
         scales: type === 'doughnut' ? {} : {
@@ -1201,10 +1205,26 @@
       opts.options.plugins.legend.position = 'bottom';
     }
     if (config.stacked && opts.options.scales.x) { opts.options.scales.x.stacked = true; }
+    // محور زمن حقيقي (نقاط {x: وقت، y: قيمة} بفواصل غير متساوية) ومحور ثانٍ لوحدة مختلفة (السرعة بجانب العدد)
+    if (config.xTime && opts.options.scales.x) {
+      opts.options.scales.x.type = 'linear';
+      opts.options.scales.x.ticks.callback = function (v) { return hhmm(v); };
+      opts.options.scales.x.ticks.maxTicksLimit = 7;
+      if (config.xStep) { opts.options.scales.x.ticks.stepSize = config.xStep; }
+      if (config.xMin != null) { opts.options.scales.x.min = config.xMin; }
+      if (config.xMax != null) { opts.options.scales.x.max = config.xMax; }
+    }
+    if (config.y2 && type !== 'doughnut') {
+      opts.options.scales.y2 = { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, border: { display: false }, ticks: { maxTicksLimit: 6, callback: config.y2.format || undefined } };
+    }
     var ch = new Chart(canvas, opts);
     ch._snConfig = config;
     charts.push(ch);
     return ch;
+  }
+  function hhmm(ms, sec) {
+    var d = new Date(ms), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return p(d.getHours()) + ':' + p(d.getMinutes()) + (sec ? ':' + p(d.getSeconds()) : '');
   }
   function hexA(hex, a) {
     if (!hex || hex.charAt(0) !== '#') { return hex; }
@@ -1242,6 +1262,7 @@
       var canvas = ch.canvas, cfg = ch._snConfig;
       cfg.labels = ch.data.labels;
       cfg.datasets.forEach(function (d, i) { d.data = ch.data.datasets[i].data; });
+      if (cfg.xTime) { cfg.xMin = ch.options.scales.x.min; cfg.xMax = ch.options.scales.x.max; }
       ch.destroy();
       charts.splice(charts.indexOf(ch), 1);
       cfg.animate = false;
@@ -1509,6 +1530,45 @@
       refresh: tick
     };
   })();
+
+  // ------------------------------------------------------------------------
+  // الرسم الحي لآخر ساعة (البند 45): <canvas data-live-chart="[[دقائق مضت، المتصلون، تنزيل kbps، رفع kbps]، ...]">
+  // من قراءات المراقبة الحقيقية كل 5 دقائق، ثم نقطة من التحديث المجمّع (SN.live) كل 30 ثانية بلا طلب جديد؛ ما قبل الساعة يخرج.
+  // مكتبة الرسوم لا تُحمَّل حتى يقترب الرسم من الشاشة، والرسم في تبويب مخفي لا يُرسم حتى يُفتح التبويب
+  // ------------------------------------------------------------------------
+  function liveChart(canvas) {
+    var HOUR = 3600e3, now = Date.now(), series = [[], [], []], rows = [];
+    try { rows = JSON.parse(canvas.getAttribute('data-live-chart')) || []; } catch (e) { rows = []; }
+    rows.forEach(function (r) {
+      var x = now - r[0] * 60000;
+      series[0].push({ x: x, y: r[1] }); series[1].push({ x: x, y: r[2] * 1000 }); series[2].push({ x: x, y: r[3] * 1000 });
+    });
+    var cfg = {
+      type: 'line', xTime: true, xMin: now - HOUR, xMax: now, xStep: 600e3, y2: { format: fmtRate },
+      tooltip: function (v, ctx) { return ctx.dataset.yAxisID === 'y2' ? fmtRate(v) : fmtNum(v); },
+      datasets: [
+        { label: 'المتصلون', data: series[0] },
+        { label: 'تنزيل', data: series[1], yAxisID: 'y2', fill: false },
+        { label: 'رفع', data: series[2], yAxisID: 'y2', dash: [4, 3] }
+      ]
+    };
+    chartWhenSeen(canvas, cfg);
+    live.on(canvas.getAttribute('data-live-key') || 'dashboard', function (d) {
+      var t = Date.now(), ch = window.Chart && Chart.getChart(canvas);
+      [d.online, d.rx, d.tx].forEach(function (v, i) {
+        var arr = ch ? ch.data.datasets[i].data : series[i];
+        arr.push({ x: t, y: +v || 0 });
+        while (arr.length > 2 && arr[0].x < t - HOUR) { arr.shift(); }
+      });
+      if (ch) { ch.options.scales.x.min = t - HOUR; ch.options.scales.x.max = t; ch.update('none'); } else { cfg.xMin = t - HOUR; cfg.xMax = t; }
+    }, { every: 30000 });
+  }
+  $$('canvas[data-live-chart]').forEach(liveChart);
+  // تبويبات مختصرة داخل لوحة: <input type="radio" data-range-tab value="x"> تُظهر [data-range-box="x"] في اللوحة نفسها
+  on(doc, 'change', '[data-range-tab]', function (e, r) {
+    var scope = r.closest('.panel') || doc;
+    $$('[data-range-box]', scope).forEach(function (b) { b.hidden = b.getAttribute('data-range-box') !== r.value; });
+  });
 
   // ------------------------------------------------------------------------
   // اختيار من قائمة كبيرة بالبحث في الخادم (المشتركون مثلاً): لا تُحمَّل القائمة كلها في الصفحة

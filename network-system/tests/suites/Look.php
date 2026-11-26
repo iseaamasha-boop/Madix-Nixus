@@ -107,6 +107,43 @@ return [
         T::notContains('data-oled=', $page['body'], 'nothing extra on the page when available');
         T::status(200, $h->post($t['path'] . '/account/theme', ['theme' => 'light'], $json));
     },
+    'live chart: last hour of real readings, MikroTik scope respected (45)' => static function (Env $env): void {
+        $t = $env->tenant('a');
+        $pdo = $env->db($t['db']);
+        $routers = array_map('intval', $pdo->query('SELECT id FROM routers WHERE is_active = 1 ORDER BY id LIMIT 2')->fetchAll(PDO::FETCH_COLUMN));
+        T::eq(2, count($routers), 'two MikroTik devices');
+        // قراءة لكل جهاز قبل 10 دقائق (داخل الساعة) وقراءة قبل ساعتين (خارجها)
+        $start = intdiv(time() - 600, 300) * 300;
+        $at = date('Y-m-d H:i:s', $start + 10);
+        // النافذة نفسها (5 دقائق) لهذا الاختبار وحده: قراءات معروفة فقط
+        $pdo->prepare('DELETE FROM router_metrics WHERE created_at >= ? AND created_at < ?')->execute([date('Y-m-d H:i:s', $start), date('Y-m-d H:i:s', $start + 300)]);
+        $ins = $pdo->prepare('INSERT INTO router_metrics (router_id, created_at, online, active_hotspot, active_ppp, rx_bps, tx_bps) VALUES (?, ?, 1, ?, ?, ?, ?)');
+        $ins->execute([$routers[0], $at, 30, 5, 4000000, 1000000]);
+        $ins->execute([$routers[1], $at, 20, 0, 6000000, 3000000]);
+        $ins->execute([$routers[0], date('Y-m-d H:i:s', time() - 7200), 999, 0, 1, 1]);
+        $env->cli('cli/migrate.php');
+        $seed = static function (string $body): array {
+            T::ok(preg_match('/data-live-chart="(\[[0-9,\[\]-]*\])"/', $body, $m) === 1, 'readings in the live chart');
+            return json_decode($m[1], true);
+        };
+        // الصيغة المختصرة: [دقائق مضت، المتصلون، تنزيل kbps، رفع kbps]، وآخر صف القراءة الحالية (0 دقيقة)
+        $ago = (int) round((time() - $start) / 60);
+        $bucket = static fn (array $rows) => array_values(array_filter(array_slice($rows, 0, -1), static fn ($r) => abs($r[0] - $ago) <= 1));
+        $page = $env->owner('a')->request('GET', $t['path'] . '/');
+        T::contains('id="live-chart"', $page['body'], 'live chart on the dashboard');
+        T::contains('data-range-tab', $page['body'], 'live and 24 hours tabs');
+        $rows = $seed($page['body']);
+        T::eq(0, end($rows)[0], 'current reading last');
+        T::ok(!in_array(999, array_column($rows, 1), true), 'nothing older than an hour');
+        T::ok(max(array_column($rows, 0)) <= 61, 'within the last hour');
+        $b = $bucket($rows);
+        T::eq(1, count($b), 'one point for the 5 minutes');
+        T::eq([55, 10000, 4000], array_slice($b[0], 1), 'sum of all MikroTik devices: users, download, upload (kbps)');
+        $env->employee('a', 'live45', 'LivePass12345', ['dashboard.view'], [$routers[1]]);
+        $e = $env->owner('a', ['live45', 'LivePass12345']);
+        $b = $bucket($seed($e->request('GET', $t['path'] . '/')['body']));
+        T::eq([20, 6000, 3000], array_slice($b[0] ?? [0, 0, 0, 0], 1), 'scoped employee sees only own MikroTik device');
+    },
     'migration 19 adds the black value once' => static function (Env $env): void {
         $t = $env->tenant('a');
         $type = (string) $env->db($t['db'])->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employees' AND COLUMN_NAME = 'theme'")->fetchColumn();

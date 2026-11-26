@@ -116,6 +116,27 @@ final class DashboardController extends Controller
             array_merge([date('Y-m-d H:i:s', time() - 86400)], $mParams)
         ));
 
+        // البند 45: آخر ساعة من قراءات المراقبة الحقيقية (مجموع كل أجهزة MikroTik لكل 5 دقائق): المتصلون والتنزيل والرفع،
+        // ثم يضيف المتصفح نقطة من التحديث المجمّع الموجود كل 30 ثانية (لا طلب جديد)
+        $live1h = Cache::remember('dash.live1h', [date('Y-m-d H:i')], ['router_metrics'], static fn () => array_map(
+            static fn ($r) => [(int) $r['t'], (int) $r['users'], (int) round($r['rx'] / 1000), (int) round($r['tx'] / 1000)],
+            DB::rows(
+                "SELECT x.b * 300 AS t, ROUND(SUM(x.users)) AS users, ROUND(SUM(x.rx)) AS rx, ROUND(SUM(x.tx)) AS tx FROM (
+                    SELECT m.router_id, FLOOR(UNIX_TIMESTAMP(m.created_at) / 300) AS b,
+                           AVG(COALESCE(m.active_hotspot, 0) + COALESCE(m.active_ppp, 0)) AS users,
+                           AVG(COALESCE(m.rx_bps, 0)) AS rx, AVG(COALESCE(m.tx_bps, 0)) AS tx
+                    FROM router_metrics m WHERE m.created_at >= ? AND m.online = 1" . $mScope . "
+                    GROUP BY m.router_id, b
+                 ) x GROUP BY x.b ORDER BY x.b",
+                array_merge([date('Y-m-d H:i:s', time() - 3600)], $mParams)
+            )
+        ));
+
+        // للصفحة: الدقائق التي مضت بدل الوقت الكامل، ثم القراءة الحالية في آخرها
+        // (فترة الخمس دقائق تبدأ قبل بداية الساعة أحياناً: ما زاد على 60 دقيقة لا يُرسل)
+        $live1h = array_values(array_filter(array_map(static fn ($r) => [(int) round((time() - $r[0]) / 60), $r[1], $r[2], $r[3]], $live1h), static fn ($r) => $r[0] <= 60));
+        $live1h[] = [0, $kpi['online'], (int) round($kpi['rx'] / 1000), (int) round($kpi['tx'] / 1000)];
+
         // المبيعات والتفعيلات خلال 30 يوماً
         $days = [];
         for ($i = 29; $i >= 0; $i--) {
@@ -168,7 +189,7 @@ final class DashboardController extends Controller
         $cronStale = !CronService::managed() && CronService::isStale(300);
         $panelUrlMissing = trim((string) Settings::get('general.panel_url', '')) === '';
 
-        return view('dashboard/index', compact('kpi', 'routers', 'online24', 'days', 'stock', 'recent', 'topUsers', 'expiring', 'alerts', 'financial', 'cronStale', 'panelUrlMissing', 'onboard'));
+        return view('dashboard/index', compact('kpi', 'routers', 'online24', 'live1h', 'days', 'stock', 'recent', 'topUsers', 'expiring', 'alerts', 'financial', 'cronStale', 'panelUrlMissing', 'onboard'));
     }
 
     /** تحديث دوري للأرقام الحية */

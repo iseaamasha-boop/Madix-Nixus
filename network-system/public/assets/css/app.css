@@ -854,6 +854,12 @@ tr.is-dragging > td { background: var(--surface); }
 }
 .segmented .is-active, .segmented input:checked + span { background: var(--surface); color: var(--text); box-shadow: var(--shadow-xs); font-weight: 500; }
 .segmented input { display: none; }
+.segmented.seg-sm label span { padding: 3px 10px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px; }
+/* نقطة «مباشر» تنبض بحلقة (transform وopacity فقط) */
+.live-dot { position: relative; width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex: none; }
+.live-dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--success); animation: live-ring 2s ease-out infinite; }
+@keyframes live-ring { from { transform: scale(1); opacity: .6; } 70%, to { transform: scale(2.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .live-dot::after { animation: none; opacity: 0; } }
 .segmented label span { padding: 5px 12px; border-radius: 7px; display: block; }
 .segmented label { padding: 0; }
 

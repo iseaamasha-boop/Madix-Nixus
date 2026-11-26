@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * المرحلة 4 في المتصفح: الصور الرمزية الملونة (90) والوضع الأسود الكامل (88).
+ * المرحلة 4 في المتصفح: الصور الرمزية الملونة (90)، الوضع الأسود الكامل (88)، والرسم الحي (45).
  *   node tests/browser/look.js https://madix.test
  * - الوضع الأسود من قائمة المظهر: خلفية وأسطح سوداء خالصة، يبقى بعد إعادة التحميل، ويُعاد المالك إلى الفاتح في النهاية.
  * - تباين نص الصورة الرمزية ≥ 4.5 على كل الدرجات في الفاتح والداكن والأسود (بالألوان المحسوبة فعلاً).
@@ -65,6 +65,27 @@ const measure = () => {
         ok(await page.evaluate(() => document.documentElement.dataset.themePref === 'black' && getComputedStyle(document.body).backgroundColor === 'rgb(0, 0, 0)'), 'black kept after reload');
       }
     }
+    // البند 45: الرسم الحي على لوحة التحكم: مكتبة الرسوم مرة واحدة عند الظهور، نقطة جديدة مع كل تحديث مجمّع، والرسم الثاني عند فتح تبويبه
+    let libLoads = 0;
+    page.on('request', (r) => { if (/chart\.umd/.test(r.url())) { libLoads++; } });
+    await page.goto(BASE + '/' + TENANT + '/', { waitUntil: 'load' });
+    await page.locator('#live-chart').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => window.Chart && Chart.getChart(document.getElementById('live-chart')), null, { timeout: 8000 }).catch(() => null);
+    const c0 = await page.evaluate(() => { const c = window.Chart && Chart.getChart(document.getElementById('live-chart')); return c ? { n: c.data.datasets.map((d) => d.data.length), x: c.options.scales.x.type, y2: !!c.options.scales.y2, max: c.options.scales.x.max } : null; });
+    ok(c0 && c0.n.length === 3 && c0.n.every((n) => n >= 1) && c0.x === 'linear' && c0.y2, 'live chart: users, download and upload on a time axis (' + JSON.stringify(c0) + ')');
+    const last = () => page.evaluate(() => { const c = Chart.getChart(document.getElementById('live-chart')); const d = c.data.datasets[0].data; return { x: d[d.length - 1].x, first: d[0].x, max: c.options.scales.x.max }; });
+    const l0 = await last();
+    await page.waitForTimeout(50);
+    await page.evaluate(() => SN.live.refresh());
+    await page.waitForFunction((x) => { const d = Chart.getChart(document.getElementById('live-chart')).data.datasets[0].data; return d[d.length - 1].x > x; }, l0.x, { timeout: 5000 }).catch(() => null);
+    const l1 = await last();
+    ok(l1.x > l0.x && l1.max > l0.max, 'live update adds the newest point and moves the window');
+    ok(l1.max - l1.first <= 3600e3 + 1000, 'only the last hour is kept (' + Math.round((l1.max - l1.first) / 60000) + ' minutes)');
+    ok(await page.evaluate(() => !Chart.getChart(document.getElementById('online-chart') || document.createElement('canvas'))), '24 hours chart not drawn before its tab opens');
+    await page.click('label:has(input[value="24h"])');
+    await page.waitForTimeout(600);
+    ok(await page.evaluate(() => { const c = document.getElementById('online-chart'); return !c || (!!Chart.getChart(c) && document.querySelector('[data-range-box="live"]').hidden); }), '24 hours tab shows its chart');
+    ok(libLoads === 1, 'chart library loaded once (' + libLoads + ')');
     // صفحة صغيرة على الهاتف بالأسود: لا عناصر أعرض من الشاشة
     const phone = await ctx.newPage();
     await phone.setViewportSize({ width: 360, height: 740 });
