@@ -573,6 +573,29 @@ select.input-sm { padding-inline-end: 30px; background-position: left 8px center
   background: var(--surface-2); white-space: nowrap;
   position: sticky; top: 0; z-index: var(--z-raised);
 }
+/* ترتيب بالنقر على رأس العمود */
+.table th.sortable > a { color: inherit; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; }
+.table th.sortable > a:hover { color: var(--text); }
+.table th.sortable > a::after {
+  content: ""; width: 0; height: 0; border-inline: 4px solid transparent; border-top: 5px solid currentColor;
+  opacity: .35; transition: opacity var(--dur-2), transform var(--dur-2);
+}
+.table th.sortable > a:hover::after { opacity: .7; }
+.table th.sortable.is-asc, .table th.sortable.is-desc { color: var(--text); }
+.table th.sortable.is-asc > a::after, .table th.sortable.is-desc > a::after { opacity: 1; border-top-color: var(--primary); }
+.table th.sortable.is-asc > a::after { transform: rotate(180deg); }
+.table th.num.sortable > a { flex-direction: row-reverse; }
+/* نسخة رأس الجدول الطويل أثناء التمرير (js/tables.js) */
+.table-float {
+  position: fixed; z-index: var(--z-topbar); overflow: hidden; pointer-events: none;
+  opacity: 0; transform: translateY(-4px); transition: opacity var(--dur-2), transform var(--dur-2);
+  box-shadow: 0 6px 14px -8px rgba(15, 23, 42, .35);
+}
+.table-float.is-on { opacity: 1; transform: none; pointer-events: auto; }
+.table-float .table { margin: 0; table-layout: fixed; }
+.table-float .table th { position: static; }
+@media print { .table-float { display: none !important; } }
+@media (prefers-reduced-motion: reduce) { .table-float { transition: none; } }
 .table thead th:first-child { border-start-start-radius: 0; }
 .table tbody tr:hover td { background: var(--hover); }
 .table tbody tr:last-child td { border-bottom: 0; }

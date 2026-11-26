@@ -19,6 +19,7 @@ use App\Services\RouterTasks;
 use App\Services\SubscriberRules;
 use App\Services\SubscriberService;
 use App\Support\ArabicSearch;
+use App\Support\Sort;
 use App\Support\Spreadsheet;
 use RuntimeException;
 
@@ -130,22 +131,27 @@ final class SubscriberController extends Controller
         });
         $total = array_key_exists($f['state'], $counts) ? $counts[$f['state']] : (int) DB::value("SELECT COUNT(*) FROM subscribers s WHERE $where", $params);
         $pager = Paginator::fromRequest($request, $total, 50);
+        // الترتيب بالنقر على رأس العمود (على كل النتائج)، والأحدث أولاً افتراضياً
+        $sort = Sort::pick($request, ['name' => 's.full_name', 'user' => 's.username', 'expires' => 's.expires_at', 'balance' => 's.balance', 'created' => 's.id'], 'created', 'desc', 's.id DESC');
         // أرقام الصفحة أولاً من الفهرس، ثم تفاصيلها واتصالها: لا جدول مؤقت لكل المشتركين ولا عدّ للجلسات لكل واحد منهم
-        $ids = array_map('intval', DB::column("SELECT s.id FROM subscribers s WHERE $where ORDER BY s.id DESC" . $pager->limitSql(), $params));
+        $ids = array_map('intval', DB::column("SELECT s.id FROM subscribers s WHERE $where ORDER BY " . $sort['sql'] . $pager->limitSql(), $params));
         $rows = $ids ? DB::rows(
             'SELECT s.*, p.name AS plan_name, p.service, p.price AS plan_price, a.name AS area_name, r.name AS router_name
              FROM subscribers s JOIN plans p ON p.id = s.plan_id
              LEFT JOIN areas a ON a.id = s.area_id LEFT JOIN routers r ON r.id = s.router_id
-             WHERE s.id IN (' . DB::in($ids) . ') ORDER BY s.id DESC',
+             WHERE s.id IN (' . DB::in($ids) . ')',
             $ids
         ) : [];
+        // بترتيب الصفحة نفسه
+        $pos = array_flip($ids);
+        usort($rows, static fn ($a, $b) => $pos[(int) $a['id']] <=> $pos[(int) $b['id']]);
         $online = $ids ? DB::pairs('SELECT subscriber_id, COUNT(*) FROM sessions WHERE stopped_at IS NULL AND subscriber_id IN (' . DB::in($ids) . ') GROUP BY subscriber_id', $ids) : [];
         foreach ($rows as $i => $row) {
             $rows[$i]['online'] = (int) ($online[$row['id']] ?? 0);
         }
         [$rScope, $rParams] = Auth::routerScope('id');
         return view('subscribers/index', [
-            'rows' => $rows, 'pager' => $pager, 'filters' => $f, 'counts' => $counts, 'total' => $total,
+            'rows' => $rows, 'pager' => $pager, 'filters' => $f, 'counts' => $counts, 'total' => $total, 'sort' => $sort,
             'plans' => DB::pairs('SELECT id, name FROM plans ORDER BY sort, name'),
             'areas' => DB::pairs('SELECT id, name FROM areas ORDER BY name'),
             'routers' => DB::pairs("SELECT id, name FROM routers WHERE 1 = 1$rScope ORDER BY name", $rParams),

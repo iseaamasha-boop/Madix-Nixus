@@ -2,6 +2,7 @@
 /** @var App\Core\View $v */
 use App\Controllers\SubscriberController;
 use App\Services\SubscriberRules;
+use App\Support\Sort;
 
 $v->title = 'المشتركون';
 $v->subtitle = 'اشتراكات PPPoE والهوتسبوت الشهرية';
@@ -21,11 +22,12 @@ $showPass = can('subscribers.passwords');
 <div class="panel">
   <nav class="tabs">
     <?php foreach (SubscriberController::STATES as $key => $label): ?>
-      <a class="tab<?= $filters['state'] === $key ? ' is-active' : '' ?>" href="<?= e(url('/subscribers', array_merge($filters, ['state' => $key]))) ?>"><?= e($label) ?> <span class="tab-count"><?= num($counts[$key] ?? 0) ?></span></a>
+      <a class="tab<?= $filters['state'] === $key ? ' is-active' : '' ?>" href="<?= e(url('/subscribers', array_merge(array_filter($filters, static fn ($x) => $x !== ''), $sort['query'], ['state' => $key]))) ?>"><?= e($label) ?> <span class="tab-count"><?= num($counts[$key] ?? 0) ?></span></a>
     <?php endforeach; ?>
   </nav>
   <form class="filters" method="get">
     <input type="hidden" name="state" value="<?= e($filters['state']) ?>">
+    <?php foreach ($sort['query'] as $k => $val): ?><input type="hidden" name="<?= e($k) ?>" value="<?= e($val) ?>"><?php endforeach; ?>
     <div class="field grow"><label for="q">بحث</label><input class="input" id="q" name="q" value="<?= e($filters['q']) ?>" placeholder="الاسم، الهاتف، اسم المستخدم، IP، MAC"></div>
     <div class="field">
       <label for="plan">الباقة</label>
@@ -65,7 +67,8 @@ $showPass = can('subscribers.passwords');
   <div class="table-wrap">
     <table class="table">
       <thead>
-        <tr><th>المشترك</th><th>اسم المستخدم</th><th>الباقة</th><th>الحالة</th><th>الانتهاء</th><th>جهاز MikroTik</th><th class="num">المستحق</th><th class="w-actions"></th></tr>
+        <?php $sq = array_filter($filters, static fn ($x) => $x !== ''); ?>
+        <tr><?= Sort::th('المشترك', 'name', $sort, '/subscribers', $sq) ?><?= Sort::th('اسم المستخدم', 'user', $sort, '/subscribers', $sq) ?><th>الباقة</th><th>الحالة</th><?= Sort::th('الانتهاء', 'expires', $sort, '/subscribers', $sq) ?><th>جهاز MikroTik</th><?= Sort::th('المستحق', 'balance', $sort, '/subscribers', $sq, 'num') ?><th class="w-actions"></th></tr>
       </thead>
       <tbody>
       <?php foreach ($rows as $s):

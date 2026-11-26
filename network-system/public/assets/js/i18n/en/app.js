@@ -911,6 +911,21 @@
     return { open: open, close: close };
   })();
 
+  // رؤوس الجداول الطويلة تبقى ظاهرة أثناء التمرير: js/tables.js يُحمَّل in Pages التي فيها جدول طويل only, yet التحميل
+  (function () {
+    var meta = doc.querySelector('meta[name="palette-src"]');
+    var src = meta && meta.getAttribute('data-tables');
+    if (!src) { return; }
+    function go() {
+      if (!doc.querySelector('.table-wrap > table.table > tbody > tr:nth-child(20)')) { return; }
+      var s = doc.createElement('script');
+      s.src = src;
+      s.async = true;
+      doc.head.appendChild(s);
+    }
+    if (doc.readyState === 'complete') { go(); } else { window.addEventListener('load', go); }
+  })();
+
   // البحث العام
   on(doc, 'keydown', '[data-global-search]', function (e, el) {
     if (e.key === 'Enter' && el.value.trim() !== '') {
