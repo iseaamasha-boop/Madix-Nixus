@@ -12,7 +12,7 @@ use Throwable;
 final class Migrator
 {
     /** نسخة البنية التي تتوقعها الشيفرة الحالية */
-    public const VERSION = 21;
+    public const VERSION = 22;
 
     private static bool $checked = false;
 
@@ -191,6 +191,10 @@ final class Migrator
             case 21:
                 // تفضيلات الموظف الشخصية: الأصوات (البند 57) وترتيب لوحة التحكم (البند 108)
                 self::addColumns('employees', ['prefs' => 'TEXT NULL']);
+                break;
+            case 22:
+                // إشارة صوت الانقطاع (البند 57): آخر تنبيه انقطاع يُقرأ من الفهرس بدل كل صفوف التنبيهات
+                self::addIndex('alerts', 'idx_alerts_type', '(type, id)');
                 break;
         }
     }

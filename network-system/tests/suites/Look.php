@@ -236,6 +236,9 @@ return [
         T::status(302, $h->post($t['path'] . '/account', $form), 'turned off');
         T::notContains('data-sounds', $h->request('GET', $t['path'] . '/')['body'], 'off again');
         $pdo->exec("DELETE FROM alerts WHERE title = 'sound57'");
+        // الإشارة تُقرأ من الفهرس (لا مرور على كل التنبيهات كل 30 ثانية)
+        $plan = $pdo->query("EXPLAIN SELECT MAX(a.id) FROM alerts a WHERE a.type IN ('router_down', 'outage')")->fetch();
+        T::ok(($plan['key'] ?? '') === 'idx_alerts_type' || str_contains((string) ($plan['Extra'] ?? ''), 'Select tables optimized away'), 'outage signal uses the index (' . ($plan['key'] ?? '') . ' ' . ($plan['Extra'] ?? '') . ')');
     },
     'glass cards: design studio option, moderate blur on number cards only, fallbacks (46)' => static function (Env $env): void {
         $t = \App\Core\Theme::sanitize([]);

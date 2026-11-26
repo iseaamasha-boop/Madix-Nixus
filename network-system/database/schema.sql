@@ -712,6 +712,7 @@ CREATE TABLE IF NOT EXISTS alerts (
   PRIMARY KEY (id),
   KEY idx_alerts_unread (is_read, created_at),
   KEY idx_alerts_ref (ref, created_at),
+  KEY idx_alerts_type (type, id),
   CONSTRAINT fk_alerts_router FOREIGN KEY (router_id) REFERENCES routers (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
