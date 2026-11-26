@@ -80,7 +80,7 @@ $initial = mb_substr(trim((string) $admin['name']), 0, 1);
 <?= $v->partial('session-guard', ['cookie' => 'mnx_atag']) ?>
 <meta name="base-url" content="<?= e(base_path()) ?>">
 <meta name="icons-url" content="<?= e(asset('img/icons.svg')) ?>">
-<meta name="palette-src" content="<?= e(asset('js/palette.js')) ?>" data-tables="<?= e(asset('js/tables.js')) ?>">
+<meta name="palette-src" content="<?= e(asset('js/palette.js')) ?>" data-tables="<?= e(asset('js/tables.js')) ?>" data-sortable="<?= e(asset('js/sortable.js')) ?>">
 <meta name="robots" content="noindex, nofollow">
 <title><?= e(($v->title !== '' ? $v->title . ' · ' : '') . 'لوحة المسؤول') ?></title>
 <?= $v->partial('prefetch-fresh') ?>

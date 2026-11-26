@@ -5304,4 +5304,11 @@ return [
     'السعر غير صحيح.' => 'Invalid price.',
     'اسم المنطقة مطلوب (حتى 100 حرف).' => 'Area name is required (up to 100 characters).',
     'البيان أطول من 255 حرفاً.' => 'Description is longer than 255 characters.',
+    'إعادة الترتيب' => 'Reorder',
+    'تم حفظ الترتيب.' => 'Order saved.',
+    'ترتيب غير صالح.' => 'Invalid order.',
+    'تعذّر حفظ الترتيب.' => 'Could not save the order.',
+    'إعادة ترتيب باقات الاشتراك' => 'Reordered subscription plans',
+    'إعادة ترتيب باقات الكروت' => 'Reordered card packages',
+    'إعادة ترتيب إعلانات صفحة الهوتسبوت' => 'Reordered hotspot page ads',
 ];

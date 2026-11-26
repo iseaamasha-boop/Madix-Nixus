@@ -140,6 +140,12 @@ final class HotspotAdController extends Controller
         return $this->ok('تم حفظ الإعلان.', '/hotspot/ads');
     }
 
+    /** ترتيب إعلانات صفحة الهوتسبوت بالسحب والإفلات */
+    public function order(Request $request): Response
+    {
+        return $this->saveOrder($request, 'hotspot_ads', 'hotspot.ads', 'إعادة ترتيب إعلانات صفحة الهوتسبوت');
+    }
+
     public function toggle(Request $request, int $id): Response
     {
         $ad = DB::row('SELECT * FROM hotspot_ads WHERE id = ?', [$id]);

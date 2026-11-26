@@ -14,12 +14,14 @@ if (can('categories.manage')) {
       <thead>
         <tr><th>الباقة</th><th>السعر</th><th>مدة الاستخدام</th><th>الصلاحية</th><th>البيانات</th><th>السرعة (تنزيل / رفع)</th><th>الأجهزة</th><th class="num">المتاح</th><th class="num">النشط</th><th class="num">الإجمالي</th><th class="w-actions"></th></tr>
       </thead>
-      <tbody>
+      <?php $sortable = can('categories.manage') && count($categories) > 1; ?>
+      <tbody<?php if ($sortable): ?> data-sortable="<?= e(url('/categories/order')) ?>"<?php endif; ?>>
       <?php foreach ($categories as $c):
           $low = $c['low_stock'] !== null && (int) $c['available'] <= (int) $c['low_stock']; ?>
-        <tr>
+        <tr data-id="<?= (int) $c['id'] ?>">
           <td class="nowrap">
             <div class="flex items-center gap-2">
+              <?php if ($sortable): ?><button type="button" class="drag-handle" aria-label="إعادة الترتيب"><?= icon('grip-vertical') ?></button><?php endif; ?>
               <span class="swatch" style="background:<?= e($c['color']) ?>"></span>
               <div>
                 <a class="cell-title" href="<?= e(url('/cards', ['category' => $c['id']])) ?>"><?= e($c['name']) ?></a>

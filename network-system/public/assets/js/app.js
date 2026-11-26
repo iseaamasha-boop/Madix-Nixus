@@ -1009,6 +1009,21 @@
     });
   })();
 
+  // السحب والإفلات لإعادة الترتيب (البند 80): js/sortable.js يُحمَّل وقت الفراغ في الصفحات التي فيها قائمة قابلة للترتيب فقط
+  (function () {
+    var meta = doc.querySelector('meta[name="palette-src"]');
+    var src = meta && meta.getAttribute('data-sortable');
+    if (!src || !doc.querySelector('[data-sortable] .drag-handle')) { return; }
+    window.addEventListener('load', function () {
+      (window.requestIdleCallback || function (f) { setTimeout(f, 300); })(function () {
+        var s = doc.createElement('script');
+        s.src = src;
+        s.async = true;
+        doc.head.appendChild(s);
+      }, { timeout: 2000 });
+    });
+  })();
+
   // البحث العام
   on(doc, 'keydown', '[data-global-search]', function (e, el) {
     if (e.key === 'Enter' && el.value.trim() !== '') {

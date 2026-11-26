@@ -585,6 +585,19 @@ select.input-sm { padding-inline-end: 30px; background-position: left 8px center
 .table th.sortable.is-asc > a::after, .table th.sortable.is-desc > a::after { opacity: 1; border-top-color: var(--primary); }
 .table th.sortable.is-asc > a::after { transform: rotate(180deg); }
 .table th.num.sortable > a { flex-direction: row-reverse; }
+/* السحب والإفلات لإعادة الترتيب (js/sortable.js) */
+.drag-handle {
+  flex: none; display: inline-grid; place-items: center; width: 24px; height: 28px; padding: 0; border: 0; background: none;
+  color: var(--muted); cursor: grab; touch-action: none; border-radius: var(--control-radius-xs); opacity: .55;
+  transition: opacity var(--dur-2), background-color var(--dur-2);
+}
+.drag-handle:hover, .drag-handle:focus-visible { opacity: 1; background: var(--surface-3); }
+.drag-handle:focus-visible { outline: 2px solid var(--primary-ring); }
+.is-sorting, .is-sorting * { cursor: grabbing !important; user-select: none; }
+tr.is-dragging, li.is-dragging { position: relative; z-index: var(--z-raised); background: var(--surface); box-shadow: var(--shadow-lg); }
+tr.is-dragging > td { background: var(--surface); }
+.ad-item > .drag-handle { align-self: center; }
+
 /* التعديل المباشر في الجدول (js/inline.js) */
 [data-edit] { cursor: text; border-radius: var(--control-radius-xs); outline-offset: 2px; transition: background-color var(--dur-2); }
 @media (hover: hover) { [data-edit]:hover { background: var(--surface-3); box-shadow: 0 0 0 3px var(--surface-3); } }

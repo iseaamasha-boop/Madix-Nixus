@@ -25,7 +25,7 @@ $initial = mb_substr(trim((string) $user['name']), 0, 1);
 <?= $v->partial('session-guard', ['cookie' => 'mnx_tag']) ?>
 <meta name="base-url" content="<?= e(base_path()) ?>">
 <meta name="icons-url" content="<?= e(asset('img/icons.svg')) ?>">
-<meta name="palette-src" content="<?= e(asset('js/palette.js')) ?>" data-tables="<?= e(asset('js/tables.js')) ?>" data-preview="<?= e(asset('js/preview.js')) ?>" data-inline="<?= e(asset('js/inline.js')) ?>" data-search="<?= e(url('/search')) ?>">
+<meta name="palette-src" content="<?= e(asset('js/palette.js')) ?>" data-tables="<?= e(asset('js/tables.js')) ?>" data-sortable="<?= e(asset('js/sortable.js')) ?>" data-preview="<?= e(asset('js/preview.js')) ?>" data-inline="<?= e(asset('js/inline.js')) ?>" data-search="<?= e(url('/search')) ?>">
 <meta name="robots" content="noindex, nofollow">
 <meta name="auth" content="1">
 <title><?= e(($v->title !== '' ? $v->title . ' · ' : '') . $networkName) ?></title>

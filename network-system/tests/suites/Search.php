@@ -77,8 +77,13 @@ return [
     'palette script loads on demand only' => static function (Env $env): void {
         $t = $env->tenant('a');
         $r = $env->owner('a')->get($t['path'] . '/subscribers');
-        T::ok(preg_match('#<meta name="palette-src" content="[^"]+js/palette\.js\?v=[^"]+" data-tables="[^"]+js/tables\.js\?v=[^"]+" data-preview="[^"]+js/preview\.js\?v=[^"]+" data-inline="[^"]+js/inline\.js\?v=[^"]+" data-search="[^"]+/search">#', $r['body']) === 1, 'meta with versioned scripts');
-        T::ok(preg_match('#<script src="[^"]*(tables|preview|inline)\.js#', $r['body']) === 0, 'table and preview scripts not loaded with the page either');
+        T::ok(preg_match('#<meta name="palette-src"([^>]*)>#', $r['body'], $meta) === 1, 'script paths meta');
+        T::ok(preg_match('#content="[^"]+js/palette\.js\?v=[^"]+"#', $meta[1]) === 1, 'versioned palette script');
+        foreach (['tables', 'sortable', 'preview', 'inline'] as $js) {
+            T::ok(preg_match('#data-' . $js . '="[^"]+js/' . $js . '\.js\?v=[^"]+"#', $meta[1]) === 1, 'versioned ' . $js . ' script');
+        }
+        T::ok(preg_match('#data-search="[^"]+/search"#', $meta[1]) === 1, 'search endpoint');
+        T::ok(preg_match('#<script src="[^"]*(tables|preview|inline|sortable)\.js#', $r['body']) === 0, 'table and preview scripts not loaded with the page either');
         T::ok(preg_match('#<script src="[^"]*palette\.js#', $r['body']) === 0, 'not loaded with the page');
     },
 ];

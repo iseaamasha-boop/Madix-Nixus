@@ -133,6 +133,35 @@ abstract class Controller
         return json_response(['ok' => true, 'message' => 'تم الحفظ.', 'value' => (string) $value, 'display' => $show($value)]);
     }
 
+    /**
+     * حفظ ترتيب القائمة بعد السحب والإفلات (البند 80): المعرّفات بالترتيب الجديد، كلها من الجدول نفسه،
+     * في معاملة واحدة، ويُسجَّل في سجل العمليات. $where: شرط إضافي لما يحق ترتيبه (باقات الكروت العادية مثلاً)
+     */
+    protected function saveOrder(Request $request, string $table, string $audit, string $label, string $where = '1 = 1'): Response
+    {
+        $ids = [];
+        foreach ($request->arr('ids') as $v) {
+            if (is_numeric($v) && (int) $v > 0) {
+                $ids[(int) $v] = (int) $v;
+            }
+        }
+        $ids = array_values($ids);
+        if (!$ids || count($ids) > 500) {
+            return json_response(['ok' => false, 'message' => 'ترتيب غير صالح.'], 422);
+        }
+        $found = (int) DB::value('SELECT COUNT(*) FROM `' . $table . '` WHERE id IN (' . DB::in($ids) . ') AND ' . $where, $ids);
+        if ($found !== count($ids)) {
+            return json_response(['ok' => false, 'message' => 'ترتيب غير صالح.'], 422);
+        }
+        DB::transaction(static function () use ($ids, $table): void {
+            foreach ($ids as $i => $id) {
+                DB::update($table, ['sort' => ($i + 1) * 10], 'id = ?', [$id]);
+            }
+        });
+        Audit::log($audit, $label, null, null, ['order' => $ids]);
+        return json_response(['ok' => true, 'message' => 'تم حفظ الترتيب.']);
+    }
+
     /** الحذف مع لقطة التراجع؛ يعيد رمز التراجع (null إن تعذّرت اللقطة، والحذف يتم على كل حال) */
     protected function undoable(string $table, int $id, string $action, string $label, ?string $perm, callable $delete, ?string $after = null, array $extra = []): ?string
     {

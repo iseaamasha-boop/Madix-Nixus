@@ -313,6 +313,7 @@ return static function (Router $r): void {
     $r->get('/categories/{id}/edit', [CategoryController::class, 'edit'], ['perm' => 'categories.manage']);
     $r->post('/categories/{id}', [CategoryController::class, 'update'], ['perm' => 'categories.manage']);
     $r->post('/categories/{id}/delete', [CategoryController::class, 'destroy'], ['perm' => 'categories.manage']);
+    $r->post('/categories/order', [CategoryController::class, 'order'], ['perm' => 'categories.manage']);
     $r->post('/categories/{id}/sync', [CategoryController::class, 'sync'], ['perm' => 'categories.manage']);
 
     $r->get('/cards', [CardController::class, 'index'], ['perm' => 'cards.view']);
@@ -372,6 +373,7 @@ return static function (Router $r): void {
     $r->post('/plans/{id}', [PlanController::class, 'update'], ['perm' => 'plans.manage']);
     $r->post('/plans/{id}/delete', [PlanController::class, 'destroy'], ['perm' => 'plans.manage']);
     $r->post('/plans/{id}/inline', [PlanController::class, 'inline'], ['perm' => 'plans.manage']);
+    $r->post('/plans/order', [PlanController::class, 'order'], ['perm' => 'plans.manage']);
 
     $r->get('/subscribers', [SubscriberController::class, 'index'], ['perm' => 'subscribers.view']);
     $r->get('/subscribers/export', [SubscriberController::class, 'export'], ['perm' => 'subscribers.view']);
@@ -426,6 +428,7 @@ return static function (Router $r): void {
     $r->get('/hotspot/ads/{id}/edit', [HotspotAdController::class, 'edit'], ['perm' => 'hotspot.ads']);
     $r->post('/hotspot/ads/{id}', [HotspotAdController::class, 'update'], ['perm' => 'hotspot.ads']);
     $r->post('/hotspot/ads/{id}/toggle', [HotspotAdController::class, 'toggle'], ['perm' => 'hotspot.ads']);
+    $r->post('/hotspot/ads/order', [HotspotAdController::class, 'order'], ['perm' => 'hotspot.ads']);
     $r->post('/hotspot/ads/{id}/delete', [HotspotAdController::class, 'destroy'], ['perm' => 'hotspot.ads']);
 
     // ------------------------------------------------------------------

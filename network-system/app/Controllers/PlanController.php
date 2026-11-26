@@ -138,6 +138,12 @@ final class PlanController extends Controller
         return $this->ok('تم حفظ الباقة.', '/plans');
     }
 
+    /** ترتيب باقات الاشتراك بالسحب والإفلات */
+    public function order(Request $request): Response
+    {
+        return $this->saveOrder($request, 'plans', 'plan.order', 'إعادة ترتيب باقات الاشتراك');
+    }
+
     /** التعديل المباشر في جدول الباقات: الاسم والسعر */
     public function inline(Request $request, int $id): Response
     {

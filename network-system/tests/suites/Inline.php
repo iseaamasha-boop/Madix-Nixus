@@ -47,6 +47,33 @@ return [
         T::status(200, $post($h, $t['path'] . '/subscribers/' . $sid . '/inline', ['field' => 'phone', 'value' => '٠٥٩ ١٢٣ ٤٥٦٧']));
         T::eq('0591234567', $pdo->query('SELECT phone FROM subscribers WHERE id = ' . $sid)->fetchColumn(), 'normalised');
     },
+    'drag and drop order: saved, validated, permitted, logged (item 80)' => static function (Env $env) use ($post): void {
+        $t = $env->tenant('a');
+        $pdo = $env->db($t['db']);
+        $h = $env->owner('a');
+        $h->get($t['path'] . '/plans');
+        $ids = array_map('intval', $pdo->query('SELECT id FROM plans ORDER BY sort, price, name')->fetchAll(PDO::FETCH_COLUMN));
+        T::ok(count($ids) >= 2, 'plans to order');
+        $new = array_reverse($ids);
+        $r = $post($h, $t['path'] . '/plans/order', ['ids' => $new]);
+        T::status(200, $r);
+        T::eq($new, array_map('intval', $pdo->query('SELECT id FROM plans ORDER BY sort, price, name')->fetchAll(PDO::FETCH_COLUMN)), 'new order stored');
+        T::ok((int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE action = 'plan.order'")->fetchColumn() >= 1, 'in the audit log');
+        T::status(422, $post($h, $t['path'] . '/plans/order', ['ids' => [999999, $ids[0]]]), 'unknown id refused');
+        T::status(422, $post($h, $t['path'] . '/plans/order', ['ids' => []]), 'empty refused');
+        $custom = $pdo->query('SELECT id FROM categories WHERE is_custom = 1 LIMIT 1')->fetchColumn();
+        if ($custom) {
+            $normal = (int) $pdo->query('SELECT id FROM categories WHERE is_custom = 0 LIMIT 1')->fetchColumn();
+            T::status(422, $post($h, $t['path'] . '/categories/order', ['ids' => [$normal, (int) $custom]]), 'custom card package cannot be ordered');
+        }
+        $env->employee('a', 'order80', 'OrderPass12345', ['plans.view']);
+        $v = $env->owner('a', ['order80', 'OrderPass12345']);
+        $page = $v->get($t['path'] . '/plans');
+        T::notContains('class="drag-handle"', $page['body'], 'no drag handles without permission');
+        T::notContains('<tbody data-sortable', $page['body'], 'list not sortable without permission');
+        T::status(403, $post($v, $t['path'] . '/plans/order', ['ids' => $ids]), 'no permission');
+        $post($h, $t['path'] . '/plans/order', ['ids' => $ids]);
+    },
     'permissions and MikroTik scope apply' => static function (Env $env) use ($post): void {
         $t = $env->tenant('a');
         $pdo = $env->db($t['db']);

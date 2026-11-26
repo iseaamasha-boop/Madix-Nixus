@@ -26,11 +26,13 @@ foreach ($ads as $a) {
 <div class="grid grid-main-side">
   <div class="panel">
     <?php if ($ads): ?>
-    <ul class="ad-list">
+    <?php $sortable = count($ads) > 1; ?>
+    <ul class="ad-list"<?php if ($sortable): ?> data-sortable="<?= e(url('/hotspot/ads/order')) ?>"<?php endif; ?>>
       <?php foreach ($ads as $a):
           [$label, $badge] = HotspotAds::STATES[HotspotAds::state($a, $today)];
           $only = HotspotAds::routerIds($a); ?>
-      <li class="ad-item<?= (int) $a['is_active'] === 1 ? '' : ' is-off' ?>">
+      <li class="ad-item<?= (int) $a['is_active'] === 1 ? '' : ' is-off' ?>" data-id="<?= (int) $a['id'] ?>">
+        <?php if ($sortable): ?><button type="button" class="drag-handle" aria-label="إعادة الترتيب"><?= icon('grip-vertical') ?></button><?php endif; ?>
         <div class="ad-thumb"><?php if ($a['image']): ?><?= upload_img((string) $a['image'], 'alt="" loading="lazy" decoding="async" width="92" height="60"') ?><?php else: ?><?= icon('megaphone') ?><?php endif; ?></div>
         <div class="ad-main">
           <div class="ad-title"><?= e($a['title']) ?> <span class="badge <?= $badge ?>" data-instant-label><?= e($label) ?></span></div>

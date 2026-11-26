@@ -175,6 +175,12 @@ final class CategoryController extends Controller
         return $this->ok('تم حفظ الباقة.', '/categories');
     }
 
+    /** ترتيب باقات الكروت بالسحب والإفلات (يظهر بالترتيب نفسه في صفحة الهوتسبوت) */
+    public function order(Request $request): Response
+    {
+        return $this->saveOrder($request, 'categories', 'category.order', 'إعادة ترتيب باقات الكروت', 'is_custom = 0');
+    }
+
     public function destroy(Request $request, int $id): Response
     {
         $cat = DB::row('SELECT * FROM categories WHERE id = ? AND is_custom = 0', [$id]);

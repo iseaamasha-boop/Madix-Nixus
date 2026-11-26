@@ -19,12 +19,18 @@ if (can('plans.manage')) {
       <thead>
         <tr><th>الباقة</th><th>الخدمة</th><th>السعر</th><th>المدة</th><th>السرعة (تنزيل / رفع)</th><th>البيانات</th><th>الأجهزة</th><th class="num">النشطون</th><th class="num">المشتركون</th><th class="w-actions"></th></tr>
       </thead>
-      <tbody>
+      <?php $sortable = can('plans.manage') && count($plans) > 1; ?>
+      <tbody<?php if ($sortable): ?> data-sortable="<?= e(url('/plans/order')) ?>"<?php endif; ?>>
       <?php foreach ($plans as $p): ?>
-        <tr>
+        <tr data-id="<?= (int) $p['id'] ?>">
           <td>
-            <a class="cell-title" href="<?= e(url('/subscribers', ['plan' => $p['id']])) ?>"><?= e($p['name']) ?></a>
-            <div class="cell-sub"><?= $p['is_active'] ? '' : '<span class="badge badge-outline">موقوفة</span> ' ?><?= e($p['notes'] ?? '') ?></div>
+            <div class="flex items-center gap-2">
+              <?php if ($sortable): ?><button type="button" class="drag-handle" aria-label="إعادة الترتيب"><?= icon('grip-vertical') ?></button><?php endif; ?>
+              <div>
+                <a class="cell-title" href="<?= e(url('/subscribers', ['plan' => $p['id']])) ?>"><?= e($p['name']) ?></a>
+                <div class="cell-sub"><?= $p['is_active'] ? '' : '<span class="badge badge-outline">موقوفة</span> ' ?><?= e($p['notes'] ?? '') ?></div>
+              </div>
+            </div>
           </td>
           <td><span class="badge <?= $p['service'] === 'ppp' ? 'badge-primary' : 'badge-info' ?>"><?= $p['service'] === 'ppp' ? 'PPPoE' : 'هوتسبوت' ?></span></td>
           <td class="nowrap"<?php if (can('plans.manage')): ?> data-edit="<?= e(url('/plans/' . $p['id'] . '/inline')) ?>" data-field="price" data-value="<?= e((string) $p['price']) ?>" data-type="decimal"<?php endif; ?>><?= e(money($p['price'])) ?></td>
