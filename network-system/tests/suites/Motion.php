@@ -21,8 +21,8 @@ $css = static function (): array {
 
 return [
     'keyframes animate transform and opacity only' => static function (Env $env) use ($css): void {
-        // حركات صفحة الهبوط القديمة: تُحوَّل في المرحلة 7 (البند 104) ثم تُحذف من هذه القائمة
-        $landingLater = ['landing.css:lp-spin', 'landing-classic.css:lp-spin', 'landing-classic.css:lp-floor', 'landing-classic.css:lp-draw'];
+        // حركات صفحة الهبوط القديمة حُوّلت في المرحلة 7 (البند 104) إلى transform وopacity: لا استثناء
+        $landingLater = [];
         $allowed = ['transform', 'opacity', 'scale', 'translate', 'rotate', 'visibility'];
         $bad = [];
         foreach ($css() as $file => $s) {

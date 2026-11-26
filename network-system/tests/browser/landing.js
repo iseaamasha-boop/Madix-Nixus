@@ -4,6 +4,7 @@
  *   node tests/browser/landing.js http://127.0.0.1:8090
  * المقاسات الستة، روابط التنقل، التمرير السريع حتى النهاية، العرض بلا JavaScript، تقليل الحركة،
  * التباين اللوني للنصوص، ولا تمدد أفقي ولا أخطاء JavaScript، ولا قفز في التصميم (CLS).
+ * البند 104 (التصميم الكلاسيكي): القصة بالتمرير — كل فصل يبدّل شاشة النظام الثابتة، على الحاسوب والجوال.
  */
 'use strict';
 
@@ -80,6 +81,27 @@ async function audit(page) {
     const cls = await page.evaluate(() => window.__cls);
     if (cls > 0.05) { problems.push(w + 'px: CLS ' + cls.toFixed(3)); }
     errs.forEach((e) => problems.push(w + 'px: ' + e.slice(0, 200)));
+    await ctx.close();
+  }
+  // البند 104: القصة بالتمرير (عند وجودها في التصميم المختار)
+  for (const [w, h] of [[1280, 800], [390, 844]]) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h }, ignoreHTTPSErrors: true, locale: 'ar' });
+    const page = await ctx.newPage();
+    await page.goto(BASE + '/', { waitUntil: 'load' });
+    const mids = await page.$$eval('[data-lp-chapter]', (xs) => xs.map((x) => x.getBoundingClientRect().top + scrollY + x.offsetHeight / 2));
+    const got = [];
+    for (let i = 0; i < mids.length; i++) {
+      await page.evaluate((y) => window.scrollTo(0, y - innerHeight * 0.55), mids[i]);
+      await page.waitForTimeout(450);
+      got.push(await page.evaluate(() => { const s = document.querySelector('.lp-scr.is-on'); const c = document.querySelector('.lp-chapter.is-on'); return s && c ? s.getAttribute('data-scr') + '/' + c.getAttribute('data-lp-chapter') : '-'; }));
+    }
+    const want = mids.map((_, i) => i + '/' + i);
+    if (mids.length && got.join(',') !== want.join(',')) { problems.push(w + 'px: story screens ' + got.join(',') + ' (want ' + want.join(',') + ')'); }
+    if (mids.length) {
+      const stuck = await page.evaluate(() => { const st = document.querySelector('.lp-story-stage'); return getComputedStyle(st).position; });
+      if (stuck !== 'sticky') { problems.push(w + 'px: story window not sticky'); }
+    }
+    console.log('  story ' + w + 'px: ' + (mids.length ? mids.length + ' chapters → ' + got.join(' ') : 'not in this design'));
     await ctx.close();
   }
   // بلا JavaScript: المحتوى كله ظاهر

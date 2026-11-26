@@ -40,8 +40,8 @@ $enabled = Landing::enabled();
             <div class="panel-body stack rows-list" style="gap:10px"<?= $loc === 'en' ? ' dir="ltr" lang="en"' : '' ?>>
               <?php foreach (Landing::rawItems($k, $loc) as [$a, $b]): ?>
               <div class="row-item">
-                <input class="input" name="<?= $pf . $k ?>_title[]" value="<?= e($a) ?>" maxlength="120" aria-label="العنوان">
-                <input class="input" name="<?= $pf . $k ?>_text[]" value="<?= e($b) ?>" maxlength="300" aria-label="الوصف">
+                <input class="input" name="<?= $pf . $k ?>_items_title[]" value="<?= e($a) ?>" maxlength="120" aria-label="العنوان">
+                <input class="input" name="<?= $pf . $k ?>_items_text[]" value="<?= e($b) ?>" maxlength="300" aria-label="الوصف">
                 <button type="button" class="btn btn-ghost btn-icon btn-sm text-danger" data-row-del title="حذف"><?= icon('trash-2') ?></button>
               </div>
               <?php endforeach; ?>
@@ -108,7 +108,7 @@ document.querySelector('[data-landing-form]').addEventListener('click', function
     var k = panel.getAttribute('data-rows');
     var row = document.createElement('div');
     row.className = 'row-item';
-    row.innerHTML = '<input class="input" name="' + k + '_title[]" maxlength="120" aria-label="العنوان"><input class="input" name="' + k + '_text[]" maxlength="300" aria-label="الوصف">'
+    row.innerHTML = '<input class="input" name="' + k + '_items_title[]" maxlength="120" aria-label="العنوان"><input class="input" name="' + k + '_items_text[]" maxlength="300" aria-label="الوصف">'
       + '<button type="button" class="btn btn-ghost btn-icon btn-sm text-danger" data-row-del title="حذف">' + SN.icon('trash-2') + '</button>';
     panel.querySelector('.rows-list').appendChild(row);
     row.querySelector('input').focus();

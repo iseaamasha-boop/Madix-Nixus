@@ -8,6 +8,8 @@ use App\Platform\Landing as L;
 
 $featureIcons = ['router', 'ticket', 'users', 'map', 'warehouse', 'bot', 'shield-check', 'chart-column', 'message-circle', 'zap', 'fingerprint', 'printer'];
 $features = L::on('features') ? L::items('features') : [];
+// البند 104: فصول القصة بالتمرير (حتى ست شاشات من شاشات النظام، بالترتيب: لوحة التحكم، الكروت، الخريطة، المشتركون، التقارير، تيليجرام)
+$story = L::on('story') ? array_slice(L::items('story'), 0, 6) : [];
 $steps = L::on('steps') ? L::items('steps') : [];
 $stats = L::on('stats') ? L::items('stats') : [];
 $faq = L::on('faq') ? L::items('faq') : [];
@@ -27,6 +29,7 @@ $phone = trim(Platform::setting('platform.whatsapp'));
 $facebook = trim(Platform::setting('platform.facebook'));
 $price = static fn ($x) => number_format((float) $x, abs((float) $x - round((float) $x)) < 0.005 ? 0 : 2, '.', ',');
 $links = array_filter([
+    'story' => $story ? 'جولة في النظام' : null,
     'features' => $features ? 'المميزات' : null,
     'steps' => $steps ? 'كيف تبدأ' : null,
     'pricing' => $plans ? 'الباقات' : null,
@@ -131,6 +134,87 @@ $cta = $signup ? url('/signup') : url('/login');
       <?php foreach ($stats as $i => [$num, $label]): ?>
       <div class="lp-stat" data-lp-anim style="--i:<?= $i ?>"><b><?= e($num) ?></b><span><?= e($label) ?></span></div>
       <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
+<?php if ($story): ?>
+<section class="lp-section lp-story" id="story" data-lp-story>
+  <div class="lp-wrap">
+    <div class="lp-head">
+      <span class="lp-kicker"><?= icon('monitor') ?>جولة في النظام</span>
+      <h2><?= e(L::get('story_title')) ?></h2>
+    </div>
+    <div class="lp-story-in">
+      <div class="lp-story-stage" aria-hidden="true">
+        <div class="lp-window lp-story-window">
+          <div class="lp-window-bar"><i></i><i></i><i></i><span class="lp-window-url" dir="ltr">madix.org / <b>nexus</b></span></div>
+          <div class="lp-scrs">
+            <?php for ($n = 0; $n < count($story); $n++): ?>
+            <div class="lp-scr<?= $n === 0 ? ' is-on' : '' ?>" data-scr="<?= $n ?>">
+              <?php if ($n === 0): ?>
+              <div class="lp-scr-top"><b>لوحة التحكم</b><span class="lp-live"><i></i>مباشر الآن</span></div>
+              <div class="lp-kpis">
+                <div class="lp-kpi"><small>المتصلون الآن</small><b dir="ltr">248</b></div>
+                <div class="lp-kpi"><small>مبيعات اليوم</small><b dir="ltr">1,350</b></div>
+                <div class="lp-kpi"><small>أجهزة MikroTik</small><b dir="ltr">6 / 6</b></div>
+              </div>
+              <div class="lp-scr-bars"><?php foreach ([38, 54, 46, 70, 58, 82, 66, 90, 74, 96] as $h): ?><span style="--h:<?= $h ?>%"></span><?php endforeach; ?></div>
+              <?php elseif ($n === 1): ?>
+              <div class="lp-scr-top"><b>الكروت</b><span class="lp-scr-pill" dir="ltr">500</span></div>
+              <div class="lp-tickets">
+                <?php foreach (['4821 7730', '5190 2284', '7741 0936', '3307 6612', '9054 1178', '2468 3390'] as $k => $code): ?>
+                <div class="lp-ticket" style="--i:<?= $k ?>"><small>باقة يوم</small><b dir="ltr"><?= $code ?></b><i></i></div>
+                <?php endforeach; ?>
+              </div>
+              <?php elseif ($n === 2): ?>
+              <svg class="lp-scr-map" viewBox="0 0 320 210" preserveAspectRatio="xMidYMid slice">
+                <path class="lp-road" d="M-10 150 C60 130 110 160 170 120 S270 60 330 80 M40 -10 C60 60 40 120 90 220 M220 -10 C200 70 240 140 210 220"/>
+                <path class="lp-link is-fiber" d="M70 60 L160 105 L255 55"/><path class="lp-link" d="M160 105 L120 170 M160 105 L245 160"/>
+                <?php foreach ([[70, 60, 'ok'], [160, 105, 'ok'], [255, 55, 'ok'], [120, 170, 'down'], [245, 160, 'ok']] as $k => [$x, $y, $st]): ?>
+                <g class="lp-tower is-<?= $st ?>" transform="translate(<?= $x ?> <?= $y ?>)" style="--i:<?= $k ?>"><circle class="lp-tower-wave" r="13"/><circle r="7"/></g>
+                <?php endforeach; ?>
+                <?php foreach ([[95, 40], [130, 70], [190, 85], [215, 125], [140, 135], [280, 100], [60, 110], [195, 170], [280, 180], [100, 195]] as [$x, $y]): ?><circle class="lp-sub" cx="<?= $x ?>" cy="<?= $y ?>" r="3"/><?php endforeach; ?>
+              </svg>
+              <?php elseif ($n === 3): ?>
+              <div class="lp-scr-top"><b>المشتركون</b><span class="lp-scr-pill" dir="ltr">1,240</span></div>
+              <div class="lp-rows">
+                <?php $names = \App\Core\Lang::isEn() ? ['Ahmad Khaled', 'Sara Ali', 'Mahmoud Yousef', 'Laila Hasan', 'Yousef Samir'] : ['أحمد خالد', 'سارة علي', 'محمود يوسف', 'ليلى حسن', 'يوسف سمير']; ?>
+                <?php foreach ([[210, 'فعّال', 'ok'], [330, 'فعّال', 'ok'], [40, 'ينتهي قريباً', 'warn'], [150, 'فعّال', 'ok'], [280, 'منتهٍ', 'off']] as $k => [$hue, $state, $c]): ?>
+                <div class="lp-row lp-sub-row" style="--i:<?= $k ?>"><span class="lp-av" style="--h:<?= $hue ?>"><?= e(mb_substr($names[$k], 0, 1)) ?></span><span><?= e($names[$k]) ?></span><b class="<?= $c ?>"><?= e($state) ?></b></div>
+                <?php endforeach; ?>
+              </div>
+              <?php elseif ($n === 4): ?>
+              <div class="lp-scr-top"><b>التقارير</b><span class="lp-scr-pill">هذا الشهر</span></div>
+              <div class="lp-kpis lp-kpis-2">
+                <div class="lp-kpi"><small>المبيعات</small><b dir="ltr">24,600</b></div>
+                <div class="lp-kpi"><small>الربح</small><b dir="ltr">9,820</b></div>
+              </div>
+              <div class="lp-scr-bars is-report"><?php foreach ([52, 64, 48, 76, 88, 70, 94] as $h): ?><span style="--h:<?= $h ?>%"></span><?php endforeach; ?></div>
+              <?php else: ?>
+              <div class="lp-scr-top"><b>بوت تيليجرام</b><span class="lp-live"><i></i>متصل</span></div>
+              <div class="lp-chat">
+                <span class="lp-msg is-in" style="--i:0">تقرير اليوم</span>
+                <span class="lp-msg" style="--i:1">المبيعات <b dir="ltr">1,350</b> · الكروت <b dir="ltr">214</b> · أجهزة MikroTik <b dir="ltr">6 / 6</b></span>
+                <span class="lp-msg is-in" style="--i:2">رصيد كرتي</span>
+                <span class="lp-msg" style="--i:3">متبقٍّ <b dir="ltr">3.2 GB</b> · حتى <b dir="ltr">2026-12-01</b></span>
+              </div>
+              <?php endif; ?>
+            </div>
+            <?php endfor; ?>
+          </div>
+        </div>
+      </div>
+      <ol class="lp-chapters">
+        <?php foreach ($story as $i => [$title, $text]): ?>
+        <li class="lp-chapter<?= $i === 0 ? ' is-on' : '' ?>" data-lp-chapter="<?= $i ?>">
+          <span class="lp-chapter-num" dir="ltr"><?= sprintf('%02d', $i + 1) ?></span>
+          <h3><?= e($title) ?></h3>
+          <?php if ($text !== ''): ?><p><?= e($text) ?></p><?php endif; ?>
+        </li>
+        <?php endforeach; ?>
+      </ol>
     </div>
   </div>
 </section>

@@ -48,6 +48,24 @@
     stage.addEventListener('pointerleave', function () { stage.style.removeProperty('--rx'); stage.style.removeProperty('--ry'); });
   }
 
+  // البند 104: Scroll story — الفصل الذي يعبر منتصف Screen يبدّل شاشة System الثابتة (بلا مستمع تمرير)
+  var story = document.querySelector('[data-lp-story]');
+  if (story && 'IntersectionObserver' in window) {
+    var screens = story.querySelectorAll('[data-scr]');
+    var chapters = story.querySelectorAll('[data-lp-chapter]');
+    var current = 0;
+    var show = function (i) {
+      if (i === current) { return; }
+      current = i;
+      screens.forEach(function (sc) { sc.classList.toggle('is-on', +sc.getAttribute('data-scr') === i); });
+      chapters.forEach(function (ch) { ch.classList.toggle('is-on', +ch.getAttribute('data-lp-chapter') === i); });
+    };
+    var sio = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { show(+en.target.getAttribute('data-lp-chapter')); } });
+    }, { rootMargin: '-50% 0px -42% 0px', threshold: 0 });
+    chapters.forEach(function (ch) { sio.observe(ch); });
+  }
+
   // حركة Sign in قصيرة عند اقتراب العنصر from Screen (العنصر Shown أصلاً قبلها وبعدها)
   if (reduce || !('IntersectionObserver' in window)) { return; }
   var io = new IntersectionObserver(function (entries) {

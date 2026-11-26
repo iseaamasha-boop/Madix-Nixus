@@ -97,8 +97,9 @@ final class DesignController extends Controller
                 $values[$prefix . $k] = mb_substr(trim($request->str($field . $k)), 0, 400);
             }
             foreach (array_keys(Landing::LIST_FIELDS) as $k) {
-                $titles = (array) $request->input($field . $k . '_title', []);
-                $texts = (array) $request->input($field . $k . '_text', []);
+                // أسماء خاصة بعناصر القائمة: «features_title» حقل نصي (عنوان القسم)، فلا يُخلط بـ «features_title[]»
+                $titles = (array) $request->input($field . $k . '_items_title', []);
+                $texts = (array) $request->input($field . $k . '_items_text', []);
                 $lines = [];
                 foreach ($titles as $i => $title) {
                     $title = trim(str_replace(['|', "\n", "\r"], ' ', (string) $title));
@@ -113,10 +114,10 @@ final class DesignController extends Controller
         $video = trim($request->str('video'));
         $videoId = $video === '' ? '' : Landing::videoId($video);
         if ($videoId === null) {
-            return $this->backWithErrors($request, ['video' => 'رابط فيديو العرض غير صحيح. الصق رابط الفيديو من YouTube.'], '/admin/landing');
+            return $this->backWithErrors($request, ['video' => 'رابط فيديو العرض غير صحيح.'], '/admin/landing');
         }
         $values['landing.video'] = $videoId;
-        $values['landing.style'] = isset(Landing::STYLES[$request->str('style')]) ? $request->str('style') : 'pastel';
+        $values['landing.style'] = isset(Landing::STYLES[$request->str('style')]) ? $request->str('style') : 'classic';
         $values['landing.enabled'] = $request->bool('enabled') ? '1' : '0';
         foreach (array_keys(Landing::SECTIONS) as $k) {
             $values['landing.show_' . $k] = $request->bool('show_' . $k) ? '1' : '0';
