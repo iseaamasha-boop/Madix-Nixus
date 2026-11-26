@@ -9,7 +9,7 @@ use App\Permissions;
 
 $user = Auth::user();
 // الوضع فاتح دائماً ما لم يختر المستخدم الداكن بنفسه (لا يتبع إعداد الجهاز)
-$themePref = ($user['theme'] ?? '') === 'dark' ? 'dark' : 'light';
+$themePref = \App\Core\Theme::pref($user['theme'] ?? null);
 $networkName = Settings::networkName();
 $logo = (string) Settings::get('general.logo', '');
 $flash = Session::pull('_flash', []);
@@ -32,8 +32,8 @@ $presetLabel = $user['is_owner'] ? 'المالك' : (Permissions::PRESETS[$user[
 <?= $v->partial('rum', ['area' => 'net']) ?>
 <script>
 (function () {
-  var p = document.documentElement.getAttribute('data-theme-pref') === 'dark' ? 'dark' : 'light';
-  document.documentElement.setAttribute('data-theme', p);
+  var p = document.documentElement.getAttribute('data-theme-pref');
+  document.documentElement.setAttribute('data-theme', p === 'dark' || p === 'black' ? 'dark' : 'light');
 })();
 </script>
 <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
@@ -74,8 +74,7 @@ $presetLabel = $user['is_owner'] ? 'المالك' : (Permissions::PRESETS[$user[
           </button>
           <div class="dropdown-menu">
             <div class="dropdown-head">المظهر</div>
-            <button type="button" class="dropdown-item" data-theme-set="light"><?= icon('sun') ?>فاتح</button>
-            <button type="button" class="dropdown-item" data-theme-set="dark"><?= icon('moon') ?>داكن</button>
+            <?= \App\Core\Theme::switcher() ?>
           </div>
         </div>
         <?php $siblingNets = \App\Core\Platform::enabled() && \App\Core\Auth::isOwner() ? \App\Core\Tenant::siblings() : []; ?>
@@ -116,8 +115,7 @@ $presetLabel = $user['is_owner'] ? 'المالك' : (Permissions::PRESETS[$user[
             <div class="narrow-only">
               <div class="dropdown-sep"></div>
               <div class="dropdown-head">المظهر</div>
-              <button type="button" class="dropdown-item" data-theme-set="light"><?= icon('sun') ?>فاتح</button>
-              <button type="button" class="dropdown-item" data-theme-set="dark"><?= icon('moon') ?>داكن</button>
+              <?= \App\Core\Theme::switcher() ?>
               <?php if (\App\Core\Lang::switchable()): $curLang = \App\Core\Lang::current(); ?>
               <div class="dropdown-sep"></div>
               <a class="dropdown-item<?= $curLang === 'ar' ? ' is-current' : '' ?>" href="<?= e(\App\Core\Lang::switchUrl('ar')) ?>" lang="ar" data-no-loading><?= icon($curLang === 'ar' ? 'circle-check' : 'globe') ?>العربية</a>

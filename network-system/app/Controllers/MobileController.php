@@ -66,6 +66,7 @@ final class MobileController extends Controller
             'phone'    => (string) Settings::get('general.phone', ''),
             'primary'  => $palette[1],
             'accent'   => $palette[2],
+            'oled'     => $theme['oled'] === '1',
         ];
     }
 
@@ -92,7 +93,7 @@ final class MobileController extends Controller
             'tenant'   => \App\Core\Tenant::slug(),
             'api'      => 1,
             'version'  => APP_VERSION,
-            'network'  => Brand::onPlatform() ? ['name' => Brand::NAME, 'logo' => '', 'currency' => '', 'phone' => '', 'primary' => '#2453d6', 'accent' => '#5383ff'] : $this->network($request),
+            'network'  => Brand::onPlatform() ? ['name' => Brand::NAME, 'logo' => '', 'currency' => '', 'phone' => '', 'primary' => '#2453d6', 'accent' => '#5383ff', 'oled' => Theme::current()['oled'] === '1'] : $this->network($request),
         ]);
     }
 

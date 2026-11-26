@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS employees (
   role_preset      VARCHAR(40)  NULL,
   router_scope     ENUM('all','selected') NOT NULL DEFAULT 'all',
   status           ENUM('active','disabled') NOT NULL DEFAULT 'active',
-  theme            ENUM('system','light','dark') NOT NULL DEFAULT 'light',
+  theme            ENUM('system','light','dark','black') NOT NULL DEFAULT 'light',
   session_version  INT UNSIGNED NOT NULL DEFAULT 1,
   totp_secret      VARCHAR(255) NULL,
   totp_enabled     TINYINT(1)   NOT NULL DEFAULT 0,

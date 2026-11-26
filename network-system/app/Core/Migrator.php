@@ -12,7 +12,7 @@ use Throwable;
 final class Migrator
 {
     /** نسخة البنية التي تتوقعها الشيفرة الحالية */
-    public const VERSION = 18;
+    public const VERSION = 19;
 
     private static bool $checked = false;
 
@@ -176,6 +176,13 @@ final class Migrator
             case 18:
                 // التراجع عن الحذف (البند 71)
                 self::createTables(['undo_actions']);
+                break;
+            case 19:
+                // الوضع الأسود الكامل (البند 88): قيمة جديدة في آخر قائمة المظهر (إضافة فقط، تعديل بيانات وصفية بلا نسخ للجدول)
+                $type = (string) DB::value("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employees' AND COLUMN_NAME = 'theme'");
+                if ($type !== '' && !str_contains($type, "'black'")) {
+                    DB::query("ALTER TABLE employees MODIFY COLUMN theme ENUM('system','light','dark','black') NOT NULL DEFAULT 'light'");
+                }
                 break;
         }
     }

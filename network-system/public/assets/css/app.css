@@ -3236,3 +3236,22 @@ body:has(.app-footer) .toasts { bottom: calc(20px + var(--footbar-h) + env(safe-
 .rs-item:hover, .rs-item.is-active { background: var(--hover); }
 .rs-item small { color: var(--muted); font-size: 12px; }
 .rs-empty { padding: 8px 10px; color: var(--muted); }
+
+/* --------------------------------------------------------------------------
+   البند 88: الوضع الأسود الكامل (OLED). يُرسم فوق الوضع الداكن (data-theme="dark" وdata-theme-pref="black"):
+   الخلفية والأسطح سوداء خالصة (بكسلات مطفأة على شاشات OLED)، والفصل بين العناصر بحدود رفيعة بدل الظلال والأسطح الرمادية؛
+   ألوان الهوية والأزرار من استوديو التصميم كما هي (القائمة الملونة والشريط الملون يبقيان بلونهما)
+   -------------------------------------------------------------------------- */
+:root[data-theme="dark"][data-theme-pref="black"] {
+  --bg: #000; --surface: #000; --surface-2: #0a0a0a; --surface-3: #141414; --hover: #111;
+  --border: #1f1f1f; --border-strong: #2f2f2f;
+  --shadow-xs: none; --shadow-sm: none; --shadow: none; --shadow-lg: 0 0 0 1px #2a2a2a;
+  --chart-grid: #1a1a1a; --sk-shine: rgba(255, 255, 255, .06);
+  --sidebar-bg: #000; --nav-glow: transparent;
+}
+[data-theme-pref="black"][data-sidebar-style="dark"] .sidebar, [data-theme-pref="black"][data-sidebar-style="glass"] .sidebar { --sidebar-bg: #000; }
+[data-theme-pref="black"] .shell::before { display: none; }
+[data-theme-pref="black"] .panel, [data-theme-pref="black"] .stat, [data-theme-pref="black"] .section-link { box-shadow: none; }
+[data-theme-pref="black"] .sidebar { --nav-glow: transparent; }
+[data-theme-pref="black"] .av { --av-bg: hsl(var(--h) 30% 18%); }
+@supports (color: oklch(0 0 0)) { [data-theme-pref="black"] .av { --av-bg: oklch(.26 .06 var(--h)); } }

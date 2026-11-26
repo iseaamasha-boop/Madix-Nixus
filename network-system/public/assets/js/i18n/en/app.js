@@ -31,15 +31,17 @@
   // ------------------------------------------------------------------------
   // Light mode/الداكن: Light دائماً ما لم يختر User الداكن, and no يتبع إعداد Device
   // ------------------------------------------------------------------------
+  // الأسود الكامل (OLED, البند 88) يُرسم فوق الداكن: data-theme="dark" وdata-theme-pref="black"
   function applyTheme(pref) {
-    var t = pref === 'dark' ? 'dark' : 'light';
+    var t = pref === 'dark' || pref === 'black' ? 'dark' : 'light';
     root.setAttribute('data-theme', t);
-    root.setAttribute('data-theme-pref', t);
-    doc.dispatchEvent(new CustomEvent('themechange', { detail: { theme: t } }));
+    root.setAttribute('data-theme-pref', pref === 'black' ? 'black' : t);
+    doc.dispatchEvent(new CustomEvent('themechange', { detail: { theme: t, pref: pref } }));
   }
   on(doc, 'click', '[data-theme-set]', function (e, el) {
     e.preventDefault();
-    var pref = el.getAttribute('data-theme-set') === 'dark' ? 'dark' : 'light';
+    var pref = el.getAttribute('data-theme-set');
+    pref = pref === 'dark' || pref === 'black' ? pref : 'light';
     applyTheme(pref);
     try { localStorage.setItem('sn-theme', pref); } catch (err) {}
     if (doc.querySelector('meta[name="auth"]')) { api(base + '/account/theme', { method: 'POST', data: { theme: pref }, silent: true }).catch(function () {}); }

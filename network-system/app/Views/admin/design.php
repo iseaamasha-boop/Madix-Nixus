@@ -191,6 +191,7 @@ $fields = static function (string $name, array $opts) use ($t): string {
             <div class="field col-6"><label for="dz-speed">مدة الحركة</label><div class="input-group"><input class="input" id="dz-speed" type="number" name="speed" min="120" max="260" step="20" value="<?= e($t['speed']) ?>"><span class="input-addon">ملي ثانية</span></div></div>
             <div class="field col-6"><label class="switch"><input type="checkbox" name="page_fx" value="1"<?= checked($t['page_fx'] === '1') ?>><span class="track"></span><span>انتقال ناعم بين الصفحات</span></label></div>
             <div class="field col-6"><label class="switch"><input type="checkbox" name="haptics" value="1"<?= checked($t['haptics'] === '1') ?>><span class="track"></span><span>الاهتزاز عند اللمس</span></label></div>
+            <div class="field col-6"><label class="switch"><input type="checkbox" name="oled" value="1"<?= checked($t['oled'] === '1') ?>><span class="track"></span><span>الوضع الأسود الكامل (OLED)</span></label></div>
           </div>
         </div>
       </div>
@@ -204,6 +205,7 @@ $fields = static function (string $name, array $opts) use ($t): string {
             <div class="segmented dz-seg-sm" role="group" aria-label="الوضع">
               <label><input type="radio" name="_pv_mode" value="light" checked data-pv-mode><span><?= icon('sun', 'icon-sm') ?>فاتح</span></label>
               <label><input type="radio" name="_pv_mode" value="dark" data-pv-mode><span><?= icon('moon', 'icon-sm') ?>داكن</span></label>
+              <label><input type="radio" name="_pv_mode" value="black" data-pv-mode><span><?= icon('sun-moon', 'icon-sm') ?>أسود</span></label>
             </div>
             <div class="segmented dz-seg-sm" role="group" aria-label="الشاشة">
               <label><input type="radio" name="_pv_device" value="desktop" checked data-pv-device><span><?= icon('monitor', 'icon-sm') ?></span></label>

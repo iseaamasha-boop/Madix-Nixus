@@ -72,4 +72,44 @@ return [
         T::ok(is_array($p['json']['av'] ?? null) && count($p['json']['av']) === 2 && is_int($p['json']['av'][1]), 'preview card has initials and colour');
         T::eq(avatar_hue($id), $p['json']['av'][1], 'same colour as the list');
     },
+    'black OLED mode: chosen per employee, offered by the design studio, dark when turned off' => static function (Env $env): void {
+        $t = $env->tenant('a');
+        $pdo = $env->db($t['db']);
+        $h = $env->owner('a');
+        $json = ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
+        $owner = static fn () => $pdo->query('SELECT theme FROM employees WHERE is_owner = 1 ORDER BY id LIMIT 1')->fetchColumn();
+        $page = $h->request('GET', $t['path'] . '/');
+        T::contains('data-theme-set="black"', $page['body'], 'third option in the theme menu');
+        T::status(200, $h->post($t['path'] . '/account/theme', ['theme' => 'black'], $json));
+        T::eq('black', $owner(), 'stored for the employee');
+        $page = $h->request('GET', $t['path'] . '/');
+        T::contains('data-theme-pref="black"', $page['body'], 'page opens in black');
+        T::contains('<option value="black" selected', $h->request('GET', $t['path'] . '/account')['body'], 'account page shows it');
+        T::status(422, $h->post($t['path'] . '/account/theme', ['theme' => 'purple'], $json), 'unknown value refused');
+        T::eq('black', $owner(), 'unchanged after a refused value');
+        // استوديو التصميم يطفئ الخيار: الصفحة داكنة ولا زر أسود، واختيار الموظف محفوظ كما هو
+        $a = $env->admin();
+        $a->get('/admin/design');
+        T::status(302, $a->post('/admin/design', ['oled' => '0']), 'design saved');
+        $page = $h->request('GET', $t['path'] . '/');
+        T::contains('data-theme-pref="dark"', $page['body'], 'falls back to dark');
+        T::contains('data-oled="0"', $page['body'], 'pages know it is off');
+        T::notContains('data-theme-set="black"', $page['body'], 'no black option');
+        T::eq('black', $owner(), 'employee choice kept');
+        $m = json_decode((string) $env->http()->request('GET', $t['path'] . '/api/app/v1/info')['body'], true);
+        T::ok(isset($m['network']['oled']) && $m['network']['oled'] === false, 'app API: new field');
+        foreach (['name', 'logo', 'currency', 'phone', 'primary', 'accent'] as $k) {
+            T::ok(array_key_exists($k, $m['network'] ?? []), 'app API keeps ' . $k);
+        }
+        T::status(302, $a->post('/admin/design', ['oled' => '1']), 'design restored');
+        $page = $h->request('GET', $t['path'] . '/');
+        T::contains('data-theme-pref="black"', $page['body'], 'black again');
+        T::notContains('data-oled=', $page['body'], 'nothing extra on the page when available');
+        T::status(200, $h->post($t['path'] . '/account/theme', ['theme' => 'light'], $json));
+    },
+    'migration 19 adds the black value once' => static function (Env $env): void {
+        $t = $env->tenant('a');
+        $type = (string) $env->db($t['db'])->query("SELECT COLUMN_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'employees' AND COLUMN_NAME = 'theme'")->fetchColumn();
+        T::eq("enum('system','light','dark','black')", $type, 'theme values');
+    },
 ];

@@ -2,7 +2,7 @@
 /**
  * معاينة حيّة للتصميم: صفحة نموذجية من النظام بالقيم المختارة (تُعرض داخل إطار في صفحة التصاميم).
  * @var array $t القيم بعد التنقية
- * @var string $mode light|dark
+ * @var string $mode light|dark|black
  */
 use App\Core\Theme;
 
@@ -20,7 +20,7 @@ $rows = [
     ['602813899012', 'باقة ساعة', 'badge-danger', 'منتهي', '640 MB'],
 ];
 ?><!doctype html>
-<html <?= \App\Core\Lang::htmlAttrs() ?> data-theme="<?= e($mode) ?>" data-theme-pref="<?= e($mode) ?>"<?= Theme::attrs($t) ?>>
+<html <?= \App\Core\Lang::htmlAttrs() ?> data-theme="<?= e($mode === 'light' ? 'light' : 'dark') ?>" data-theme-pref="<?= e($mode) ?>"<?= Theme::attrs($t) ?>>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

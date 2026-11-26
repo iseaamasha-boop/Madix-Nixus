@@ -40,6 +40,7 @@ if ($twoFactor['setup'] !== null) {
           <select class="input" id="theme" name="theme">
             <option value="light"<?= selected($user['theme'], 'light') ?>>فاتح</option>
             <option value="dark"<?= selected($user['theme'], 'dark') ?>>داكن</option>
+            <?php if (\App\Core\Theme::current()['oled'] === '1' || $user['theme'] === 'black'): ?><option value="black"<?= selected($user['theme'], 'black') ?>>أسود (OLED)</option><?php endif; ?>
           </select>
         </div>
 

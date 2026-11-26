@@ -41,8 +41,12 @@ async function login(browser, kind) {
   }
   await Promise.all([page.waitForNavigation(), page.click('button[type=submit]')]);
   if (/\/login/.test(page.url())) { throw new Error('login failed: ' + kind); }
-  if (kind === 'net' && THEME !== 'light') {
-    // الوضع المختار يُحفظ للمستخدم على الخادم
+  if (kind !== 'net') {
+    // لوحة المسؤول وصفحات الدخول تقرأ الوضع من ذاكرة المتصفح
+    await page.evaluate((t) => { try { localStorage.setItem('sn-theme', t); } catch (e) {} }, THEME);
+  }
+  if (kind === 'net') {
+    // الوضع المختار يُحفظ للمستخدم على الخادم (والفاتح أيضاً، فلا يبقى وضع تشغيل سابق)
     await page.evaluate(async (t) => {
       const csrf = document.querySelector('meta[name="csrf-token"]').content;
       const base = document.querySelector('meta[name="base-url"]').content;

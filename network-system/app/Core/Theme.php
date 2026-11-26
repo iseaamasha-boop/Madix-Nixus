@@ -168,6 +168,8 @@ final class Theme
         'design.speed'         => '200',
         'design.page_fx'       => '0',
         'design.haptics'       => '1',
+        // البند 88: إتاحة الوضع الأسود الكامل (OLED) للمستخدمين
+        'design.oled'          => '1',
     ];
 
     /** مراجعة إعدادات الحركة: تُحفظ مع صفحة التصاميم (2 = بعد تخفيف التنقل بين الصفحات) */
@@ -223,6 +225,7 @@ final class Theme
         $out['speed'] = (string) max(120, min(260, (int) $out['speed']));
         $out['page_fx'] = $out['page_fx'] === '1' ? '1' : '0';
         $out['haptics'] = $out['haptics'] === '1' ? '1' : '0';
+        $out['oled'] = $out['oled'] === '0' ? '0' : '1';
         return $out;
     }
 
@@ -265,7 +268,31 @@ final class Theme
         return ' data-motion="' . e($t['motion']) . '" data-density="' . e($t['density']) . '" data-radius="' . e($t['radius']) . '" data-sidebar-style="' . e($t['sidebar']) . '"'
             . ' data-skin="' . e($t['skin']) . '" data-sidebar-shape="' . e($t['sidebar_shape']) . '" data-nav-style="' . e($t['nav_style']) . '"'
             . ' data-topbar="' . e($t['topbar']) . '" data-bg="' . e($t['background']) . '" data-buttons="' . e($t['buttons']) . '" data-font-size="' . e($t['font_size']) . '"'
-            . ' data-page-fx="' . ($t['page_fx'] === '1' ? '1' : '0') . '" data-haptics="' . ($t['haptics'] === '1' ? '1' : '0') . '"';
+            . ' data-page-fx="' . ($t['page_fx'] === '1' ? '1' : '0') . '" data-haptics="' . ($t['haptics'] === '1' ? '1' : '0') . '"'
+            . (($t['oled'] ?? '1') === '0' ? ' data-oled="0"' : '');
+    }
+
+    /**
+     * البند 88: مظهر المستخدم المعتمد: light أو dark أو black (الأسود الكامل يحتاج إتاحته في استوديو التصميم، وإلا فهو داكن).
+     * الأسود يُرسم فوق الوضع الداكن: data-theme="dark" وdata-theme-pref="black".
+     */
+    public static function pref(?string $saved): string
+    {
+        if ($saved === 'black') {
+            return (self::current()['oled'] ?? '1') === '1' ? 'black' : 'dark';
+        }
+        return $saved === 'dark' ? 'dark' : 'light';
+    }
+
+    /** أزرار اختيار المظهر في القوائم (فاتح، داكن، وأسود إن كان متاحاً) */
+    public static function switcher(): string
+    {
+        $html = '<button type="button" class="dropdown-item" data-theme-set="light">' . icon('sun') . 'فاتح</button>'
+            . '<button type="button" class="dropdown-item" data-theme-set="dark">' . icon('moon') . 'داكن</button>';
+        if ((self::current()['oled'] ?? '1') === '1') {
+            $html .= '<button type="button" class="dropdown-item" data-theme-set="black">' . icon('sun-moon') . 'أسود</button>';
+        }
+        return $html;
     }
 
     /** نطاقا الحروف: العربية، واللاتينية والأرقام */

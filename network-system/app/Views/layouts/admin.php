@@ -87,10 +87,12 @@ foreach ($nav as [, $items]) {
 <script>
 (function () {
   // الوضع فاتح دائماً ما لم يُختر الداكن يدوياً (لا يتبع إعداد الجهاز)
-  var p = 'light';
-  try { p = localStorage.getItem('sn-theme') === 'dark' ? 'dark' : 'light'; } catch (e) {}
-  document.documentElement.setAttribute('data-theme', p);
-  document.documentElement.setAttribute('data-theme-pref', p);
+  var p = 'light', r = document.documentElement;
+  try { p = localStorage.getItem('sn-theme') || 'light'; } catch (e) {}
+  if (p === 'black' && r.getAttribute('data-oled') === '0') { p = 'dark'; }
+  if (p !== 'dark' && p !== 'black') { p = 'light'; }
+  r.setAttribute('data-theme', p === 'light' ? 'light' : 'dark');
+  r.setAttribute('data-theme-pref', p);
 })();
 </script>
 <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
@@ -152,8 +154,7 @@ foreach ($nav as [, $items]) {
         <div class="dropdown">
           <button type="button" class="icon-btn" data-dropdown aria-label="المظهر"><?= icon('sun-moon') ?></button>
           <div class="dropdown-menu">
-            <button type="button" class="dropdown-item" data-theme-set="light"><?= icon('sun') ?>فاتح</button>
-            <button type="button" class="dropdown-item" data-theme-set="dark"><?= icon('moon') ?>داكن</button>
+            <?= Theme::switcher() ?>
           </div>
         </div>
         <div class="dropdown">

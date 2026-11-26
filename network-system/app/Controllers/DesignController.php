@@ -31,6 +31,7 @@ final class DesignController extends Controller
         $in['speed'] = (string) $request->int('speed', 200);
         $in['page_fx'] = $request->bool('page_fx') ? '1' : '0';
         $in['haptics'] = $request->bool('haptics') ? '1' : '0';
+        $in['oled'] = $request->bool('oled') ? '1' : '0';
         return Theme::sanitize($in);
     }
 
@@ -56,7 +57,7 @@ final class DesignController extends Controller
     public function preview(Request $request): Response
     {
         $t = $this->values($request);
-        $mode = $request->str('mode') === 'dark' ? 'dark' : 'light';
+        $mode = in_array($request->str('mode'), ['dark', 'black'], true) ? $request->str('mode') : 'light';
         // المعاينة بلغة الأنظمة المختارة في النموذج
         \App\Core\Lang::set($request->str('locale') === 'en' ? 'en' : 'ar');
         $html = \App\Core\View::render('admin/design-preview', ['t' => $t, 'mode' => $mode], '');
