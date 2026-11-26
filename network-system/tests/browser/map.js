@@ -42,9 +42,9 @@ async function open(browser, reduced) {
   const t0 = Date.now();
   await page.waitForSelector('.leaflet-marker-icon .mk-site', { timeout: 15000 });
   const ms = Date.now() - t0;
+  // الوضع المطلوب صراحة (حتى الفاتح): الوضع المحفوظ للحساب قد يكون غيره من اختبار سابق
   await page.evaluate((t) => {
-    if (t === 'light') { return; }
-    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
     document.documentElement.setAttribute('data-theme-pref', t);
   }, THEME);
   await page.waitForTimeout(800);
