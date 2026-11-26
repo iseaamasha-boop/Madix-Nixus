@@ -111,15 +111,19 @@ final class SiteController extends Controller
     {
         $site = DB::row('SELECT * FROM sites WHERE id = ?', [$id]);
         $this->notFoundUnless($site);
-        $delete = static function () use ($id, $site): void {
+        // روابط الخريطة التي طرفها هذا الموقع تُحذف معه وتعود بالتراجع
+        $mapLinks = "(a_type = 'site' AND a_id = ?) OR (b_type = 'site' AND b_id = ?)";
+        $extra = [['map_links', $mapLinks, [$id, $id]]];
+        $delete = static function () use ($id, $site, $mapLinks): void {
+            DB::delete('map_links', $mapLinks, [$id, $id]);
             DB::delete('sites', 'id = ?', [$id]);
             Audit::log('site.delete', 'حذف الموقع ' . $site['name'], 'site', $id);
         };
         if ($request->wantsJson()) {
-            $token = $this->undoable('sites', $id, 'site.delete', 'حذف الموقع ' . $site['name'], 'map.manage', $delete);
+            $token = $this->undoable('sites', $id, 'site.delete', 'حذف الموقع ' . $site['name'], 'map.manage', $delete, null, $extra);
             return json_response(['ok' => true, 'message' => 'تم حذف الموقع.', 'undo' => $token]);
         }
-        return $this->deleteWithUndo('sites', $id, 'site.delete', 'حذف الموقع ' . $site['name'], 'map.manage', $delete, 'تم حذف الموقع.', '/sites');
+        return $this->deleteWithUndo('sites', $id, 'site.delete', 'حذف الموقع ' . $site['name'], 'map.manage', $delete, 'تم حذف الموقع.', '/sites', [], null, $extra);
     }
 
     public function linkStore(Request $request): Response

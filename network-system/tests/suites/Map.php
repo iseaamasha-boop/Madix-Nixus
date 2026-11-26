@@ -119,6 +119,77 @@ return [
         T::eq(date('Y-m-d'), $h->request('GET', $t['path'] . '/map/replay?date=' . $old, null, $json)['json']['date'], 'outside retention: today instead');
         T::eq(date('Y-m-d'), $h->request('GET', $t['path'] . '/map/replay?date=bad', null, $json)['json']['date'], 'invalid date: today');
     },
+    'map routers by name and links between any points: scope, audit, undo' => static function (Env $env) use ($json): void {
+        $t = $env->tenant('a');
+        $pdo = $env->db($t['db']);
+        $h = $env->owner('a');
+        $h->get($t['path'] . '/map');
+        $data = static fn ($h) => $h->request('GET', $t['path'] . '/map/data', null, $json)['json'];
+        // راوتر على الخريطة باسمه فقط
+        $r = $h->ajax('POST', $t['path'] . '/map/nodes', ['name' => 'راوتر السطح', 'lat' => '31.531', 'lng' => '34.471']);
+        T::status(200, $r);
+        $node = (int) $r['json']['id'];
+        T::eq(422, $h->ajax('POST', $t['path'] . '/map/nodes', ['name' => '', 'lat' => '31.5', 'lng' => '34.4'])['status'], 'name required');
+        T::eq(422, $h->ajax('POST', $t['path'] . '/map/nodes', ['name' => 'x', 'lat' => '200', 'lng' => '34.4'])['status'], 'valid coordinates');
+        T::status(200, $h->ajax('POST', $t['path'] . '/map/nodes/' . $node, ['name' => 'راوتر السطح 2']));
+        $nodes = array_column($data($h)['nodes'], 'name', 'id');
+        T::eq('راوتر السطح 2', $nodes[$node] ?? null, 'renamed, position kept');
+        // رابط بين الراوتر وجهاز MikroTik، وبين موقعين (في روابط المواقع كما كانت)
+        $site = (int) $pdo->query('SELECT MIN(id) FROM sites')->fetchColumn();
+        $pdo->exec('UPDATE sites SET lat = 31.5, lng = 34.46 WHERE id = ' . $site);
+        $pdo->exec("INSERT INTO sites (name, type, lat, lng, created_at) VALUES ('موقع الرابط', 'tower', 31.54, 34.48, NOW())");
+        $site2 = (int) $pdo->lastInsertId();
+        $routers = array_map('intval', $pdo->query('SELECT id FROM routers ORDER BY id LIMIT 2')->fetchAll(PDO::FETCH_COLUMN));
+        $pdo->exec('UPDATE routers SET lat = 31.52, lng = 34.47 WHERE id IN (' . implode(',', $routers) . ')');
+        $r = $h->ajax('POST', $t['path'] . '/map/links', ['a' => 'node:' . $node, 'b' => 'router:' . $routers[0], 'type' => 'cable', 'capacity' => '1 Gbps']);
+        T::status(200, $r);
+        $link = (int) $r['json']['id'];
+        T::eq(422, $h->ajax('POST', $t['path'] . '/map/links', ['a' => 'router:' . $routers[0], 'b' => 'node:' . $node, 'type' => 'cable'])['status'], 'no duplicate link (either direction)');
+        T::eq(422, $h->ajax('POST', $t['path'] . '/map/links', ['a' => 'node:' . $node, 'b' => 'node:' . $node, 'type' => 'cable'])['status'], 'two different ends');
+        T::eq(422, $h->ajax('POST', $t['path'] . '/map/links', ['a' => 'node:999999', 'b' => 'site:' . $site, 'type' => 'cable'])['status'], 'existing ends only');
+        T::eq(422, $h->ajax('POST', $t['path'] . '/map/links', ['a' => 'users:1', 'b' => 'site:' . $site, 'type' => 'cable'])['status'], 'known kinds only');
+        $before = (int) $pdo->query('SELECT COUNT(*) FROM site_links')->fetchColumn();
+        T::status(200, $h->ajax('POST', $t['path'] . '/map/links', ['a' => 'site:' . $site, 'b' => 'site:' . $site2, 'type' => 'fiber']));
+        T::eq($before + 1, (int) $pdo->query('SELECT COUNT(*) FROM site_links')->fetchColumn(), 'site to site: in the site links');
+        $links = $data($h)['links'];
+        $ml = array_values(array_filter($links, static fn ($l) => $l['id'] === 'm' . $link))[0] ?? null;
+        T::ok($ml !== null && $ml['a']['of'] === 'node' && $ml['b']['of'] === 'router' && $ml['b']['id'] === $routers[0], 'link drawn between the router and the MikroTik device');
+        T::eq('1 Gbps', $ml['capacity'] ?? null, 'capacity');
+        T::ok((int) $pdo->query("SELECT COUNT(*) FROM audit_log WHERE action IN ('map.node', 'map.link')")->fetchColumn() >= 3, 'in the audit log');
+        // موظف محصور بجهاز آخر: لا يرى الرابط ولا يربط جهازاً خارج نطاقه
+        $env->employee('a', 'mapnode', 'MapNodePass123', ['map.view', 'map.manage'], [$routers[1]]);
+        $e = $env->owner('a', ['mapnode', 'MapNodePass123']);
+        $e->get($t['path'] . '/map');
+        $ids = array_column($data($e)['links'], 'id');
+        T::ok(!in_array('m' . $link, $ids, true), 'scoped employee: link to another MikroTik device hidden');
+        T::eq(403, $e->ajax('POST', $t['path'] . '/map/links', ['a' => 'node:' . $node, 'b' => 'router:' . $routers[0], 'type' => 'cable'])['status'], 'cannot link another MikroTik device');
+        T::eq(403, $e->ajax('POST', $t['path'] . '/map/links/' . $link . '/delete', [])['status'], 'cannot delete its link');
+        $env->employee('a', 'mapview', 'MapViewPass123', ['map.view']);
+        $v = $env->owner('a', ['mapview', 'MapViewPass123']);
+        $v->get($t['path'] . '/map');
+        T::eq(403, $v->ajax('POST', $t['path'] . '/map/nodes', ['name' => 'x', 'lat' => '31.5', 'lng' => '34.4'])['status'], 'view only: cannot add');
+        T::notContains('data-router-form', $v->get($t['path'] . '/map')['body'], 'view only: no add form');
+        // حذف الراوتر يحذف روابطه، والتراجع يعيدهما
+        $r = $h->ajax('POST', $t['path'] . '/map/nodes/' . $node . '/delete', []);
+        T::status(200, $r);
+        T::eq(0, (int) $pdo->query("SELECT COUNT(*) FROM map_links WHERE id = $link")->fetchColumn(), 'its links deleted with it');
+        $u = $h->request('POST', $t['path'] . '/undo/' . $r['json']['undo'], [], ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest', 'Content-Type' => 'application/json', 'X-CSRF-Token' => $h->csrf]);
+        T::status(200, $u);
+        T::eq(1, (int) $pdo->query("SELECT COUNT(*) FROM map_nodes WHERE id = $node")->fetchColumn(), 'undo: router back');
+        T::eq(1, (int) $pdo->query("SELECT COUNT(*) FROM map_links WHERE id = $link")->fetchColumn(), 'undo: its link back');
+        // حذف الموقع: روابط الخريطة معه، وتعود بالتراجع
+        $r = $h->ajax('POST', $t['path'] . '/map/links', ['a' => 'node:' . $node, 'b' => 'site:' . $site2, 'type' => 'wireless']);
+        $siteLink = (int) $r['json']['id'];
+        $r = $h->ajax('POST', $t['path'] . '/sites/' . $site2 . '/delete', []);
+        T::eq(0, (int) $pdo->query("SELECT COUNT(*) FROM map_links WHERE id = $siteLink")->fetchColumn(), 'site deleted: its map links too');
+        $h->request('POST', $t['path'] . '/undo/' . $r['json']['undo'], [], ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest', 'Content-Type' => 'application/json', 'X-CSRF-Token' => $h->csrf]);
+        T::eq(1, (int) $pdo->query("SELECT COUNT(*) FROM map_links WHERE id = $siteLink")->fetchColumn(), 'undo: site map link back');
+        // تحريك الراوتر بالسحب
+        T::status(200, $h->ajax('POST', $t['path'] . '/map/position', ['type' => 'node', 'id' => $node, 'lat' => '31.533', 'lng' => '34.472']));
+        T::eq('31.5330000', (string) $pdo->query("SELECT lat FROM map_nodes WHERE id = $node")->fetchColumn(), 'moved');
+        T::status(200, $h->ajax('POST', $t['path'] . '/map/links/' . $link . '/delete', []));
+        T::eq(0, (int) $pdo->query("SELECT COUNT(*) FROM map_links WHERE id = $link")->fetchColumn(), 'link deleted');
+    },
     'map motion: transform and opacity, reduced motion, night map' => static function (Env $env): void {
         $css = (string) file_get_contents(PUBLIC_PATH . '/assets/css/pages/map.css');
         T::contains('@keyframes site-wave { from { transform: scale(1); opacity: .9; } to { transform: scale(2.1); opacity: 0; } }', $css, 'tower wave');

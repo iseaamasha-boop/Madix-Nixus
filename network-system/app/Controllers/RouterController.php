@@ -218,6 +218,7 @@ final class RouterController extends Controller
         // معالج ربط لم يكتمل: يُلغى رمزه، ويُحذف نفقه الذي أنشأه المعالج ولم يُستخدم
         $connect = \App\Services\RouterConnect::state($id);
         DB::delete('routers', 'id = ?', [$id]);
+        DB::delete('map_links', "(a_type = 'router' AND a_id = ?) OR (b_type = 'router' AND b_id = ?)", [$id, $id]);
         if ($connect !== null) {
             \App\Services\RouterConnect::forget($id);
             if (empty($connect['ready_at']) && !empty($connect['tunnel_id'])) {

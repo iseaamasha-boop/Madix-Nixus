@@ -7,6 +7,7 @@
  * - 59: نقاط ضوء تتحرك بـ transform على الروابط التي عليها حركة، وتُعاد بعد التكبير.
  * - 60: الخريطة الليلية تتبع الوضع الداكن والأسود.
  * - 93: طبقة حرارية عند تفعيلها فقط؛ 94: شريط إعادة تشغيل اليوم بخطوات 15 دقيقة.
+ * - راوتر باسمه على الخريطة، ورابط بينه وبين جهاز MikroTik بالنقر على الطرفين، وحذفه مع «تراجع».
  * - تقليل الحركة: بلا موجة ولا نقاط.
  */
 'use strict';
@@ -122,6 +123,43 @@ async function open(browser, reduced) {
   ok(s2.labels === labels0, 'tower labels updated in place (no duplicates)');
   await p.click('[data-rp-close]');
   ok(await p.evaluate(() => !document.querySelector('.map-replay')), 'replay closes back to the live map');
+  // راوتر على الخريطة باسمه، ثم رابط بينه وبين جهاز MikroTik بالنقر على الطرفين
+  const NAME = 'راوتر اختبار ' + Date.now() % 100000;
+  await p.click('[data-map-act="router"]');
+  await p.evaluate(() => { const c = SNMap.map.getCenter(); SNMap.map.fire('click', { latlng: L.latLng(c.lat + 0.0007, c.lng + 0.0009) }); });
+  await p.waitForSelector('#router-modal[open]', { timeout: 5000 });
+  if (await p.isVisible('#router-modal [data-router-kinds]')) { await p.click('#router-modal label:has(input[name="kind"][value="node"])'); }
+  await p.fill('#rm-node', NAME);
+  await p.click('#router-modal [data-router-submit]');
+  await p.waitForFunction((n) => (SNMap.data().nodes || []).some((x) => x.name === n), NAME, { timeout: 8000 }).catch(() => null);
+  const node = await p.evaluate((n) => { const x = (SNMap.data().nodes || []).filter((y) => y.name === n)[0]; return x ? x.id : null; }, NAME);
+  ok(node !== null, 'router added to the map by name');
+  await p.waitForTimeout(400);
+  ok(await p.evaluate((id) => { const m = SNMap.markers.nodes[id]; const t = m && m.getTooltip(); return !!(m && m.getElement().querySelector('.mk-node') && t && t.getContent()); }, node), 'router marker with its name label');
+  await p.click('[data-map-act="link"]');
+  const rid = await p.evaluate(() => { const r = SNMap.data().routers[0]; return r ? r.id : null; });
+  await p.evaluate((id) => { SNMap.markers.nodes[id].fire('click'); }, node);
+  ok(await p.evaluate((id) => SNMap.markers.nodes[id].getElement().classList.contains('is-picked'), node), 'first end picked');
+  await p.evaluate((id) => { SNMap.markers.routers[id].fire('click'); }, rid);
+  await p.waitForSelector('#link-modal[open]', { timeout: 5000 });
+  const ends = await p.evaluate(() => [document.querySelector('#lm-a').value, document.querySelector('#lm-b').value]);
+  ok(ends[0] === 'node:' + node && ends[1] === 'router:' + rid, 'link form filled with both ends (' + ends.join(' → ') + ')');
+  const linksBefore = await p.evaluate(() => SNMap.data().links.length);
+  await p.click('#link-modal button[type=submit]');
+  await p.waitForFunction((n) => SNMap.data().links.length > n, linksBefore, { timeout: 8000 }).catch(() => null);
+  ok(await p.evaluate((id) => SNMap.data().links.some((l) => l.a.of === 'node' && l.a.id === id), node), 'link drawn between the router and the MikroTik device');
+  // حذف الراوتر (وروابطه) ثم «تراجع»
+  await p.evaluate((id) => { SNMap.markers.nodes[id].openPopup(); }, node);
+  await p.click('.leaflet-popup [data-pop="edit-node"]');
+  await p.waitForSelector('#router-modal[open] [data-node-delete]:not([hidden])', { timeout: 5000 });
+  await p.click('#router-modal [data-node-delete]');
+  await p.waitForFunction((id) => !(SNMap.data().nodes || []).some((x) => x.id === id), node, { timeout: 8000 }).catch(() => null);
+  ok(await p.evaluate((id) => !SNMap.markers.nodes[id] && !SNMap.data().links.some((l) => l.a.of === 'node' && l.a.id === id), node), 'router and its link removed');
+  await p.click('.toast .toast-action');
+  await p.waitForFunction((id) => (SNMap.data().nodes || []).some((x) => x.id === id), node, { timeout: 8000 }).catch(() => null);
+  ok(await p.evaluate((id) => !!SNMap.markers.nodes[id] && SNMap.data().links.some((l) => l.a.of === 'node' && l.a.id === id), node), 'undo brings back the router and its link');
+  // تنظيف بيانات العرض
+  await p.evaluate((id) => SN.api(SNMap.url('/map/nodes/' + id + '/delete'), { method: 'POST', data: {} }).then(() => true), node);
   ok(m.errors.length === 0, 'no JavaScript errors' + (m.errors.length ? ': ' + m.errors.join(' | ') : ''));
   await m.ctx.close();
 

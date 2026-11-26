@@ -276,6 +276,11 @@ return static function (Router $r): void {
     $r->post('/map/view', [MapController::class, 'saveView'], ['perm' => 'map.manage']);
     $r->post('/map/router', [MapController::class, 'placeRouter'], ['perm' => 'map.manage']);
     $r->post('/map/router/{id}/remove', [MapController::class, 'unplaceRouter'], ['perm' => 'map.manage']);
+    $r->post('/map/nodes', [MapController::class, 'nodeSave'], ['perm' => 'map.manage']);
+    $r->post('/map/nodes/{id}', [MapController::class, 'nodeSave'], ['perm' => 'map.manage']);
+    $r->post('/map/nodes/{id}/delete', [MapController::class, 'nodeDestroy'], ['perm' => 'map.manage']);
+    $r->post('/map/links', [MapController::class, 'linkStore'], ['perm' => 'map.manage']);
+    $r->post('/map/links/{id}/delete', [MapController::class, 'linkDestroy'], ['perm' => 'map.manage']);
     $r->get('/sites', [SiteController::class, 'index'], ['perm' => 'map.view']);
     $r->post('/sites/links', [SiteController::class, 'linkStore'], ['perm' => 'map.manage']);
     $r->post('/sites/links/{id}/delete', [SiteController::class, 'linkDestroy'], ['perm' => 'map.manage']);

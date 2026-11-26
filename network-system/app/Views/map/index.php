@@ -22,7 +22,6 @@ $config = [
     'positionUrl' => url('/map/position'),
     'viewUrl' => url('/map/view'),
     'sitesUrl' => url('/sites'),
-    'linksUrl' => url('/sites/links'),
     'base' => base_path(),
     'canManage' => $canManage,
     'canSubs' => can('subscribers.view'),
@@ -30,6 +29,8 @@ $config = [
     'linkTypes' => Geo::LINK_TYPES,
     'routers' => $routers,
     'routerUrl' => url('/map/router'),
+    'nodesUrl' => url('/map/nodes'),
+    'mapLinksUrl' => url('/map/links'),
     'canRename' => can('routers.manage'),
     // أدوات تُحمَّل عند الطلب فقط (البنود 93، 94، 92)
     'toolsSrc' => asset('js/map-tools.js'),
@@ -48,6 +49,7 @@ $config = [
       <div class="map-layers">
         <label class="map-layer"><input type="checkbox" data-layer="sites" checked><span class="mk mk-site mk-sm"><?= icon('radio-tower') ?></span><span class="grow">المواقع</span><b data-count="sites">0</b></label>
         <label class="map-layer"><input type="checkbox" data-layer="routers" checked><span class="mk mk-router is-online mk-sm"><?= icon('router') ?></span><span class="grow">أجهزة MikroTik</span><b data-count="routers">0</b></label>
+        <label class="map-layer"><input type="checkbox" data-layer="nodes" checked><span class="mk mk-node mk-sm"><?= icon('router') ?></span><span class="grow">راوترات</span><b data-count="nodes">0</b></label>
         <?php if (can('subscribers.view')): ?>
         <label class="map-layer"><input type="checkbox" data-layer="subscribers" checked><span class="mk-dot is-active"></span><span class="grow">المشتركون</span><b data-count="subscribers">0</b></label>
         <?php endif; ?>
@@ -112,9 +114,17 @@ $config = [
 
 <dialog class="modal" id="router-modal">
   <form data-router-form>
-    <div class="modal-head"><h3><?= icon('router') ?>إضافة جهاز MikroTik إلى الخريطة</h3><button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close><?= icon('x') ?></button></div>
-    <div class="modal-body">
-      <input type="hidden" name="lat"><input type="hidden" name="lng">
+    <div class="modal-head"><h3><?= icon('router') ?><span data-router-title>إضافة جهاز</span></h3><button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close><?= icon('x') ?></button></div>
+    <div class="modal-body stack" style="gap:14px">
+      <input type="hidden" name="lat"><input type="hidden" name="lng"><input type="hidden" name="node_id">
+      <div class="segmented is-block" data-router-kinds>
+        <label><input type="radio" name="kind" value="mikrotik" checked><span>جهاز MikroTik</span></label>
+        <label><input type="radio" name="kind" value="node"><span>راوتر</span></label>
+      </div>
+      <div data-kind-box="node" hidden>
+        <div class="field"><label for="rm-node">اسم الراوتر</label><input class="input" id="rm-node" name="node_name" maxlength="120" required></div>
+      </div>
+      <div data-kind-box="mikrotik">
       <?php if ($routers): ?>
       <div class="form-grid">
         <div class="field col-12"><label for="rm-id">الجهاز</label>
@@ -125,33 +135,34 @@ $config = [
         </div>
         <div class="field col-12"><label for="rm-name">الاسم على الخريطة</label>
           <input class="input" id="rm-name" name="name" maxlength="100" required<?= can('routers.manage') ? '' : ' readonly' ?>>
-          <span class="hint"><?= can('routers.manage') ? 'يتغير اسم الجهاز في النظام كله.' : 'تعديل الاسم لمن يملك صلاحية إدارة أجهزة MikroTik.' ?></span>
         </div>
       </div>
       <?php else: ?>
       <div class="empty" style="padding:18px 0"><?= icon('router') ?><div>لا توجد أجهزة MikroTik في النظام بعد.</div></div>
       <?php endif; ?>
+      </div>
       <div class="map-coords"><?= icon('map-pin') ?><span class="mono" dir="ltr" data-router-coords>—</span></div>
     </div>
     <div class="modal-foot">
-      <?php if (can('routers.manage')): ?><a class="btn btn-ghost" href="<?= e(url('/routers/create')) ?>" data-router-new><?= icon('plus') ?>جهاز جديد</a><?php endif; ?>
+      <?php if (can('routers.manage')): ?><a class="btn btn-ghost" href="<?= e(url('/routers/create')) ?>" data-router-new data-kind-only="mikrotik"><?= icon('plus') ?>جهاز جديد</a><?php endif; ?>
+      <button type="button" class="btn btn-ghost text-danger" data-node-delete hidden><?= icon('trash-2') ?>حذف</button>
       <span class="grow"></span>
       <button type="button" class="btn" data-modal-close>إلغاء</button>
-      <?php if ($routers): ?><button type="submit" class="btn btn-primary"><?= icon('check') ?>إضافة</button><?php endif; ?>
+      <button type="submit" class="btn btn-primary" data-router-submit<?= $routers ? '' : ' data-needs-routers' ?>><?= icon('check') ?>حفظ</button>
     </div>
   </form>
 </dialog>
 
 <dialog class="modal" id="link-modal">
   <form data-link-form>
-    <div class="modal-head"><h3><?= icon('waypoints') ?>رابط بين موقعين</h3><button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close><?= icon('x') ?></button></div>
+    <div class="modal-head"><h3><?= icon('waypoints') ?>رابط</h3><button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close><?= icon('x') ?></button></div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="field col-6"><label for="lm-a">من</label>
-          <select class="input" id="lm-a" name="site_a" required><option value="">—</option><?php foreach ($sites as $id => $name): ?><option value="<?= (int) $id ?>"><?= e($name) ?></option><?php endforeach; ?></select>
+          <select class="input" id="lm-a" name="a" required data-link-end></select>
         </div>
         <div class="field col-6"><label for="lm-b">إلى</label>
-          <select class="input" id="lm-b" name="site_b" required><option value="">—</option><?php foreach ($sites as $id => $name): ?><option value="<?= (int) $id ?>"><?= e($name) ?></option><?php endforeach; ?></select>
+          <select class="input" id="lm-b" name="b" required data-link-end></select>
         </div>
         <div class="field col-6"><label for="lm-type">النوع</label>
           <select class="input" id="lm-type" name="type"><?php foreach (Geo::LINK_TYPES as $k => $label): ?><option value="<?= e($k) ?>"><?= e($label) ?></option><?php endforeach; ?></select>

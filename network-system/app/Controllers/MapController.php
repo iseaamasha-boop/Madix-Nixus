@@ -21,7 +21,6 @@ final class MapController extends Controller
         return view('map/index', [
             'view' => Geo::view(),
             'areas' => DB::pairs('SELECT id, name FROM areas ORDER BY name'),
-            'sites' => Geo::sitePairs(),
             // أجهزة MikroTik للإضافة على الخريطة: ما ليس له موقع أولاً
             'routers' => array_map(static fn ($r) => ['id' => (int) $r['id'], 'name' => $r['name'], 'placed' => (bool) $r['placed']], DB::rows(
                 "SELECT r.id, r.name, (COALESCE(r.lat, s.lat) IS NOT NULL) AS placed FROM routers r LEFT JOIN sites s ON s.id = r.site_id WHERE 1 = 1$rScope ORDER BY placed, r.name",
@@ -72,6 +71,157 @@ final class MapController extends Controller
         DB::update('routers', ['lat' => null, 'lng' => null, 'updated_at' => now()], 'id = ?', [$id]);
         Audit::log('map.move', 'إزالة جهاز MikroTik ' . $router['name'] . ' من الخريطة', 'router', $id);
         return json_response(['ok' => true, 'message' => 'تمت إزالة الجهاز من الخريطة.']);
+    }
+
+    /** إحداثيات من الطلب، أو null إن كانت غير صحيحة */
+    private static function latLng(Request $request): ?array
+    {
+        $lat = trim(latin_digits($request->str('lat')));
+        $lng = trim(latin_digits($request->str('lng')));
+        if (!is_numeric($lat) || !is_numeric($lng) || (float) $lat < -90 || (float) $lat > 90 || (float) $lng < -180 || (float) $lng > 180) {
+            return null;
+        }
+        return [round((float) $lat, 7), round((float) $lng, 7)];
+    }
+
+    /** راوتر على الخريطة باسمه (ليس جهاز MikroTik في النظام): إضافة أو تعديل اسمه وموقعه */
+    public function nodeSave(Request $request, ?int $id = null): Response
+    {
+        $node = $id !== null ? DB::row('SELECT * FROM map_nodes WHERE id = ?', [$id]) : null;
+        if ($id !== null && !$node) {
+            throw new HttpException(404);
+        }
+        $name = trim($request->str('name'));
+        if ($name === '') {
+            return json_response(['ok' => false, 'message' => 'اسم الراوتر مطلوب.', 'errors' => ['name' => 'اسم الراوتر مطلوب.']], 422);
+        }
+        if (mb_strlen($name) > 120) {
+            return json_response(['ok' => false, 'message' => 'الاسم طويل (120 حرفاً على الأكثر).', 'errors' => ['name' => 'الاسم طويل.']], 422);
+        }
+        $pos = self::latLng($request);
+        if ($pos === null && $node === null) {
+            return json_response(['ok' => false, 'message' => 'الإحداثيات غير صحيحة.'], 422);
+        }
+        $data = ['name' => $name, 'updated_at' => now()];
+        if ($pos !== null) {
+            [$data['lat'], $data['lng']] = $pos;
+        }
+        if ($node === null) {
+            $id = DB::insert('map_nodes', $data + ['created_at' => now()]);
+            Audit::log('map.node', 'إضافة الراوتر ' . $name . ' على الخريطة', 'map_node', $id);
+            return json_response(['ok' => true, 'id' => $id, 'name' => $name, 'message' => 'تمت إضافة الراوتر إلى الخريطة.']);
+        }
+        DB::update('map_nodes', $data, 'id = ?', [$id]);
+        Audit::log('map.node', 'تعديل الراوتر ' . $name . ($name !== $node['name'] ? ' (كان اسمه ' . $node['name'] . ')' : ''), 'map_node', $id);
+        return json_response(['ok' => true, 'id' => $id, 'name' => $name, 'message' => 'تم حفظ الراوتر.']);
+    }
+
+    /** حذف راوتر من الخريطة مع روابطه، ويمكن التراجع عنه */
+    public function nodeDestroy(Request $request, int $id): Response
+    {
+        $node = DB::row('SELECT * FROM map_nodes WHERE id = ?', [$id]);
+        if (!$node) {
+            throw new HttpException(404);
+        }
+        $where = "(a_type = 'node' AND a_id = ?) OR (b_type = 'node' AND b_id = ?)";
+        $delete = static function () use ($id, $node, $where): void {
+            DB::delete('map_links', $where, [$id, $id]);
+            DB::delete('map_nodes', 'id = ?', [$id]);
+            Audit::log('map.node', 'حذف الراوتر ' . $node['name'] . ' من الخريطة', 'map_node', $id);
+        };
+        $token = $this->undoable('map_nodes', $id, 'map.node', 'حذف الراوتر ' . $node['name'], 'map.manage', $delete, null, [['map_links', $where, [$id, $id]]]);
+        return json_response(['ok' => true, 'message' => 'تم حذف الراوتر.', 'undo' => $token]);
+    }
+
+    /**
+     * طرف رابط من نص «النوع:الرقم» (site:3، router:5، node:2): موجود وضمن نطاق الموظف لأجهزة MikroTik
+     * @return array{0:string,1:int}|string النوع والرقم، أو رسالة الخطأ
+     */
+    private static function linkEnd(string $raw): array|string
+    {
+        if (!preg_match('/^(site|router|node):([1-9]\d{0,9})$/', $raw, $m)) {
+            return 'اختر طرفي الرابط.';
+        }
+        $table = ['site' => 'sites', 'router' => 'routers', 'node' => 'map_nodes'][$m[1]];
+        if (!DB::value("SELECT id FROM $table WHERE id = ?", [(int) $m[2]])) {
+            return 'طرف الرابط غير موجود.';
+        }
+        if ($m[1] === 'router' && !Auth::canRouter((int) $m[2])) {
+            throw new HttpException(403);
+        }
+        return [$m[1], (int) $m[2]];
+    }
+
+    /**
+     * رابط بين أي نقطتين على الخريطة. بين موقعين: في روابط المواقع نفسها (تظهر في صفحة الموقع كما كانت)،
+     * وما فيه جهاز MikroTik أو راوتر: في روابط الخريطة
+     */
+    public function linkStore(Request $request): Response
+    {
+        $a = self::linkEnd($request->str('a'));
+        $b = self::linkEnd($request->str('b'));
+        $type = $request->str('type', 'wireless');
+        $capacity = trim($request->str('capacity'));
+        $label = trim($request->str('label'));
+        $error = null;
+        if (is_string($a) || is_string($b)) {
+            $error = is_string($a) ? $a : $b;
+        } elseif ($a === $b) {
+            $error = 'اختر طرفين مختلفين.';
+        } elseif (!isset(Geo::LINK_TYPES[$type])) {
+            $error = 'نوع الرابط غير صحيح.';
+        } elseif (mb_strlen($capacity) > 40 || mb_strlen($label) > 120) {
+            $error = 'النص طويل.';
+        }
+        if ($error === null && $a[0] === 'site' && $b[0] === 'site') {
+            if (DB::value('SELECT id FROM site_links WHERE (site_a = ? AND site_b = ?) OR (site_a = ? AND site_b = ?)', [$a[1], $b[1], $b[1], $a[1]])) {
+                $error = 'يوجد رابط بين هذين الطرفين.';
+            } else {
+                $id = DB::insert('site_links', ['site_a' => $a[1], 'site_b' => $b[1], 'type' => $type, 'capacity' => $capacity !== '' ? $capacity : null, 'label' => $label !== '' ? $label : null, 'created_at' => now()]);
+                Audit::log('site.save', 'إضافة رابط بين موقعين', 'site_link', $id);
+                return json_response(['ok' => true, 'id' => $id, 'message' => 'تمت إضافة الرابط.']);
+            }
+        }
+        if ($error === null && DB::value(
+            'SELECT id FROM map_links WHERE (a_type = ? AND a_id = ? AND b_type = ? AND b_id = ?) OR (a_type = ? AND a_id = ? AND b_type = ? AND b_id = ?)',
+            [$a[0], $a[1], $b[0], $b[1], $b[0], $b[1], $a[0], $a[1]]
+        )) {
+            $error = 'يوجد رابط بين هذين الطرفين.';
+        }
+        if ($error !== null) {
+            return json_response(['ok' => false, 'message' => $error, 'errors' => ['b' => $error]], 422);
+        }
+        $id = DB::insert('map_links', [
+            'a_type' => $a[0], 'a_id' => $a[1], 'b_type' => $b[0], 'b_id' => $b[1], 'type' => $type,
+            'capacity' => $capacity !== '' ? $capacity : null, 'label' => $label !== '' ? $label : null, 'created_at' => now(),
+        ]);
+        Audit::log('map.link', 'إضافة رابط على الخريطة: ' . self::endName($a) . ' ⟷ ' . self::endName($b), 'map_link', $id);
+        return json_response(['ok' => true, 'id' => $id, 'message' => 'تمت إضافة الرابط.']);
+    }
+
+    private static function endName(array $end): string
+    {
+        $table = ['site' => 'sites', 'router' => 'routers', 'node' => 'map_nodes'][$end[0]];
+        return (string) DB::value("SELECT name FROM $table WHERE id = ?", [$end[1]]);
+    }
+
+    public function linkDestroy(Request $request, int $id): Response
+    {
+        $link = DB::row('SELECT * FROM map_links WHERE id = ?', [$id]);
+        if (!$link) {
+            throw new HttpException(404);
+        }
+        foreach (['a', 'b'] as $k) {
+            if ($link[$k . '_type'] === 'router' && !Auth::canRouter((int) $link[$k . '_id'])) {
+                throw new HttpException(403);
+            }
+        }
+        $delete = static function () use ($id): void {
+            DB::delete('map_links', 'id = ?', [$id]);
+            Audit::log('map.link', 'حذف رابط على الخريطة', 'map_link', $id);
+        };
+        $token = $this->undoable('map_links', $id, 'map.link', 'حذف رابط على الخريطة', 'map.manage', $delete);
+        return json_response(['ok' => true, 'message' => 'تم حذف الرابط.', 'undo' => $token]);
     }
 
     /** بيانات الخريطة: المواقع، أجهزة MikroTik بحالتها، المشتركون، الروابط */
@@ -129,16 +279,33 @@ final class MapController extends Controller
 
         $links = array_map(static fn ($l) => [
             'id' => (int) $l['id'], 'type' => $l['type'], 'capacity' => $l['capacity'], 'label' => $l['label'],
-            'a' => ['id' => (int) $l['site_a'], 'name' => $l['a_name'], 'lat' => (float) $l['a_lat'], 'lng' => (float) $l['a_lng']],
-            'b' => ['id' => (int) $l['site_b'], 'name' => $l['b_name'], 'lat' => (float) $l['b_lat'], 'lng' => (float) $l['b_lng']],
+            'a' => ['of' => 'site', 'id' => (int) $l['site_a'], 'name' => $l['a_name'], 'lat' => (float) $l['a_lat'], 'lng' => (float) $l['a_lng']],
+            'b' => ['of' => 'site', 'id' => (int) $l['site_b'], 'name' => $l['b_name'], 'lat' => (float) $l['b_lat'], 'lng' => (float) $l['b_lng']],
         ], DB::rows(
             'SELECT l.*, a.name AS a_name, a.lat AS a_lat, a.lng AS a_lng, b.name AS b_name, b.lat AS b_lat, b.lng AS b_lng
              FROM site_links l JOIN sites a ON a.id = l.site_a JOIN sites b ON b.id = l.site_b
              WHERE a.lat IS NOT NULL AND b.lat IS NOT NULL'
         ));
 
+        // راوترات الخريطة، وروابط أطرافها أي نقطة ظاهرة لهذا الموظف (جهاز MikroTik خارج نطاقه لا يظهر ولا روابطه)
+        $nodes = array_map(static fn ($n) => ['id' => (int) $n['id'], 'name' => $n['name'], 'lat' => (float) $n['lat'], 'lng' => (float) $n['lng']],
+            DB::rows('SELECT id, name, lat, lng FROM map_nodes ORDER BY name'));
+        $at = ['site' => [], 'router' => [], 'node' => []];
+        foreach (['site' => $sites, 'router' => $routers, 'node' => $nodes] as $of => $list) {
+            foreach ($list as $p) {
+                $at[$of][$p['id']] = ['of' => $of, 'id' => $p['id'], 'name' => $p['name'], 'lat' => $p['lat'], 'lng' => $p['lng']];
+            }
+        }
+        foreach (DB::rows('SELECT * FROM map_links ORDER BY id') as $l) {
+            $a = $at[$l['a_type']][(int) $l['a_id']] ?? null;
+            $b = $at[$l['b_type']][(int) $l['b_id']] ?? null;
+            if ($a !== null && $b !== null) {
+                $links[] = ['id' => 'm' . $l['id'], 'type' => $l['type'], 'capacity' => $l['capacity'], 'label' => $l['label'], 'a' => $a, 'b' => $b];
+            }
+        }
+
         return json_response([
-            'ok' => true, 'sites' => $sites, 'routers' => $routers, 'subscribers' => $subscribers, 'links' => $links,
+            'ok' => true, 'sites' => $sites, 'routers' => $routers, 'nodes' => $nodes, 'subscribers' => $subscribers, 'links' => $links,
             'unplaced' => [
                 'sites' => (int) DB::value('SELECT COUNT(*) FROM sites WHERE lat IS NULL OR lng IS NULL'),
                 'routers' => (int) DB::value("SELECT COUNT(*) FROM routers r LEFT JOIN sites s ON s.id = r.site_id WHERE COALESCE(r.lat, s.lat) IS NULL$rScope", $rParams),
@@ -247,7 +414,7 @@ final class MapController extends Controller
         if ($lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
             return json_response(['ok' => false, 'message' => 'الإحداثيات غير صحيحة.'], 422);
         }
-        $table = ['site' => 'sites', 'router' => 'routers', 'subscriber' => 'subscribers'][$type] ?? null;
+        $table = ['site' => 'sites', 'router' => 'routers', 'subscriber' => 'subscribers', 'node' => 'map_nodes'][$type] ?? null;
         if ($table === null || !DB::value("SELECT id FROM $table WHERE id = ?", [$id])) {
             throw new HttpException(404);
         }

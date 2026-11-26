@@ -94,6 +94,8 @@
 /* نبض جهاز MikroTik المنقطع: حلقة خلف العلامة تكبر وتختفي (transform وopacity فقط) */
 .mk-router.is-offline::after { content: ""; position: absolute; inset: -2.5px; border-radius: 50%; background: rgba(220, 38, 38, .55); z-index: -1; animation: mk-pulse 1.6s ease-out infinite; }
 .mk-router.is-unknown { background: #94a3b8; }
+/* راوتر على الخريطة (ليس جهاز MikroTik في النظام) */
+.mk-node { background: #0d9488; }
 .is-picked .mk { outline: 3px solid #f59e0b; outline-offset: 2px; }
 .mk-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(15, 23, 42, .4); background: #16a34a; flex: none; }
 .mk-dot.is-active { background: #16a34a; }

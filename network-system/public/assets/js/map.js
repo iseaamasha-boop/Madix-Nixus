@@ -21,11 +21,14 @@
     links: L.layerGroup().addTo(map),
     subscribers: L.layerGroup().addTo(map),
     sites: L.layerGroup().addTo(map),
+    nodes: L.layerGroup().addTo(map),
     routers: L.layerGroup().addTo(map)
   };
-  var markers = { sites: {}, routers: {}, subscribers: {}, links: {} };
-  var data = { sites: [], routers: [], subscribers: [], links: [] };
-  var mode = '';            // '' | add | move | link
+  var markers = { sites: {}, routers: {}, nodes: {}, subscribers: {}, links: {} };
+  var data = { sites: [], routers: [], nodes: [], subscribers: [], links: [] };
+  var mode = '';            // '' | add | router | move | link
+  // طرف الرابط: موقع، جهاز MikroTik، أو راوتر على الخريطة
+  var KIND_OF = { site: 'sites', router: 'routers', node: 'nodes' };
   var linkFrom = null;
   var firstLoad = true;
 
@@ -56,7 +59,7 @@
     var actions = '<a class="btn btn-xs" href="' + url('/sites/' + s.id) + '">' + SN.icon('info') + 'التفاصيل</a>';
     if (cfg.canManage) {
       actions += '<button type="button" class="btn btn-xs" data-pop="edit-site" data-id="' + s.id + '">' + SN.icon('pencil') + 'تعديل</button>' +
-        '<button type="button" class="btn btn-xs" data-pop="link-from" data-id="' + s.id + '">' + SN.icon('waypoints') + 'رابط</button>';
+        '<button type="button" class="btn btn-xs" data-pop="link-from" data-of="site" data-id="' + s.id + '">' + SN.icon('waypoints') + 'رابط</button>';
     }
     return '<div class="pop"><div class="pop-title">' + esc(s.name) + '</div>' + rows + '<div class="pop-actions">' + actions + '</div></div>';
   }
@@ -67,9 +70,17 @@
       '<div class="pop-sub"><span class="badge ' + st[1] + '">' + st[0] + '</span>' + (r.site ? ' · ' + esc(r.site) : '') + '</div>' +
       '<div class="pop-stats"><span>' + SN.icon('users') + SN.fmtNum(r.clients) + ' متصل</span>' + (r.cpu !== null ? '<span>' + SN.icon('cpu') + r.cpu + '%</span>' : '') + '</div>' +
       '<div class="pop-actions"><a class="btn btn-xs" href="' + url('/routers/' + r.id) + '">' + SN.icon('router') + 'فتح جهاز MikroTik</a>' +
-      (cfg.canManage ? '<button type="button" class="btn btn-xs" data-pop="edit-router" data-id="' + r.id + '">' + SN.icon('pencil') + 'الاسم والموقع</button>' : '') +
+      (cfg.canManage ? '<button type="button" class="btn btn-xs" data-pop="edit-router" data-id="' + r.id + '">' + SN.icon('pencil') + 'الاسم والموقع</button>' +
+        '<button type="button" class="btn btn-xs" data-pop="link-from" data-of="router" data-id="' + r.id + '">' + SN.icon('waypoints') + 'رابط</button>' : '') +
       (cfg.canManage && r.own ? '<button type="button" class="btn btn-xs text-danger" data-pop="unplace-router" data-id="' + r.id + '">' + SN.icon('trash-2') + 'إزالة من الخريطة</button>' : '') +
       '</div></div>';
+  }
+
+  function nodePopup(n) {
+    return '<div class="pop"><div class="pop-title">' + esc(n.name) + '</div>' +
+      (cfg.canManage ? '<div class="pop-actions"><button type="button" class="btn btn-xs" data-pop="edit-node" data-id="' + n.id + '">' + SN.icon('pencil') + 'تعديل</button>' +
+        '<button type="button" class="btn btn-xs" data-pop="link-from" data-of="node" data-id="' + n.id + '">' + SN.icon('waypoints') + 'رابط</button></div>' : '') +
+      '</div>';
   }
 
   function subPopup(s) {
@@ -113,6 +124,7 @@
   }
   function siteIcon(s) { return SNGeo.icon((cfg.siteTypes[s.type] || {}).icon || 'map-pin', 'mk-site ' + siteState(s.id), 34); }
   function routerIcon(r) { return SNGeo.icon('router', 'mk-router ' + (ROUTER_STATUS[r.status] || ROUTER_STATUS.unknown)[2], 28); }
+  function nodeIcon() { return SNGeo.icon('router', 'mk-node', 26); }
   function subIcon(s) { return SNGeo.dot((SUB_STATE[s.state] || SUB_STATE.active)[2] + (s.online ? ' is-online' : '')); }
 
   function bindDrag(m, type, id) {
@@ -163,21 +175,29 @@
     });
     sync('sites', data.sites, function (s) {
       var m = L.marker([s.lat, s.lng], { icon: siteIcon(s), draggable: mode === 'move', zIndexOffset: 200 }).bindPopup(sitePopup(s));
-      m.on('click', function () { if (mode === 'link') { pickLinkEnd(s); } });
+      m.on('click', function () { if (mode === 'link') { pickLinkEnd('site', s.id); } });
       bindDrag(m, 'site', s.id);
       label(m, s.name, 'is-site', 20);
       return m;
     }, function (m, s) { m.setLatLng([s.lat, s.lng]); siteClass(m, s); m.setPopupContent(sitePopup(s)); label(m, s.name, 'is-site', 20); });
     sync('routers', data.routers, function (r) {
       var m = L.marker([r.lat, r.lng], { icon: routerIcon(r), draggable: mode === 'move', zIndexOffset: 400 }).bindPopup(routerPopup(r));
+      m.on('click', function () { if (mode === 'link') { pickLinkEnd('router', r.id); } });
       bindDrag(m, 'router', r.id);
       label(m, r.name, 'is-router ' + (ROUTER_STATUS[r.status] || ROUTER_STATUS.unknown)[2], 17);
       return m;
     }, function (m, r) { m.setLatLng([r.lat, r.lng]); m.setIcon(routerIcon(r)); m.setPopupContent(routerPopup(r)); label(m, r.name, 'is-router ' + (ROUTER_STATUS[r.status] || ROUTER_STATUS.unknown)[2], 17); });
+    sync('nodes', data.nodes || [], function (n) {
+      var m = L.marker([n.lat, n.lng], { icon: nodeIcon(), draggable: mode === 'move', zIndexOffset: 300 }).bindPopup(nodePopup(n));
+      m.on('click', function () { if (mode === 'link') { pickLinkEnd('node', n.id); } });
+      bindDrag(m, 'node', n.id);
+      label(m, n.name, 'is-node', 16);
+      return m;
+    }, function (m, n) { m.setLatLng([n.lat, n.lng]); m.setPopupContent(nodePopup(n)); label(m, n.name, 'is-node', 16); });
 
-    ['sites', 'routers', 'subscribers', 'links'].forEach(function (k) {
+    ['sites', 'routers', 'nodes', 'subscribers', 'links'].forEach(function (k) {
       var el = document.querySelector('[data-count="' + k + '"]');
-      if (el) { el.textContent = SN.fmtNum(data[k].length); }
+      if (el) { el.textContent = SN.fmtNum((data[k] || []).length); }
     });
     declutterSoon();
   }
@@ -216,7 +236,7 @@
     var box = holder.getBoundingClientRect();
     var taken = Array.prototype.map.call(holder.querySelectorAll('.leaflet-control'), function (c) { return c.getBoundingClientRect(); });
     var overlaps = function (a, b) { return a.left < b.right + 2 && a.right > b.left - 2 && a.top < b.bottom + 2 && a.bottom > b.top - 2; };
-    ['routers', 'sites'].forEach(function (kind) {
+    ['routers', 'nodes', 'sites'].forEach(function (kind) {
       if (!map.hasLayer(groups[kind])) { return; }
       Object.keys(markers[kind]).forEach(function (id) {
         var t = markers[kind][id].getTooltip(), el = t && t.getElement();
@@ -246,7 +266,7 @@
       '<div class="pop-sub">' + esc(cfg.linkTypes[l.type] || l.type) + (l.capacity ? ' · <span dir="ltr">' + esc(l.capacity) + '</span>' : '') + '</div>' +
       (l.label ? '<div class="pop-sub">' + esc(l.label) + '</div>' : '');
     if (cfg.canManage) {
-      html += '<div class="pop-actions"><button type="button" class="btn btn-xs text-danger" data-pop="del-link" data-id="' + l.id + '">' + SN.icon('trash-2') + 'حذف الرابط</button></div>';
+      html += '<div class="pop-actions"><button type="button" class="btn btn-xs text-danger" data-pop="del-link" data-link="' + esc(String(l.id)) + '">' + SN.icon('trash-2') + 'حذف الرابط</button></div>';
     }
     return html + '</div>';
   }
@@ -279,8 +299,15 @@
     data.routers.forEach(function (r) { if (r.site_id === id) { any = true; sum += r.bps || 0; } });
     return any ? sum : null;
   }
+  function endBps(e) {
+    if (e.of === 'router') {
+      var r = data.routers.filter(function (x) { return x.id === e.id; })[0];
+      return r ? (r.bps || 0) : null;
+    }
+    return e.of === 'node' ? null : siteBps(e.id);
+  }
   function linkBps(l) {
-    var a = siteBps(l.a.id), b = siteBps(l.b.id);
+    var a = endBps(l.a), b = endBps(l.b);
     if (a === null) { return b || 0; }
     if (b === null) { return a; }
     return Math.min(a, b);
@@ -348,9 +375,9 @@
 
   /** ?focus=site:5 | router:3 | sub:12 */
   function focusTarget() {
-    var f = /[?&]focus=(site|router|sub):(\d+)/.exec(window.location.search);
+    var f = /[?&]focus=(site|router|node|sub):(\d+)/.exec(window.location.search);
     if (!f) { return false; }
-    return reveal({ site: 'sites', router: 'routers', sub: 'subscribers' }[f[1]], parseInt(f[2], 10));
+    return reveal({ site: 'sites', router: 'routers', node: 'nodes', sub: 'subscribers' }[f[1]], parseInt(f[2], 10));
   }
 
   map.on('moveend', function () { if (subDrag) { render(); } });
@@ -380,6 +407,7 @@
     var pts = [];
     data.sites.forEach(function (s) { pts.push([s.lat, s.lng]); });
     data.routers.forEach(function (r) { pts.push([r.lat, r.lng]); });
+    (data.nodes || []).forEach(function (n) { pts.push([n.lat, n.lng]); });
     data.subscribers.forEach(function (s) { pts.push([s.lat, s.lng]); });
     if (pts.length > 1) { map.fitBounds(pts, { padding: [40, 40], maxZoom: 16, animate: false }); }
     else if (pts.length === 1) { map.setView(pts[0], 15, { animate: false }); }
@@ -409,9 +437,9 @@
       e.preventDefault();
       var q = search.value.trim().toLowerCase();
       if (!q) { return; }
-      var kinds = ['sites', 'routers', 'subscribers'];
+      var kinds = ['sites', 'routers', 'nodes', 'subscribers'];
       for (var i = 0; i < kinds.length; i++) {
-        var list = data[kinds[i]];
+        var list = data[kinds[i]] || [];
         for (var j = 0; j < list.length; j++) {
           if (String(list[j].name).toLowerCase().indexOf(q) !== -1) {
             reveal(kinds[i], list[j].id);
@@ -434,7 +462,7 @@
       b.classList.toggle('btn-primary', on || (b.getAttribute('data-map-act') === 'add' && mode === ''));
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-    ['sites', 'routers', 'subscribers'].forEach(function (k) {
+    ['sites', 'routers', 'nodes', 'subscribers'].forEach(function (k) {
       Object.keys(markers[k]).forEach(function (id) {
         var mk = markers[k][id];
         if (mk.dragging) { if (mode === 'move') { mk.dragging.enable(); } else { mk.dragging.disable(); } }
@@ -445,15 +473,17 @@
     if (mode !== 'link') { markLinkFrom(null); }
   }
 
-  /** تمييز الموقع الأول عند رسم رابط */
-  function markLinkFrom(id) {
-    if (linkFrom && markers.sites[linkFrom] && markers.sites[linkFrom].getElement()) {
-      markers.sites[linkFrom].getElement().classList.remove('is-picked');
-    }
-    linkFrom = id;
-    if (id && markers.sites[id] && markers.sites[id].getElement()) {
-      markers.sites[id].getElement().classList.add('is-picked');
-    }
+  /** تمييز الطرف الأول عند رسم رابط ({of, id} أو null) */
+  function endMarker(e) {
+    var m = e && markers[KIND_OF[e.of]] && markers[KIND_OF[e.of]][e.id];
+    return m && m.getElement ? m.getElement() : null;
+  }
+  function markLinkFrom(e) {
+    var el = endMarker(linkFrom);
+    if (el) { el.classList.remove('is-picked'); }
+    linkFrom = e;
+    el = endMarker(e);
+    if (el) { el.classList.add('is-picked'); }
   }
 
   var siteForm = document.querySelector('[data-site-form]');
@@ -481,25 +511,41 @@
     SN.openModal('site-modal');
   }
 
+  /** قائمة أطراف الرابط: المواقع، أجهزة MikroTik، الراوترات الظاهرة على الخريطة */
+  function endOptions() {
+    var html = '<option value="">—</option>';
+    [['site', 'المواقع'], ['router', 'أجهزة MikroTik'], ['node', 'راوترات']].forEach(function (g) {
+      var list = data[KIND_OF[g[0]]] || [];
+      if (!list.length) { return; }
+      html += '<optgroup label="' + esc(g[1]) + '">' + list.map(function (x) {
+        return '<option value="' + g[0] + ':' + x.id + '">' + esc(x.name) + '</option>';
+      }).join('') + '</optgroup>';
+    });
+    return html;
+  }
   function openLink(a, b) {
     if (!linkForm) { return; }
     linkForm.reset();
-    if (a) { linkForm.site_a.value = a; }
-    if (b) { linkForm.site_b.value = b; }
+    var opts = endOptions();
+    linkForm.a.innerHTML = opts;
+    linkForm.b.innerHTML = opts;
+    if (a) { linkForm.a.value = a.of + ':' + a.id; }
+    if (b) { linkForm.b.value = b.of + ':' + b.id; }
     SN.openModal('link-modal');
   }
 
-  function pickLinkEnd(s) {
+  function pickLinkEnd(of, id) {
+    var e = { of: of, id: id };
     if (!linkFrom) {
-      markLinkFrom(s.id);
+      markLinkFrom(e);
       map.closePopup();
       return;
     }
-    if (linkFrom === s.id) { return; }
+    if (linkFrom.of === of && linkFrom.id === id) { return; }
     var a = linkFrom;
     setMode('link');
     map.closePopup();
-    openLink(a, s.id);
+    openLink(a, e);
   }
 
   map.on('click', function (e) {
@@ -508,38 +554,69 @@
   });
 
   // ------------------------------------------------------------------------
-  // إضافة جهاز MikroTik إلى الخريطة: اختيار الجهاز وتعديل اسمه، أو إضافة جهاز جديد للنظام بهذا الموقع
+  // إضافة جهاز إلى الخريطة: جهاز MikroTik من النظام (مع تعديل اسمه)، أو راوتر باسمه فقط
   // ------------------------------------------------------------------------
   var routerForm = document.querySelector('[data-router-form]');
   function routerName(id) {
     var r = (cfg.routers || []).filter(function (x) { return x.id === id; })[0];
     return r ? r.name : '';
   }
-  function openRouter(id, latlng) {
+  function setKind(k) {
+    routerForm.querySelectorAll('[name="kind"]').forEach(function (r) { r.checked = r.value === k; });
+    routerForm.querySelectorAll('[data-kind-box]').forEach(function (box) {
+      var on = box.getAttribute('data-kind-box') === k;
+      box.hidden = !on;
+      box.querySelectorAll('input, select').forEach(function (i) { i.disabled = !on; });
+    });
+    routerForm.querySelectorAll('[data-kind-only]').forEach(function (el) { el.hidden = el.getAttribute('data-kind-only') !== k; });
+    var submit = routerForm.querySelector('[data-router-submit]');
+    if (submit) { submit.hidden = k === 'mikrotik' && submit.hasAttribute('data-needs-routers'); }
+    var del = routerForm.querySelector('[data-node-delete]');
+    if (del) { del.hidden = k !== 'node' || !routerForm.node_id.value; }
+  }
+  function openRouter(id, latlng, node) {
     if (!routerForm) { return; }
     routerForm.reset();
+    routerForm.node_id.value = node ? node.id : '';
+    routerForm.node_name.value = node ? node.name : '';
     var lat = Math.round(latlng.lat * 1e7) / 1e7, lng = Math.round(latlng.lng * 1e7) / 1e7;
     routerForm.lat.value = lat;
     routerForm.lng.value = lng;
     routerForm.querySelector('[data-router-coords]').textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
+    var editing = !!node || !!id;
+    var free = (cfg.routers || []).filter(function (x) { return !x.placed; })[0];
     if (routerForm.id) {
-      if (!id) {
-        var free = (cfg.routers || []).filter(function (x) { return !x.placed; })[0];
-        id = free ? free.id : null;
-      }
+      if (!id && !node) { id = free ? free.id : null; }
       routerForm.id.value = id ? String(id) : '';
       routerForm.name.value = id ? routerName(id) : '';
     }
     var add = routerForm.querySelector('[data-router-new]');
     if (add) { add.href = url('/routers/create') + '?lat=' + lat + '&lng=' + lng; }
+    // تعديل جهاز أو راوتر موجود: بلا اختيار النوع. إضافة جديدة: جهاز MikroTik إن بقي جهاز ليس على الخريطة، وإلا راوتر
+    routerForm.querySelector('[data-router-kinds]').hidden = editing;
+    document.querySelector('[data-router-title]').textContent = node ? node.name : (editing ? routerName(id) : 'إضافة جهاز');
+    setKind(node || (!editing && !free) ? 'node' : 'mikrotik');
     SN.openModal('router-modal');
   }
   if (routerForm) {
     if (routerForm.id) {
       routerForm.id.addEventListener('change', function () { routerForm.name.value = routerName(parseInt(routerForm.id.value, 10)); });
     }
+    routerForm.querySelectorAll('[name="kind"]').forEach(function (r) {
+      r.addEventListener('change', function () { if (r.checked) { setKind(r.value); } });
+    });
     routerForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      var kind = (routerForm.querySelector('[name="kind"]:checked') || {}).value;
+      if (kind === 'node') {
+        var nid = routerForm.node_id.value;
+        SN.api(cfg.nodesUrl + (nid ? '/' + nid : ''), { method: 'POST', data: { name: routerForm.node_name.value, lat: routerForm.lat.value, lng: routerForm.lng.value } }).then(function (r) {
+          SN.toast('success', r.message);
+          SN.closeModal(document.getElementById('router-modal'));
+          load().then(function () { reveal('nodes', r.id); });
+        });
+        return;
+      }
       SN.api(cfg.routerUrl, { method: 'POST', form: routerForm }).then(function (r) {
         SN.toast('success', r.message);
         SN.closeModal(document.getElementById('router-modal'));
@@ -549,6 +626,17 @@
         load().then(function () { reveal('routers', r.id); });
       });
     });
+    var nodeDel = routerForm.querySelector('[data-node-delete]');
+    if (nodeDel) {
+      nodeDel.addEventListener('click', function () {
+        // حذف فوري مع «تراجع» (يعود الراوتر وروابطه)
+        SN.api(cfg.nodesUrl + '/' + routerForm.node_id.value + '/delete', { method: 'POST', data: {} }).then(function (r) {
+          SN.undoToast(r.message, r.undo, function () { load(); });
+          SN.closeModal(document.getElementById('router-modal'));
+          load();
+        });
+      });
+    }
   }
 
   document.addEventListener('click', function (e) {
@@ -572,8 +660,12 @@
       openSite(data.sites.filter(function (s) { return s.id === id; })[0] || null);
     } else if (kind === 'link-from') {
       if (mode !== 'link') { setMode('link'); }
-      markLinkFrom(id);
+      markLinkFrom({ of: pop.getAttribute('data-of') || 'site', id: id });
       map.closePopup();
+    } else if (kind === 'edit-node') {
+      var nn = (data.nodes || []).filter(function (x) { return x.id === id; })[0];
+      map.closePopup();
+      if (nn) { openRouter(null, L.latLng(nn.lat, nn.lng), nn); }
     } else if (kind === 'edit-router') {
       var rr = data.routers.filter(function (x) { return x.id === id; })[0];
       map.closePopup();
@@ -590,7 +682,13 @@
     } else if (kind === 'del-link') {
       SN.confirm('حذف هذا الرابط؟').then(function (ok) {
         if (!ok) { return; }
-        SN.api(url('/sites/links/' + id + '/delete'), { method: 'POST', data: {} }).then(function (r) { SN.toast('success', r.message); map.closePopup(); load(); });
+        var lk = pop.getAttribute('data-link') || '';
+        var path = /^m\d+$/.test(lk) ? '/map/links/' + lk.slice(1) + '/delete' : '/sites/links/' + parseInt(lk, 10) + '/delete';
+        SN.api(url(path), { method: 'POST', data: {} }).then(function (r) {
+          if (r.undo) { SN.undoToast(r.message, r.undo, function () { load(); }); } else { SN.toast('success', r.message); }
+          map.closePopup();
+          load();
+        });
       });
     }
   });
@@ -618,7 +716,7 @@
   if (linkForm) {
     linkForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      SN.api(cfg.linksUrl, { method: 'POST', form: linkForm }).then(function (r) {
+      SN.api(cfg.mapLinksUrl, { method: 'POST', form: linkForm }).then(function (r) {
         SN.toast('success', r.message);
         SN.closeModal(document.getElementById('link-modal'));
         load();

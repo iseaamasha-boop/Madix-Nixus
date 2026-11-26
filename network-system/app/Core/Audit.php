@@ -78,6 +78,8 @@ final class Audit
         'site.save'           => 'حفظ موقع',
         'site.delete'         => 'حذف موقع',
         'map.move'            => 'تحريك على الخريطة',
+        'map.node'            => 'راوتر على الخريطة',
+        'map.link'            => 'رابط على الخريطة',
         'sms.send'            => 'إرسال رسالة نصية',
         'inventory.item'      => 'صنف مخزون',
         'inventory.move'      => 'حركة مخزون',

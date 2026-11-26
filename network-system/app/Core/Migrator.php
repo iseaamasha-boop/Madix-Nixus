@@ -12,7 +12,7 @@ use Throwable;
 final class Migrator
 {
     /** نسخة البنية التي تتوقعها الشيفرة الحالية */
-    public const VERSION = 22;
+    public const VERSION = 23;
 
     private static bool $checked = false;
 
@@ -195,6 +195,10 @@ final class Migrator
             case 22:
                 // إشارة صوت الانقطاع (البند 57): آخر تنبيه انقطاع يُقرأ من الفهرس بدل كل صفوف التنبيهات
                 self::addIndex('alerts', 'idx_alerts_type', '(type, id)');
+                break;
+            case 23:
+                // الخريطة: راوترات باسمها وروابط بين أي نقطتين (موقع، جهاز MikroTik، راوتر)
+                self::createTables(['map_nodes', 'map_links']);
                 break;
         }
     }

@@ -1165,6 +1165,32 @@ CREATE TABLE IF NOT EXISTS presence (
   KEY idx_presence_page (path_key, seen_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- راوترات على الخريطة باسمها فقط (ليست أجهزة MikroTik في النظام)، وروابط بين أي نقطتين: موقع، جهاز MikroTik، راوتر
+CREATE TABLE IF NOT EXISTS map_nodes (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name        VARCHAR(120) NOT NULL,
+  lat         DECIMAL(10,7) NOT NULL,
+  lng         DECIMAL(10,7) NOT NULL,
+  created_at  DATETIME     NOT NULL,
+  updated_at  DATETIME     NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS map_links (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  a_type      ENUM('site','router','node') NOT NULL,
+  a_id        INT UNSIGNED NOT NULL,
+  b_type      ENUM('site','router','node') NOT NULL,
+  b_id        INT UNSIGNED NOT NULL,
+  type        ENUM('wireless','fiber','cable','other') NOT NULL DEFAULT 'wireless',
+  capacity    VARCHAR(40)  NULL,
+  label       VARCHAR(120) NULL,
+  created_at  DATETIME     NOT NULL,
+  PRIMARY KEY (id),
+  KEY idx_map_links_a (a_type, a_id),
+  KEY idx_map_links_b (b_type, b_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS undo_actions (
   id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
   token       CHAR(32)     NOT NULL,
