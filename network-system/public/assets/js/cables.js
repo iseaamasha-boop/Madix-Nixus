@@ -82,7 +82,7 @@
       modal.querySelector('[data-cb-loading-title]').textContent = mode === 'deep' ? 'فحص عميق: يقيس الأزواج' : 'يقرأ حالة المنفذ';
       modal.querySelector('[data-cb-loading-note]').textContent = mode === 'deep'
         ? 'يفصل المنفذ ثانيتين ليقيس طول الكابل ومكان القطع أو التماس، ثم يعيده فوراً'
-        : 'حالة الرابط والسرعة وتغذية PoE وعدّادات الأخطاء ومرات الانقطاع · قراءة فقط';
+        : '';
       modal.querySelector('.cb-loading').classList.toggle('is-deep', mode === 'deep');
     }
   }

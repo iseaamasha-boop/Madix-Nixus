@@ -79,7 +79,7 @@ if (!can('cards.import') && !can('subscribers.manage')) {
   <div class="modal-head"><h3><?= icon('sparkles') ?>الفحص الذكي · <?= e($router['name']) ?></h3><button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close><?= icon('x') ?></button></div>
   <div class="modal-body">
     <div class="ai-check" data-check-state="loading">
-      <div class="ai-check-loading"><span class="ai-check-orb"><?= icon('sparkles') ?></span><b>يقرأ حالة الجهاز وواجهاته وسجله</b><span class="text-muted text-sm">قراءة فقط، لا يتغير شيء على الجهاز</span></div>
+      <div class="ai-check-loading"><span class="ai-check-orb"><?= icon('sparkles') ?></span><b>يقرأ حالة الجهاز وواجهاته وسجله</b></div>
       <div class="ai-check-result" hidden>
         <div class="ai-check-level"><span class="badge" data-check-level></span><span class="text-muted text-sm" data-check-note></span></div>
         <div class="ai-check-text" data-check-text></div>

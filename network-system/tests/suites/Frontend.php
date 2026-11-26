@@ -106,4 +106,32 @@ return [
         exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg(BASE_PATH . '/cli/i18n.php') . ' check 2>&1', $out, $code);
         T::eq(0, $code, 'php cli/i18n.php check: ' . implode(' ', $out));
     },
+    'no guidance or instruction text in the interface' => static function (Env $env): void {
+        // طلب صاحب المشروع: لا نصوص إرشادية ولا تعليمات في الواجهة (لوحة الشبكة ولوحة المسؤول وسكربتاتهما)
+        $pat = '/اضغط|اتركه فارغ|اتركها فارغ|الصق |افتح Winbox|استخدم البحث|لتتأكد|أضف [^<\'"]{0,25}أولاً|اسحب العلامات|من Google Cloud/u';
+        $hits = [];
+        $scan = static function (string $dir, string $ext) use (&$hits, $pat): void {
+            $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS));
+            foreach ($it as $file) {
+                $p = str_replace('\\', '/', $file->getPathname());
+                if (!str_ends_with($p, $ext) || preg_match('#/(platform|landing|i18n|vendor)/|layouts/landing#', $p)) {
+                    continue;
+                }
+                foreach (explode("\n", (string) file_get_contents($p)) as $n => $line) {
+                    if (preg_match($pat, $line)) {
+                        $hits[] = basename($p) . ':' . ($n + 1);
+                    }
+                }
+            }
+        };
+        $scan(APP_PATH . '/Views', '.php');
+        $scan(PUBLIC_PATH . '/assets/js', '.js');
+        T::eq([], $hits, 'instruction text found');
+        $h = $env->owner('a');
+        $t = $env->tenant('a');
+        foreach (['/plans/create', '/routers/create', '/cards/generate'] as $u) {
+            $b = $h->get($t['path'] . $u)['body'];
+            T::ok(!str_contains($b, 'class="hint">0 = '), $u . ': no explanatory hint');
+        }
+    },
 ];

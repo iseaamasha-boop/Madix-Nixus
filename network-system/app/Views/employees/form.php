@@ -43,7 +43,7 @@ foreach (Permissions::PRESETS as $key => $p) {
             </div>
             <div class="field col-6">
               <label for="password">كلمة المرور <?= $isEdit ? '' : '<span class="req">*</span>' ?></label>
-              <input class="input input-ltr" id="password" name="password" type="password" minlength="8" autocomplete="new-password" <?= $isEdit ? 'placeholder="اتركه فارغاً للإبقاء على الحالية"' : 'required' ?>>
+              <input class="input input-ltr" id="password" name="password" type="password" minlength="8" autocomplete="new-password" <?= $isEdit ? 'placeholder="••••••••"' : 'required' ?>>
               <?= error_html('password') ?>
             </div>
             <div class="field col-6">

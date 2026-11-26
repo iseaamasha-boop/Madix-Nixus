@@ -60,7 +60,7 @@ $tunnels = can('routers.manage') && App\Services\Tunnel::available() ? App\Servi
           <div class="field col-6">
             <label for="api_password">كلمة مرور API <?= $isEdit ? '' : '<span class="req">*</span>' ?></label>
             <div class="password-field">
-              <input class="input input-ltr" id="api_password" name="api_password" type="password" autocomplete="new-password" <?= $isEdit ? 'placeholder="اتركها فارغة للإبقاء على الحالية"' : 'required' ?>>
+              <input class="input input-ltr" id="api_password" name="api_password" type="password" autocomplete="new-password" <?= $isEdit ? 'placeholder="••••••••"' : 'required' ?>>
               <button type="button" class="btn btn-ghost btn-icon btn-sm toggle-pass" aria-label="إظهار"><?= icon('eye') ?></button>
             </div>
             <?= error_html('api_password') ?>

@@ -212,7 +212,6 @@ $lastRun = (string) Settings::get('cron.last_run', '');
         <label for="f9">مفتاح خرائط Google</label>
         <input class="input input-ltr" id="f9" name="<?= e($name('map.google_key')) ?>" value="<?= e($s('map.google_key')) ?>" maxlength="120" autocomplete="off" spellcheck="false" placeholder="AIza...">
         <?= error_html($name('map.google_key')) ?>
-        <span class="hint"><?= \App\Core\Platform::enabled() ? 'اختياري: اتركه فارغاً لاستخدام خرائط Google التي توفرها المنصة إن وُجدت. ' : '' ?>من Google Cloud: فعّل Map Tiles API وأنشئ مفتاحاً مقيّداً برابط نظامك، فتظهر خرائط Google في خريطة الشبكة واختيار المواقع.</span>
       </div>
       <?php endif; ?>
       <div class="field col-12"><?= $switch('ui.sidebar_hidden', 'إخفاء القائمة الجانبية على الشاشات الكبيرة') ?></div>

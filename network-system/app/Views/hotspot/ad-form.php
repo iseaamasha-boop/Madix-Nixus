@@ -54,7 +54,6 @@ $active = $posted ? !empty($old['is_active']) : ($ad ? (int) $ad['is_active'] ==
             <div class="field col-12">
               <label for="image">الصورة</label>
               <input class="input" type="file" id="image" name="image" accept="image/jpeg,image/png,image/webp" data-preview="image">
-              <span class="hint">PNG أو JPG أو WEBP حتى 2 ميغابايت · الأنسب بعرض أكبر من الارتفاع</span>
               <?= error_html('image') ?>
               <?php if ($isEdit && $ad['image']): ?><label class="check mt-2"><input type="checkbox" name="remove_image" value="1">حذف الصورة الحالية</label><?php endif; ?>
             </div>

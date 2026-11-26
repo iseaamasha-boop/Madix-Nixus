@@ -3,7 +3,6 @@
 use App\Platform\Landing;
 
 $v->title = 'صفحة الهبوط';
-$v->subtitle = 'تتبع تصميم النظام المختار من «التصاميم» تلقائياً، وتظهر بلغة الزائر (العربية أو الإنجليزية)';
 $v->actions = '<a class="btn" href="' . e(url('/')) . '" target="_blank" rel="noopener">' . icon('external-link') . 'عرض الصفحة</a>';
 $long = ['hero_text', 'features_text', 'apps_text', 'cta_text'];
 $enabled = Landing::enabled();
@@ -21,7 +20,6 @@ $enabled = Landing::enabled();
         <div class="tab-panel<?= $loc === 'ar' ? ' is-active' : '' ?>" data-tab-panel="<?= $loc ?>">
           <div class="panel-body">
             <?php if ($loc === 'en'): ?>
-            <div class="notice" style="margin-top:0"><?= icon('info') ?><div class="text-sm">ما تتركه فارغاً هنا يظهر للزائر الإنجليزي بترجمة النص العربي الافتراضي من قاموس النظام. إن عدّلت النص العربي فاكتب نسخته الإنجليزية هنا.</div></div>
             <?php endif; ?>
             <div class="form-grid"<?= $loc === 'en' ? ' dir="ltr" lang="en"' : '' ?>>
               <?php foreach (Landing::TEXT_FIELDS as $k => $label): $val = Landing::raw($k, $loc); $id = 'lf-' . $loc . '-' . $k; ?>
@@ -65,14 +63,12 @@ $enabled = Landing::enabled();
               </label>
             <?php endforeach; ?>
           </div>
-          <p class="hint" style="margin:0">النصوص والأقسام نفسها في التصميمين، وتبدّل بينهما متى شئت. جولة النظام وفيديو العرض في التصميم الجديد.</p>
         </div>
       </div>
       <div class="panel">
         <div class="panel-head"><h3><?= icon('globe') ?>حالة الصفحة</h3><?= $enabled ? '<span class="badge badge-success">مفعّلة</span>' : '<span class="badge badge-outline">موقوفة</span>' ?></div>
         <div class="panel-body stack" style="gap:10px">
           <label class="switch"><input type="checkbox" name="enabled" value="1"<?= checked($enabled) ?>><span class="track"></span><span>تفعيل صفحة الهبوط</span></label>
-          <p class="hint" style="margin:0">عند الإيقاف يفتح رابط المنصة صفحة تسجيل الدخول مباشرة.</p>
         </div>
       </div>
       <div class="panel">
@@ -83,7 +79,6 @@ $enabled = Landing::enabled();
             <input class="input" id="lf-video" name="video" dir="ltr" value="<?= e((string) old('video', Landing::video() !== '' ? 'https://youtu.be/' . Landing::video() : '')) ?>" placeholder="https://youtu.be/..." maxlength="200" inputmode="url">
             <?= error_html('video') ?>
           </div>
-          <p class="hint" style="margin:0">يظهر زر «شاهد العرض» في أعلى الصفحة ويُفتح الفيديو داخلها. اتركه فارغاً لإخفاء الزر.</p>
         </div>
       </div>
       <div class="panel">

@@ -6,7 +6,6 @@ $cookieForced = \App\Services\CookiePolicy::forced();
       <div class="field col-12">
         <div class="notice<?= $cookieForced['enabled'] ? '' : ' notice-warning' ?>"><?= icon('cookie') ?><div>
           <div class="notice-title"><?= $cookieForced['enabled'] ? 'الدخول التلقائي بالجهاز (الكوكيز) مفعّل من إدارة المنصة بمدة ' . e(\App\Services\CookiePolicy::durationLabel($cookieForced['duration'])) : 'الدخول التلقائي بالجهاز (الكوكيز) موقوف من إدارة المنصة' ?></div>
-          <div class="text-sm">يُطبَّق هذا على أجهزة MikroTik بدلاً من خياري «الدخول التلقائي» و«مدته» أدناه، ويعود العمل بهما عند إعادة التحكم إلى الشبكة.</div>
         </div></div>
       </div>
 <?php endif; ?>

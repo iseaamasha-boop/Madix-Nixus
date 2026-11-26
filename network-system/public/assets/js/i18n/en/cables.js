@@ -83,7 +83,7 @@
       modal.querySelector('[data-cb-loading-title]').textContent = mode === 'deep' ? 'Deep test: measures the pairs' : 'Reading the port status';
       modal.querySelector('[data-cb-loading-note]').textContent = mode === 'deep'
         ? 'Disconnects the port for two seconds to measure the cable length and the location of a cut or short, then restores it immediately'
-        : 'Link state, speed, PoE power, error counters and link drops · Read only';
+        : '';
       modal.querySelector('.cb-loading').classList.toggle('is-deep', mode === 'deep');
     }
   }

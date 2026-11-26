@@ -24,14 +24,9 @@ $steps = array_filter([
 <div class="grid grid-main-side" data-connect="<?= e(url('/routers/connect/' . $rid . '/status')) ?>"<?= $ready ? ' data-connect-done' : '' ?>>
   <div class="stack">
     <div class="panel wizard-card"<?= $ready ? ' hidden' : '' ?> data-connect-command>
-      <div class="panel-head"><h2><span class="wizard-badge">2</span>الصق هذا الأمر في Terminal جهاز MikroTik</h2></div>
+      <div class="panel-head"><h2><span class="wizard-badge">2</span>أمر الربط · Terminal جهاز MikroTik</h2></div>
       <div class="panel-body stack" style="gap:14px">
         <?php if ($command !== null): ?>
-          <ol class="wizard-howto">
-            <li>افتح <b>Winbox</b> واتصل بالجهاز</li>
-            <li>اضغط <b>New Terminal</b></li>
-            <li>الصق الأمر واضغط <b>Enter</b></li>
-          </ol>
           <div class="copyable"><pre class="code-block is-wrap wizard-command" id="connect-command" dir="ltr"><?= e($command) ?></pre><button type="button" class="btn btn-sm btn-primary copy-btn" data-copy-target="#connect-command"><?= icon('copy') ?>نسخ الأمر</button></div>
           <div class="text-sm text-muted"><?= icon('clock', 'icon-sm') ?> الأمر صالح حتى <?= ltr(e(date('Y-m-d H:i', (int) ($state['expires'] ?? time())))) ?></div>
         <?php else: ?>

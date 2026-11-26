@@ -96,7 +96,6 @@ if ($twoFactor['setup'] !== null) {
           <span class="tfa-intro-icon"><?= icon('smartphone') ?></span>
           <div class="tfa-intro-text">
             <b>رمز من تطبيق المصادقة عند كل دخول</b>
-            <span>Google Authenticator أو Microsoft Authenticator أو أي تطبيق مشابه</span>
           </div>
           <form method="post" action="<?= e(url('/account/2fa/start')) ?>"><?= csrf_field() ?><button class="btn btn-primary"><?= icon('shield-check') ?>تفعيل</button></form>
         </div>

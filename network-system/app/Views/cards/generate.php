@@ -13,7 +13,7 @@ $defMode = old('password_mode', Settings::get('cards.password_mode', 'same'));
 $defPassLen = old('password_length', Settings::get('cards.password_length', '4'));
 ?>
 <?php if (!$categories): ?>
-  <div class="panel"><div class="empty"><?= icon('layers') ?><div class="empty-title">أضف باقة أولاً</div>
+  <div class="panel"><div class="empty"><?= icon('layers') ?><div class="empty-title">لا توجد باقات</div>
     <?php if (can('categories.manage')): ?><a class="btn btn-primary" href="<?= e(url('/categories/create')) ?>"><?= icon('plus') ?>باقة جديدة</a><?php endif; ?></div></div>
 <?php else: ?>
 <form method="post" action="<?= e(url('/cards/generate')) ?>" id="gen-form">
@@ -86,9 +86,7 @@ $defPassLen = old('password_length', Settings::get('cards.password_length', '4')
               </label>
               <?php endforeach; ?>
             </div>
-            <p class="hint" data-routers-limited hidden><?= icon('info', 'icon-sm') ?> هذه الباقة محددة بأجهزة معيّنة، فتظهر الأجهزة المسموحة لها فقط.</p>
             <?= error_html('routers') ?>
-            <div class="notice mt-2" style="margin-bottom:0"><?= icon('shield-check') ?><div class="text-sm">الكروت تعمل على الأجهزة المختارة فقط، ويُرفض الدخول بها من أي جهاز آخر.</div></div>
             <label class="switch mt-3"><input type="checkbox" name="push_now" value="1"<?= checked(old('push_now', '1') === '1') ?>><span class="track"></span><span>رفع الكروت إلى الأجهزة المختارة الآن بعد التوليد</span></label>
           </div>
           <?php endif; ?>
@@ -139,7 +137,6 @@ $defPassLen = old('password_length', Settings::get('cards.password_length', '4')
             <div class="field col-4" data-show-when="with_short=1">
               <label for="short_password_length">طول كلمة المرور المختصرة</label>
               <input class="input" id="short_password_length" name="short_password_length" value="<?= e(old('short_password_length', '0')) ?>" inputmode="numeric">
-              <span class="hint">0 = بدون كلمة مرور</span>
               <?= error_html('short_password_length') ?>
             </div>
             <div class="field col-4" data-show-when="with_short=1">

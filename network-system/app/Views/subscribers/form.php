@@ -14,7 +14,7 @@ $routerId = (int) ($isEdit ? $val('router_id') : $val('router_id', count($router
 $showPass = !$isEdit || can('subscribers.passwords');
 ?>
 <?php if (!$plans): ?>
-  <div class="panel"><div class="empty"><?= icon('package') ?><div class="empty-title">أضف باقة اشتراك أولاً</div>
+  <div class="panel"><div class="empty"><?= icon('package') ?><div class="empty-title">لا توجد باقات اشتراك</div>
     <?php if (can('plans.manage')): ?><a class="btn btn-primary" href="<?= e(url('/plans/create')) ?>"><?= icon('plus') ?>باقة اشتراك جديدة</a><?php endif; ?></div></div>
 <?php else: ?>
 <form method="post" action="<?= e(url($isEdit ? '/subscribers/' . $sub['id'] : '/subscribers')) ?>">

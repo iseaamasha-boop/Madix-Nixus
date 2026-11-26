@@ -21,7 +21,6 @@ if (!$tunnel) {
   <span class="wizard-hero-icon"><?= icon('router') ?></span>
   <div>
     <div class="wizard-hero-title">أهلاً بك! لنربط أول جهاز MikroTik</div>
-    <div class="wizard-hero-sub">النظام ينشئ النفق الآمن ومستخدم الربط والسكربت بنفسه، وأنت تلصق أمراً واحداً فقط.</div>
   </div>
 </div>
 <?php endif; ?>

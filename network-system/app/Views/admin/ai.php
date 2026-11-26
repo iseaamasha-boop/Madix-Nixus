@@ -91,7 +91,6 @@ $badge = ['ok' => 'badge-success', 'off' => 'badge-danger', 'no_key' => 'badge-w
           <div class="field col-6">
             <label for="ai-default-limit">الحد الشهري الافتراضي للرسائل</label>
             <div class="input-group"><input class="input input-ltr" id="ai-default-limit" name="default_limit" value="<?= e(old('default_limit', Platform::setting('ai.default_limit'))) ?>" inputmode="numeric"><span class="input-addon">رسالة</span></div>
-            <span class="hint">للحساب الذي لا تحدد باقته ولا إعداداته حداً</span>
             <?= error_html('default_limit') ?>
           </div>
         </div>

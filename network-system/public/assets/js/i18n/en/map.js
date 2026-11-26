@@ -444,11 +444,6 @@
     // Subscribers: علامات قابلة للسحب in وضع التحريك only, ورسم سريع in غيره
     if ((mode === 'move') !== subDrag) { render(); }
     if (mode !== 'link') { markLinkFrom(null); }
-    var hint = {
-      add: 'Tap the map where the new site is.', router: 'Tap the map where the device is.',
-      link: 'Tap the first site, then the second.', move: 'Drag the markers into place; each position is saved right away.'
-    }[mode];
-    if (hint) { SN.toast('info', hint); }
   }
 
   /** تمييز First site عند رسم Link */

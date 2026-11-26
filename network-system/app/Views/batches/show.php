@@ -59,9 +59,8 @@ $showPass = can('cards.passwords');
       <div class="panel-body stack" style="gap:10px">
         <?php if ($linked): ?>
           <div class="chips-wrap"><?php foreach ($linked as $rid): ?><span class="badge badge-info"><?= icon('router') ?><?= e($routers[$rid] ?? ('#' . $rid)) ?></span><?php endforeach; ?></div>
-          <p class="hint" style="margin:0">كروت هذه الدفعة تعمل على هذه الأجهزة فقط.</p>
         <?php else: ?>
-          <p class="hint" style="margin:0">كروت هذه الدفعة تعمل على كل الأجهزة المسموحة لباقتها.</p>
+          <span class="badge badge-outline"><?= icon('router') ?>كل الأجهزة</span>
         <?php endif; ?>
         <?php if (can('cards.manage') && $routers): $selMode = old('router_mode', $linked ? 'selected' : 'all'); ?>
         <form method="post" action="<?= e(url('/batches/' . $batch['id'] . '/routers')) ?>" class="stack" style="gap:10px">
@@ -75,7 +74,6 @@ $showPass = can('cards.passwords');
               <label class="check"><input type="checkbox" name="routers[]" value="<?= (int) $rid ?>"<?= checked(in_array((int) $rid, $linked, true)) ?>><?= e($rname) ?></label>
             <?php endforeach; ?>
             <label class="switch mt-2"><input type="checkbox" name="push_now" value="1" checked><span class="track"></span><span class="text-sm">رفع الكروت إلى الأجهزة المضافة الآن</span></label>
-            <p class="hint" style="margin:0">الأجهزة التي تُزال تُحذف منها كروت الدفعة.</p>
           </div>
           <?= error_html('routers') ?>
           <button class="btn btn-block"><?= icon('save') ?>حفظ أجهزة الدفعة</button>

@@ -81,7 +81,6 @@ $colLabel = static fn (int $i) => 'العمود ' . ($i + 1);
           <div class="field" data-show-when="with_short=1">
             <label>طول كلمة المرور المختصرة</label>
             <input class="input" name="short_password_length" value="<?= e(old('short_password_length', '0')) ?>" inputmode="numeric">
-            <span class="hint">0 = بدون كلمة مرور</span>
             <?= error_html('short_password_length') ?>
           </div>
           <div class="field" data-show-when="with_short=1">

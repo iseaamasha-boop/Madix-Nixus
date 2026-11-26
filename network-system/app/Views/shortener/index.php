@@ -46,7 +46,6 @@ $coverage = (int) $stats['total'] > 0 ? (int) round((int) $stats['with_short'] /
         <div class="field col-4">
           <label for="short_password_length">طول كلمة المرور المختصرة</label>
           <input class="input" id="short_password_length" name="short_password_length" value="<?= e(old('short_password_length', '0')) ?>" inputmode="numeric">
-          <span class="hint">0 = بدون كلمة مرور</span>
           <?= error_html('short_password_length') ?>
         </div>
         <div class="field col-4">

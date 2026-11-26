@@ -4,7 +4,6 @@ use App\Core\Theme;
 
 $v->style('css/pages/design.css');
 $v->title = 'التصاميم';
-$v->subtitle = 'اختر تصميماً جاهزاً أو خصّص كل تفصيلة، وشاهد النتيجة مباشرة قبل التطبيق على كل الأنظمة';
 $v->script('js/design.js');
 $faces = '';
 foreach (array_keys(Theme::FONTS) as $fk) {
@@ -150,7 +149,6 @@ $fields = static function (string $name, array $opts) use ($t): string {
                 <label><input type="radio" name="locale" value="ar"<?= checked($locale === 'ar') ?>><span>العربية</span></label>
                 <label><input type="radio" name="locale" value="en"<?= checked($locale === 'en') ?>><span lang="en" dir="ltr">English</span></label>
               </div>
-              <span class="hint">اللغة التي تظهر بها لوحة المسؤول وأنظمة كل الزبائن وصفحة الهبوط افتراضياً. الترجمة مكتوبة داخل النظام ولا تعتمد على ترجمة جوجل.</span>
             </div>
             <div class="field col-12"><label class="switch"><input type="checkbox" name="locale_switch" value="1"<?= checked($localeSwitch) ?>><span class="track"></span><span>السماح لكل مستخدم بالتبديل بين العربية والإنجليزية من الشريط العلوي</span></label></div>
           </div>

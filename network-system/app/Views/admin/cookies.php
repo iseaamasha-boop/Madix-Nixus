@@ -90,7 +90,7 @@ $state = static function (?array $f, array $own): array {
         </form>
         <?php endforeach; ?>
       </div>
-      <?php if ($total > count($rows)): ?><div class="panel-foot text-sm text-muted">يُعرض <?= num(count($rows)) ?> من <?= num($total) ?> · استخدم البحث للوصول إلى حساب محدد</div><?php endif; ?>
+      <?php if ($total > count($rows)): ?><div class="panel-foot text-sm text-muted">يُعرض <?= num(count($rows)) ?> من <?= num($total) ?></div><?php endif; ?>
       <?php endif; ?>
     </div>
   </div>

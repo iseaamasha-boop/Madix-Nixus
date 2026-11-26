@@ -181,7 +181,7 @@ $hidden = static function (array $filters, array $skip = []): string {
   <div class="modal-head"><h3><?= icon('link-2') ?>تخصيص أرقام مختصرة</h3><button type="button" class="btn btn-ghost btn-icon btn-sm" data-modal-close><?= icon('x') ?></button></div>
   <div class="modal-body stack" style="gap:12px" data-extra-for="short">
     <div class="field"><label>طول اسم المستخدم المختصر</label><input class="input" name="short_length" value="6" inputmode="numeric"></div>
-    <div class="field"><label>طول كلمة المرور المختصرة</label><input class="input" name="short_password_length" value="0" inputmode="numeric"><span class="hint">0 = بدون كلمة مرور</span></div>
+    <div class="field"><label>طول كلمة المرور المختصرة</label><input class="input" name="short_password_length" value="0" inputmode="numeric"></div>
     <div class="field"><label>طريقة التوليد</label><select class="input" name="short_mode"><?php foreach (\App\Services\ShortCodes::MODES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
     <div class="field"><label>رقم البداية (للتسلسلي)</label><input class="input" name="short_start" inputmode="numeric"></div>
     <label class="check"><input type="checkbox" name="overwrite" value="1">استبدال الأرقام الموجودة</label>

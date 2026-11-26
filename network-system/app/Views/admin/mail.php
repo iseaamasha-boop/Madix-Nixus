@@ -30,7 +30,7 @@ $first = $autoErr && $canSet ? 'auto' : ($bErr !== null && $canSend ? 'broadcast
 </div>
 
 <?php if (!$configured): ?>
-<div class="notice notice-warning mb-3"><?= icon('triangle-alert') ?><div>خادم البريد غير مضبوط: لن تُرسل أي رسالة حتى تضبطه وتحفظه من تبويب «الإعداد».</div></div>
+<div class="notice notice-warning mb-3"><?= icon('triangle-alert') ?><div>خادم البريد غير مضبوط</div></div>
 <?php endif; ?>
 
 <div class="panel mail-page" data-tabs-wrap>
@@ -68,7 +68,6 @@ $first = $autoErr && $canSet ? 'auto' : ($bErr !== null && $canSend ? 'broadcast
         </form>
         <div class="mail-side">
           <h3 class="mail-h"><?= icon('send') ?>رسالة تجريبية</h3>
-          <p class="text-sm text-muted">تُرسل بما كُتب في النموذج قبل حفظه، لتتأكد أن الخادم يعمل.</p>
           <div class="field"><label for="m-to">إلى</label><input class="input input-ltr" id="m-to" type="email" placeholder="you@example.com" value="<?= e($adminEmail) ?>"></div>
           <button type="button" class="btn btn-block" id="mail-test"><?= icon('send') ?>إرسال رسالة تجريبية</button>
           <div class="slug-status" id="mail-test-result" aria-live="polite"></div>
@@ -175,7 +174,7 @@ $first = $autoErr && $canSet ? 'auto' : ($bErr !== null && $canSend ? 'broadcast
         </span>
       </div>
       <?php endforeach; ?>
-      <?php if (!$log): ?><div class="empty"><?= icon('mail') ?><div class="empty-title">لا رسائل في السجل</div><div class="empty-text">كل رسالة تُرسل من المنصة أو يتعذّر إرسالها تظهر هنا مع السبب.</div></div><?php endif; ?>
+      <?php if (!$log): ?><div class="empty"><?= icon('mail') ?><div class="empty-title">لا رسائل في السجل</div></div><?php endif; ?>
     </div>
   </div>
 </div>

@@ -19,8 +19,7 @@ $zones = ['Asia/Gaza', 'Asia/Hebron', 'Asia/Jerusalem', 'Asia/Amman', 'Africa/Ca
   <?php endif; ?>
   <div class="notice mb-3"><?= icon('clock') ?>
     <div>
-      <div class="notice-title">المهمة المجدولة (Cron)</div>
-      أضف في لوحة الاستضافة مهمة مجدولة كل دقيقة بأحد الأمرين:
+      <div class="notice-title">المهمة المجدولة (Cron) · كل دقيقة</div>
     </div>
   </div>
   <div class="copyable mb-2">

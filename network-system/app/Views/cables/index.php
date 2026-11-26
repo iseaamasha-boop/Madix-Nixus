@@ -38,9 +38,8 @@ $interval = Settings::int('cable.interval_hours', 6);
   </div>
   <div class="panel-body">
     <?php if (!$routers): ?>
-      <div class="empty"><?= icon('router') ?><div class="empty-title">لا توجد أجهزة MikroTik</div><div class="empty-text">أضف جهازاً أولاً ثم افحص كابلات منافذه من هنا.</div></div>
+      <div class="empty"><?= icon('router') ?><div class="empty-title">لا توجد أجهزة MikroTik</div></div>
     <?php else: ?>
-      <p class="cb-lead"><?= icon('info', 'icon-sm') ?><span>اضغط على منفذ لفحصه. الفحص قراءة فقط: حالة الرابط وسرعته، تغذية PoE، عدّادات الأخطاء ومرات الانقطاع، ويقيس الأزواج ومكان القطع أو التماس بالمتر متى كان الرابط مفصولاً.</span></p>
       <div class="cb-ports" data-cb-ports aria-live="polite">
         <?php for ($i = 0; $i < 5; $i++): ?><div class="cb-port is-skeleton" aria-hidden="true"><span class="cb-jack"></span><span class="sk-line"></span><span class="sk-line is-short"></span></div><?php endfor; ?>
       </div>
@@ -52,7 +51,7 @@ $interval = Settings::int('cable.interval_hours', 6);
 <div class="panel cl-panel">
   <div class="panel-head"><h3><?= icon('waypoints') ?>خريطة الكابلات بين الأجهزة</h3><span class="text-muted text-sm"><?= $links ? num(count($links)) . ' كابل' : '' ?></span></div>
   <?php if (!$links): ?>
-    <div class="empty"><?= icon('cable') ?><div class="empty-title">لم تُكتشف كابلات بين الأجهزة بعد</div><div class="empty-text">افحص منفذاً موصولاً بجهاز آخر، أو فعّل الفحص الدوري أدناه، فيظهر هنا كل كابل: من أي جهاز ومنفذ إلى أي جهاز ومنفذ، وطوله وحالة أزواجه.</div></div>
+    <div class="empty"><?= icon('cable') ?><div class="empty-title">لم تُكتشف كابلات بين الأجهزة بعد</div></div>
   <?php else: ?>
   <div class="cl-list">
     <?php foreach ($links as $l): ?>
@@ -105,7 +104,7 @@ $interval = Settings::int('cable.interval_hours', 6);
         </span>
       </button>
       <?php endforeach; ?>
-      <?php if (!$history): ?><div class="empty"><?= icon('cable') ?><div class="empty-title">لا توجد فحوص بعد</div><div class="empty-text">نتائج الفحص تُحفظ هنا لتقارن بها الفحوص التالية.</div></div><?php endif; ?>
+      <?php if (!$history): ?><div class="empty"><?= icon('cable') ?><div class="empty-title">لا توجد فحوص بعد</div></div><?php endif; ?>
     </div>
   </div>
 
@@ -141,7 +140,7 @@ $interval = Settings::int('cable.interval_hours', 6);
     <div class="cb-loading" data-cb-loading>
       <div class="cb-pulse" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
       <b data-cb-loading-title>يقرأ حالة المنفذ</b>
-      <span class="text-muted text-sm" data-cb-loading-note>حالة الرابط والسرعة وعدّادات الأخطاء ومرات الانقطاع · قراءة فقط</span>
+      <span class="text-muted text-sm" data-cb-loading-note></span>
     </div>
     <div class="notice notice-danger" data-cb-error hidden><?= icon('triangle-alert') ?><div data-cb-error-msg></div></div>
     <div class="cb-result" data-cb-result hidden></div>

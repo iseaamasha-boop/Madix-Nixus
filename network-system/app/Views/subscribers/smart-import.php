@@ -11,13 +11,13 @@ $needRouter = App\Core\Auth::routerIds() !== null;
       <?php if ($aiOffered): ?><span class="badge <?= $aiOk ? 'badge-primary' : 'badge-outline' ?>"><?= icon('sparkles') ?><?= e($aiOk ? 'ترتيب بالذكاء الاصطناعي' : $aiState) ?></span><?php endif; ?></div>
     <div class="panel-body">
       <div class="si-sources">
-        <div class="field si-paste"><label for="si-text">الصق القائمة من واتساب أو إكسل</label>
+        <div class="field si-paste"><label for="si-text">قائمة من واتساب أو إكسل</label>
           <textarea class="input" id="si-text" rows="9" placeholder="أحمد محمد 0599123456&#10;سارة علي 0567778899 ينتهي 2026-12-01"></textarea></div>
         <div class="field si-photo"><label>صورة الدفتر</label>
           <label class="si-drop<?= $aiOk ? '' : ' is-disabled' ?>" data-si-drop>
             <input type="file" accept="image/jpeg,image/png,image/webp" multiple data-si-files<?= $aiOk ? '' : ' disabled' ?>>
             <span class="si-drop-icon"><?= icon('camera') ?></span>
-            <b><?= $aiOk ? 'التقط صورة أو اختر حتى 3 صور' : 'تحتاج الذكاء الاصطناعي' ?></b>
+            <b><?= $aiOk ? 'حتى 3 صور' : 'تحتاج الذكاء الاصطناعي' ?></b>
             <span class="text-muted text-sm"><?= $aiOk ? 'JPG · PNG · WEBP' : e($aiOffered ? $aiState : 'غير مفعّل للحساب') ?></span>
           </label>
           <div class="si-thumbs" data-si-thumbs></div>

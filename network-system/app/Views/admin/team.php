@@ -8,7 +8,6 @@ $v->title = 'فريق الإدارة';
 $v->actions = '<button type="button" class="btn btn-primary" data-modal-open="m-member" data-member="">' . icon('user-plus') . 'إضافة مسؤول</button>';
 $all = AdminPermissions::all();
 ?>
-<p class="text-muted text-sm mb-3"><?= icon('info', 'icon-sm') ?> أنت مالك المنصة: تضيف المسؤولين وتحدد لكل واحد ما يراه ويفعله. ما لا يحق للمسؤول يختفي من قائمته ويُرفض إن حاوله، وتغيير صلاحياته أو كلمة مروره أو إيقافه ينهي جلساته المفتوحة فوراً.</p>
 <div class="team-grid">
   <?php foreach ($team as $a): $perms = AdminPermissions::of($a); $owner = (int) $a['is_owner'] === 1; $me = (int) $a['id'] === AdminAuth::id(); $full = count($perms) === count($all);
     $payload = ['id' => (int) $a['id'], 'name' => $a['name'], 'username' => $a['username'], 'email' => (string) $a['email'], 'owner' => $owner, 'perms' => $perms,
@@ -51,16 +50,16 @@ $all = AdminPermissions::all();
         <div class="field col-6"><label for="mm-name">الاسم</label><input class="input" id="mm-name" name="name" required maxlength="120"></div>
         <div class="field col-6"><label for="mm-user">اسم المستخدم</label><input class="input input-ltr" id="mm-user" name="username" required maxlength="60" autocapitalize="off" spellcheck="false"></div>
         <div class="field col-6"><label for="mm-email">البريد (اختياري)</label><input class="input input-ltr" id="mm-email" type="email" name="email" maxlength="190"></div>
-        <div class="field col-6"><label for="mm-pass">كلمة المرور</label><input class="input input-ltr" id="mm-pass" type="password" name="password" minlength="8" autocomplete="new-password"><span class="text-sm text-muted" data-member-passhint hidden>اتركها فارغة لإبقاء الحالية</span></div>
+        <div class="field col-6"><label for="mm-pass">كلمة المرور</label><input class="input input-ltr" id="mm-pass" type="password" name="password" minlength="8" autocomplete="new-password"></div>
       </div>
-      <div class="team-owner-note" data-member-owner hidden><?= icon('crown') ?>مالك المنصة له كل الصلاحيات دائماً، وهو وحده من يدير الفريق.</div>
+      <div class="team-owner-note" data-member-owner hidden><?= icon('crown') ?>مالك المنصة · كل الصلاحيات</div>
       <div data-member-roles>
         <div class="field mt-3"><label>الدور</label></div>
         <div class="team-roles">
           <?php foreach (AdminPermissions::PRESETS as $k => [$label, $desc, $p]): ?>
           <label class="team-role"><input type="radio" name="role" value="<?= e($k) ?>" data-perms="<?= e(json_encode($p === '*' ? $all : $p)) ?>"><span><b><?= e($label) ?></b><small><?= e($desc) ?></small></span></label>
           <?php endforeach; ?>
-          <label class="team-role"><input type="radio" name="role" value="custom"><span><b>مخصّص</b><small>تختار الصلاحيات بنفسك</small></span></label>
+          <label class="team-role"><input type="radio" name="role" value="custom"><span><b>مخصّص</b></span></label>
         </div>
         <div class="team-perm-groups">
           <?php foreach (AdminPermissions::GROUPS as $group => $items): ?>
@@ -90,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
     f.id.value = a ? a.id : '';
     f.name.value = a ? a.name : ''; f.username.value = a ? a.username : ''; f.email.value = a ? a.email : '';
     f.password.required = !a;
-    m.querySelector('[data-member-passhint]').hidden = !a;
+    f.password.placeholder = a ? '••••••••' : '';
     m.querySelector('[data-member-title]').textContent = a ? 'تعديل ' + a.name : 'مسؤول جديد';
     var owner = !!(a && a.owner);
     m.querySelector('[data-member-owner]').hidden = !owner;

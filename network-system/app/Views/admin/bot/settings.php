@@ -67,7 +67,6 @@ $aiOk = $aiState === 'ok';
         <div class="input-group"><input class="input" id="<?= e($name('bot.retention_days')) ?>" name="<?= e($name('bot.retention_days')) ?>" value="<?= e($s('bot.retention_days')) ?>" inputmode="numeric"><span class="input-addon">يوم</span></div>
         <?= error_html($name('bot.retention_days')) ?>
       </div>
-      <div class="field col-12"><span class="hint">إشعار المحادثات التي تحتاج رداً من الفريق يصل على تيليجرام من <a href="<?= e(url('/admin/notifications')) ?>">إشعارات تيليجرام</a>، ورسائل المشتركين تصل أصحاب شبكاتهم في صفحة «رسائل المشتركين» في أنظمتهم.</span></div>
 
       <div class="form-section-title">معلومات للمساعد</div>
       <div class="field col-12">
@@ -150,11 +149,11 @@ $aiOk = $aiState === 'ok';
   </div>
   <div class="bot-try-as">
     <label for="bot-try-phone">جرّب برقم</label>
-    <input class="input input-ltr" id="bot-try-phone" data-bot-try-phone inputmode="tel" maxlength="20" placeholder="رقم صاحب شبكة أو مشترك، أو اتركه فارغاً كزائر">
+    <input class="input input-ltr" id="bot-try-phone" data-bot-try-phone inputmode="tel" maxlength="20">
   </div>
   <div class="chat-log" data-bot-try-log aria-live="polite"></div>
   <form class="chat-form" data-bot-try-form>
-    <textarea class="input" name="text" rows="1" maxlength="1000" placeholder="اكتب كما يكتب المرسل" aria-label="رسالة تجريبية"></textarea>
+    <textarea class="input" name="text" rows="1" maxlength="1000" placeholder="رسالة تجريبية" aria-label="رسالة تجريبية"></textarea>
     <button class="btn btn-primary btn-icon" aria-label="إرسال"><?= icon('send') ?></button>
   </form>
 </div>

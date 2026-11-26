@@ -26,7 +26,6 @@ $zones = ['Asia/Gaza', 'Asia/Hebron', 'Asia/Jerusalem', 'Asia/Amman', 'Africa/Ca
           <label for="gmk">مفتاح خرائط Google لكل الحسابات</label>
           <input class="input input-ltr" id="gmk" name="google_maps_key" value="<?= e(old('google_maps_key', Platform::setting('maps.google_key'))) ?>" maxlength="120" autocomplete="off" spellcheck="false" placeholder="AIza...">
           <?= error_html('google_maps_key') ?>
-          <span class="hint">من Google Cloud: فعّل Map Tiles API وأنشئ مفتاحاً مقيّداً بنطاق المنصة. تظهر بعده خرائط Google (خريطة، قمر صناعي، تضاريس) في خريطة الشبكة واختيار المواقع، ويمكن لكل حساب وضع مفتاحه الخاص من إعداداته.</span>
         </div>
         <div class="form-section-title"><?= icon('megaphone') ?>إعلان لكل الأنظمة</div>
         <div class="field col-9"><label>نص الإعلان</label><input class="input" name="announcement" value="<?= e(old('announcement', Platform::setting('platform.announcement'))) ?>" maxlength="300"></div>
@@ -44,7 +43,6 @@ $zones = ['Asia/Gaza', 'Asia/Hebron', 'Asia/Jerusalem', 'Asia/Amman', 'Africa/Ca
           <span class="logo-preview-tile is-light"><img src="<?= e(\App\Core\Brand::markSrc()) ?>" alt="" data-logo-prev></span>
           <span class="logo-preview-tile is-dark"><img src="<?= e(\App\Core\Brand::markSrc()) ?>" alt="" data-logo-prev></span>
         </div>
-        <p class="text-sm text-muted" style="margin:0">يظهر في كل الحسابات: القائمة الجانبية وشاشات الدخول وصفحة الهبوط وأيقونة المتصفح والتطبيق. استخدم صورة مربعة بخلفية شفافة (PNG أو WebP أو SVG) بمقاس 512×512 أو أكبر.</p>
         <form method="post" action="<?= e(url('/admin/settings/logo')) ?>" enctype="multipart/form-data" class="stack" style="gap:10px" data-brand-logo>
           <?= csrf_field() ?>
           <label class="btn btn-block"><?= icon('upload') ?>اختيار صورة الشعار<input type="file" name="logo" accept="image/png,image/webp,image/svg+xml,.svg" hidden data-brand-logo-input></label>

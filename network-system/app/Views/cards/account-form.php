@@ -138,7 +138,6 @@ $hasBurst = $cat && ($cat['burst_rate_down'] || $cat['burst_rate_up']);
             <div class="field col-4">
               <label for="shared_users">عدد الأجهزة في نفس الوقت</label>
               <input class="input" id="shared_users" name="shared_users" value="<?= e($val('shared_users', $cat ? (string) (int) $cat['shared_users'] : '1')) ?>" inputmode="numeric">
-              <span class="hint">0 = غير محدود</span>
               <?= error_html('shared_users') ?>
             </div>
             <div class="field col-4">

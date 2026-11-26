@@ -129,7 +129,7 @@
   // ---------------- الخطوات ----------------
   $('[data-si-parse]').addEventListener('click', function () {
     var btn = this, text = $('#si-text').value.trim();
-    if (!text && !images.length) { say(status, false, 'الصق القائمة أو أضف صورة الدفتر.'); return; }
+    if (!text && !images.length) { say(status, false, 'لا توجد قائمة ولا صورة.'); return; }
     var fd = new FormData();
     fd.append('text', text);
     images.forEach(function (b, i) { fd.append('images[]', b, 'page-' + (i + 1) + '.jpg'); });

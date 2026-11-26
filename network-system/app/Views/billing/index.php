@@ -133,7 +133,6 @@ $waLink = $waIntl !== '' ? Platform::whatsappLink('مرحباً، أريد تف�
   <?= csrf_field() ?>
   <div class="panel-head"><h3><?= icon('mail') ?>بريد الفواتير والتنبيهات</h3><?php if (!empty($t['email'])): ?><span class="badge badge-success badge-dot">مضبوط</span><?php endif; ?></div>
   <div class="panel-body">
-    <p class="text-sm text-muted" style="margin:0 0 10px">تصل إليه الفاتورة عند كل دفعة، وتذكير قبل انتهاء الاشتراك، وتأكيد التحويل البنكي، وردود الدعم الفني. اتركه فارغاً لإيقاف البريد.</p>
     <div class="input-group"><input class="input input-ltr" type="email" name="email" maxlength="120" value="<?= e(old('email', (string) ($t['email'] ?? ''))) ?>" placeholder="you@example.com" aria-label="البريد الإلكتروني"><button class="btn btn-primary"><?= icon('save') ?>حفظ</button></div>
     <?= error_html('email') ?>
   </div>
