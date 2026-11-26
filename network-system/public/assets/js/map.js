@@ -511,13 +511,11 @@
     });
     document.querySelector('[data-site-delete]').addEventListener('click', function () {
       var id = siteForm.id.value;
-      SN.confirm('حذف الموقع «' + siteForm.name.value + '»؟ ستُحذف روابطه أيضاً.').then(function (ok) {
-        if (!ok) { return; }
-        SN.api(cfg.sitesUrl + '/' + id + '/delete', { method: 'POST', data: {} }).then(function (r) {
-          SN.toast('success', r.message);
-          SN.closeModal(document.getElementById('site-modal'));
-          load();
-        });
+      // حذف فوري مع «تراجع» بدل سؤال التأكيد
+      SN.api(cfg.sitesUrl + '/' + id + '/delete', { method: 'POST', data: {} }).then(function (r) {
+        SN.undoToast(r.message, r.undo, function () { load(); });
+        SN.closeModal(document.getElementById('site-modal'));
+        load();
       });
     });
   }

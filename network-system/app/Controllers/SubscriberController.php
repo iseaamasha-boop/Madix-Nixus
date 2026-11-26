@@ -397,8 +397,10 @@ final class SubscriberController extends Controller
     public function destroy(Request $request, int $id): Response
     {
         $sub = $this->find($id);
-        SubscriberService::delete($id);
-        return $this->ok('تم حذف المشترك ' . $sub['full_name'] . '.', '/subscribers');
+        // التراجع يعيد المشترك وقيوده وارتباطاته واسم دخوله، ثم يعيده إلى جهاز MikroTik
+        return $this->deleteWithUndo('subscribers', $id, 'subscriber.delete', 'حذف المشترك ' . $sub['full_name'], 'subscribers.delete',
+            static fn () => SubscriberService::delete($id), 'تم حذف المشترك ' . $sub['full_name'] . '.', '/subscribers', [], 'subscriber.sync',
+            [['logins', 'owner_type = ? AND owner_id = ?', ['subscriber', $id]]]);
     }
 
     // ---------------------------------------------------------------------

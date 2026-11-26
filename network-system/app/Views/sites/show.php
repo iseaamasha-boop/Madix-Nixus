@@ -109,7 +109,7 @@ $routerStatus = ['online' => ['متصل', 'badge-success'], 'offline' => ['غي�
       <?php endif; ?>
     </div>
     <?php if (can('map.manage')): ?>
-    <form method="post" action="<?= e(url('/sites/' . $site['id'] . '/delete')) ?>" data-confirm="حذف الموقع «<?= e($site['name']) ?>»؟ تبقى أجهزة MikroTik والمشتركون، وتُحذف الروابط.">
+    <form method="post" action="<?= e(url('/sites/' . $site['id'] . '/delete')) ?>">
       <?= csrf_field() ?><button class="btn btn-ghost text-danger btn-block"><?= icon('trash-2') ?>حذف الموقع</button>
     </form>
     <?php endif; ?>

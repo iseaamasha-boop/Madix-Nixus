@@ -1149,3 +1149,22 @@ CREATE TABLE IF NOT EXISTS speed_caps (
   KEY idx_speed_caps_ref (kind, ref_id, removed_at),
   KEY idx_speed_caps_open (removed_at, ends_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------------
+-- التراجع عن الحذف: لقطة الصفوف المحذوفة (وما حُذف معها أو انفصل عنها) لدقائق، تُعاد كما كانت بزر «تراجع»
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS undo_actions (
+  id          INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  token       CHAR(32)     NOT NULL,
+  employee_id INT UNSIGNED NULL,
+  action      VARCHAR(40)  NOT NULL,
+  label       VARCHAR(255) NOT NULL,
+  perm        VARCHAR(60)  NULL,
+  payload     MEDIUMTEXT   NOT NULL,
+  created_at  DATETIME     NOT NULL,
+  expires_at  DATETIME     NOT NULL,
+  undone_at   DATETIME     NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_undo_token (token),
+  KEY idx_undo_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

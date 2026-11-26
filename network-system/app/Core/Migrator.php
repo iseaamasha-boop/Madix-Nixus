@@ -12,7 +12,7 @@ use Throwable;
 final class Migrator
 {
     /** نسخة البنية التي تتوقعها الشيفرة الحالية */
-    public const VERSION = 17;
+    public const VERSION = 18;
 
     private static bool $checked = false;
 
@@ -172,6 +172,10 @@ final class Migrator
             case 17:
                 // إحصاءات الدفعات والأرقام المختصرة تُقرأ من الفهرس وحده بدل كل صفوف الكروت
                 self::addIndex('cards', 'idx_cards_batch_stats', '(batch_id, status, is_disabled, first_login_at, printed_at, short_code)');
+                break;
+            case 18:
+                // التراجع عن الحذف (البند 71)
+                self::createTables(['undo_actions']);
                 break;
         }
     }

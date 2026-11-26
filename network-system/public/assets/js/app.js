@@ -170,21 +170,45 @@
   // ------------------------------------------------------------------------
   // الإشعارات العائمة
   // ------------------------------------------------------------------------
-  function toast(type, message, timeout) {
+  // action (اختياري): زر داخل الإشعار {label, run} — «تراجع» بعد الحذف مثلاً
+  function toast(type, message, timeout, action) {
     var box = $('.toasts');
     if (!box) { box = doc.createElement('div'); box.className = 'toasts'; doc.body.appendChild(box); }
     var icons = { success: 'circle-check', error: 'circle-x', danger: 'circle-x', warning: 'triangle-alert', info: 'info' };
     var el = doc.createElement('div');
     el.className = 'toast toast-' + type;
     el.setAttribute('role', type === 'error' ? 'alert' : 'status');
-    el.innerHTML = icon(icons[type] || 'info') + '<div>' + esc(message) + '</div><button type="button" class="toast-close" aria-label="إغلاق">' + icon('x', 'icon-sm') + '</button>';
+    el.innerHTML = icon(icons[type] || 'info') + '<div>' + esc(message) + '</div>' +
+      (action ? '<button type="button" class="toast-action">' + esc(action.label) + '</button>' : '') +
+      '<button type="button" class="toast-close" aria-label="إغلاق">' + icon('x', 'icon-sm') + '</button>';
     box.appendChild(el);
     var remove = function () {
       el.classList.add('is-leaving');
       setTimeout(function () { if (el.parentNode) { el.parentNode.removeChild(el); } }, 200);
     };
     el.querySelector('.toast-close').addEventListener('click', remove);
+    if (action) {
+      var btn = el.querySelector('.toast-action');
+      btn.addEventListener('click', function () {
+        btn.disabled = true;
+        btn.classList.add('is-loading');
+        Promise.resolve(action.run()).then(remove, function () { btn.disabled = false; btn.classList.remove('is-loading'); });
+      });
+    }
     setTimeout(remove, timeout || (type === 'error' ? 7000 : 4500));
+  }
+
+  // التراجع عن الحذف: الإجراء يعيد العنصر كما كان ثم تُحدَّث الصفحة
+  function undo(token, done) {
+    return api(base + '/undo/' + encodeURIComponent(token), { method: 'POST' }).then(function (d) {
+      toast('success', d.message || 'تم التراجع.');
+      if (typeof done === 'function') { done(d); } else { setTimeout(function () { window.location.reload(); }, 500); }
+    });
+  }
+  /** رسالة نجاح بزر «تراجع» بعد حذف من صفحة تفاعلية (ردّ JSON فيه undo) */
+  function undoToast(message, token, done) {
+    if (!token) { toast('success', message); return; }
+    toast('success', message, 10000, { label: 'تراجع', run: function () { return undo(token, done); } });
   }
 
   // ------------------------------------------------------------------------
@@ -1267,7 +1291,12 @@
     syncConditional();
     var flash = doc.getElementById('flash-data');
     if (flash) {
-      try { JSON.parse(flash.textContent).forEach(function (f) { toast(f.type === 'error' ? 'error' : f.type, f.message); }); } catch (e) {}
+      try {
+        JSON.parse(flash.textContent).forEach(function (f) {
+          if (f.undo) { toast('success', f.message, 10000, { label: 'تراجع', run: function () { return undo(f.undo); } }); return; }
+          toast(f.type === 'error' ? 'error' : f.type, f.message);
+        });
+      } catch (e) {}
     }
     $$('[data-bulk-scope]').forEach(refreshBulk);
     // تبويب من الرابط
@@ -1282,6 +1311,6 @@
   window.SN = {
     api: api, toast: toast, confirm: confirmDialog, openModal: openModal, closeModal: closeModal,
     esc: esc, icon: icon, fmtBytes: fmtBytes, fmtRate: fmtRate, fmtDuration: fmtDuration, fmtNum: fmtNum,
-    chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, palette: palette, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
+    chart: makeChart, chartWhenSeen: chartWhenSeen, net: net, uid: uid, palette: palette, undo: undo, undoToast: undoToast, copy: copyText, base: base, csrf: csrf, $: $, $$: $$, on: on, syncConditional: syncConditional, live: live
   };
 })();

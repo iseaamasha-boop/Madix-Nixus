@@ -194,9 +194,10 @@ final class PrintController extends Controller
         if ((int) DB::value('SELECT COUNT(*) FROM print_templates') <= 1) {
             return $this->backWithErrors($request, ['id' => 'لا يمكن حذف القالب الوحيد.'], '/print');
         }
-        DB::delete('print_templates', 'id = ?', [$id]);
-        Audit::log('template.delete', 'حذف قالب الطباعة ' . $t['name'], 'template', $id);
-        return $this->ok('تم حذف القالب.', '/print');
+        return $this->deleteWithUndo('print_templates', $id, 'template.delete', 'حذف قالب الطباعة ' . $t['name'], 'print.templates', static function () use ($id, $t): void {
+            DB::delete('print_templates', 'id = ?', [$id]);
+            Audit::log('template.delete', 'حذف قالب الطباعة ' . $t['name'], 'template', $id);
+        }, 'تم حذف القالب.', '/print');
     }
 
     public function duplicate(Request $request, int $id): Response

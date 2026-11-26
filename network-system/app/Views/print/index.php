@@ -125,7 +125,7 @@ if ($selection) {
               <?= csrf_field() ?><button class="btn btn-xs btn-ghost btn-icon" type="submit" title="نسخ"><?= icon('copy') ?></button>
             </form>
             <?php if (count($templates) > 1): ?>
-            <form method="post" action="<?= e(url('/print/templates/' . $t['id'] . '/delete')) ?>" data-confirm="حذف القالب «<?= e($t['name']) ?>»؟">
+            <form method="post" action="<?= e(url('/print/templates/' . $t['id'] . '/delete')) ?>">
               <?= csrf_field() ?><button class="btn btn-xs btn-ghost btn-icon" type="submit" title="حذف"><?= icon('trash-2') ?></button>
             </form>
             <?php endif; ?>

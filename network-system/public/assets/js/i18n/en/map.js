@@ -512,13 +512,11 @@
     });
     document.querySelector('[data-site-delete]').addEventListener('click', function () {
       var id = siteForm.id.value;
-      SN.confirm('Delete site “' + siteForm.name.value + '”? Its links will be deleted too.').then(function (ok) {
-        if (!ok) { return; }
-        SN.api(cfg.sitesUrl + '/' + id + '/delete', { method: 'POST', data: {} }).then(function (r) {
-          SN.toast('success', r.message);
-          SN.closeModal(document.getElementById('site-modal'));
-          load();
-        });
+      // Delete فوري مع “Undo” بدل سؤال التأكيد
+      SN.api(cfg.sitesUrl + '/' + id + '/delete', { method: 'POST', data: {} }).then(function (r) {
+        SN.undoToast(r.message, r.undo, function () { load(); });
+        SN.closeModal(document.getElementById('site-modal'));
+        load();
       });
     });
   }

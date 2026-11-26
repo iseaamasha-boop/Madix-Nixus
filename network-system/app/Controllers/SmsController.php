@@ -202,8 +202,13 @@ final class SmsController extends Controller
 
     public function templateDelete(Request $request, int $id): Response
     {
-        DB::delete('sms_templates', 'id = ?', [$id]);
-        return $this->ok('تم حذف القالب.', '/sms/settings');
+        $t = DB::row('SELECT * FROM sms_templates WHERE id = ?', [$id]);
+        $this->notFoundUnless($t);
+        $label = 'حذف قالب الرسائل ' . ($t['name'] ?? $t['title'] ?? ('#' . $id));
+        return $this->deleteWithUndo('sms_templates', $id, 'sms.template_delete', $label, 'sms.manage', static function () use ($id, $label): void {
+            DB::delete('sms_templates', 'id = ?', [$id]);
+            Audit::log('sms.template_delete', $label, 'sms_template', $id);
+        }, 'تم حذف القالب.', '/sms/settings');
     }
 
     // ------------------------------------------------------------------

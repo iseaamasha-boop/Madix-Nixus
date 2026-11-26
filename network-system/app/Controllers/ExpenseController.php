@@ -123,9 +123,11 @@ final class ExpenseController extends Controller
     {
         $x = DB::row('SELECT * FROM expenses WHERE id = ?', [$id]);
         $this->notFoundUnless($x);
-        DB::delete('expenses', 'id = ?', [$id]);
-        Audit::log('expense.delete', 'حذف مصروف: ' . Finance::label((string) $x['category']) . ' — ' . money((float) $x['amount']), 'expense', $id, ['date' => $x['spent_on'], 'description' => $x['description']]);
-        return $this->ok('تم حذف المصروف.', '/expenses', ['month' => substr((string) $x['spent_on'], 0, 7)]);
+        $label = 'حذف مصروف: ' . Finance::label((string) $x['category']) . ' — ' . money((float) $x['amount']);
+        return $this->deleteWithUndo('expenses', $id, 'expense.delete', $label, 'expenses.manage', static function () use ($id, $x, $label): void {
+            DB::delete('expenses', 'id = ?', [$id]);
+            Audit::log('expense.delete', $label, 'expense', $id, ['date' => $x['spent_on'], 'description' => $x['description']]);
+        }, 'تم حذف المصروف.', '/expenses', ['month' => substr((string) $x['spent_on'], 0, 7)]);
     }
 
     /** تصدير مصاريف الشهر (بالمرشّحات الحالية) */
@@ -182,8 +184,9 @@ final class ExpenseController extends Controller
     {
         $p = DB::row('SELECT * FROM partners WHERE id = ?', [$id]);
         $this->notFoundUnless($p);
-        DB::delete('partners', 'id = ?', [$id]);
-        Audit::log('partner.delete', 'حذف شريك: ' . $p['name'], 'partner', $id);
-        return $this->ok('تم حذف الشريك.', '/expenses');
+        return $this->deleteWithUndo('partners', $id, 'partner.delete', 'حذف شريك: ' . $p['name'], 'profit.manage', static function () use ($id, $p): void {
+            DB::delete('partners', 'id = ?', [$id]);
+            Audit::log('partner.delete', 'حذف شريك: ' . $p['name'], 'partner', $id);
+        }, 'تم حذف الشريك.', '/expenses');
     }
 }

@@ -118,7 +118,7 @@ $unitBtn = static function (array $u, string $action, string $iconName, string $
 <?php endif; ?>
 
 <?php if ($canManage): ?>
-<form method="post" action="<?= e(url('/inventory/' . $item['id'] . '/delete')) ?>" data-confirm="حذف الصنف «<?= e($item['name']) ?>» وكل حركاته؟" class="text-center">
+<form method="post" action="<?= e(url('/inventory/' . $item['id'] . '/delete')) ?>" class="text-center">
   <?= csrf_field() ?>
   <button class="btn btn-ghost text-danger"><?= icon('trash-2') ?>حذف الصنف</button>
 </form>

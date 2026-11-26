@@ -156,9 +156,10 @@ final class InventoryController extends Controller
             flash('error', 'لا يمكن حذف صنف له أجهزة مركّبة؛ أوقفه بدلاً من ذلك.');
             return redirect('/inventory/' . $id);
         }
-        DB::delete('inventory_items', 'id = ?', [$id]);
-        Audit::log('inventory.item', 'حذف الصنف ' . $item['name'], 'inventory_item', $id);
-        return $this->ok('تم حذف الصنف.', '/inventory');
+        return $this->deleteWithUndo('inventory_items', $id, 'inventory.item_delete', 'حذف الصنف ' . $item['name'], 'inventory.manage', static function () use ($id, $item): void {
+            DB::delete('inventory_items', 'id = ?', [$id]);
+            Audit::log('inventory.item', 'حذف الصنف ' . $item['name'], 'inventory_item', $id);
+        }, 'تم حذف الصنف.', '/inventory');
     }
 
     /** حركة على صنف: كمية أو أجهزة مرقّمة جديدة */

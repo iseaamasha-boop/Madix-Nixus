@@ -75,4 +75,39 @@ abstract class Controller
         flash('success', $message);
         return redirect($redirect, $query);
     }
+
+    /**
+     * حذف قابل للتراجع: يلتقط الصفوف (وما يُحذف معها) ثم ينفّذ الحذف، ويعيد رسالة بزر «تراجع».
+     * إن كانت اللقطة أكبر من الحد يُنفَّذ الحذف كما هو دون تراجع.
+     * $delete تنفّذ الحذف وتسجّله في سجل العمليات.
+     */
+    protected function deleteWithUndo(string $table, int $id, string $action, string $label, ?string $perm, callable $delete, string $message, string $redirect, array $query = [], ?string $after = null, array $extra = []): Response
+    {
+        $token = $this->undoable($table, $id, $action, $label, $perm, $delete, $after, $extra);
+        if ($token !== null) {
+            flash_undo($message, $token);
+            return redirect($redirect, $query);
+        }
+        return $this->ok($message, $redirect, $query);
+    }
+
+    /** الحذف مع لقطة التراجع؛ يعيد رمز التراجع (null إن تعذّرت اللقطة، والحذف يتم على كل حال) */
+    protected function undoable(string $table, int $id, string $action, string $label, ?string $perm, callable $delete, ?string $after = null, array $extra = []): ?string
+    {
+        try {
+            $snap = \App\Services\Undo::capture($table, [$id], $extra);
+        } catch (\Throwable) {
+            $snap = null;
+        }
+        $delete();
+        if ($snap === null || !$snap['rows']) {
+            return null;
+        }
+        try {
+            return \App\Services\Undo::record($action, $label, $perm, $snap, $after, $id);
+        } catch (\Throwable $e) {
+            \App\Core\ErrorHandler::report($e);
+            return null;
+        }
+    }
 }

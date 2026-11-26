@@ -184,6 +184,8 @@ return static function (Router $r): void {
     $r->post('/account/2fa/disable', [AccountController::class, 'totpDisable']);
     $r->post('/account/2fa/codes', [AccountController::class, 'totpCodes']);
     $r->get('/search', [SearchController::class, 'index']);
+    // التراجع عن الحذف: صاحب الحذف وبصلاحيته (تتحقق منها خدمة التراجع)
+    $r->post('/undo/{token:[a-f0-9]{32}}', [\App\Controllers\UndoController::class, 'restore']);
 
     // ------------------------------------------------------------------
     // لوحة التحكم

@@ -80,7 +80,7 @@ $op = static fn (string $k) => $parErr ? (string) old($k) : '';
           <td class="w-actions"><div class="row-actions">
             <button type="button" class="btn btn-ghost btn-icon btn-sm" title="تعديل" data-modal-open="m-expense" data-expense="<?= e($json) ?>"><?= icon('pencil') ?></button>
             <button type="button" class="btn btn-ghost btn-icon btn-sm" title="تكرار بتاريخ اليوم" data-modal-open="m-expense" data-expense="<?= e($json) ?>" data-copy-expense><?= icon('copy') ?></button>
-            <form method="post" action="<?= e(url('/expenses/' . $x['id'] . '/delete')) ?>" data-confirm="حذف هذا المصروف (<?= e(money((float) $x['amount'])) ?>)؟"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm text-danger" title="حذف"><?= icon('trash-2') ?></button></form>
+            <form method="post" action="<?= e(url('/expenses/' . $x['id'] . '/delete')) ?>"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm text-danger" title="حذف"><?= icon('trash-2') ?></button></form>
           </div></td>
           <?php endif; ?>
         </tr>
@@ -121,7 +121,7 @@ $op = static fn (string $k) => $parErr ? (string) old($k) : '';
           <?php if ($managePartners): ?>
           <div class="row-actions">
             <button type="button" class="btn btn-ghost btn-icon btn-sm" title="تعديل" data-modal-open="m-partner" data-partner="<?= e(json_encode(['id' => (int) $p['id'], 'name' => $p['name'], 'share' => (float) $p['share'], 'phone' => (string) $p['phone'], 'notes' => (string) $p['notes']], JSON_UNESCAPED_UNICODE)) ?>"><?= icon('pencil') ?></button>
-            <form method="post" action="<?= e(url('/expenses/partners/' . $p['id'] . '/delete')) ?>" data-confirm="حذف الشريك <?= e($p['name']) ?>؟"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm text-danger" title="حذف"><?= icon('trash-2') ?></button></form>
+            <form method="post" action="<?= e(url('/expenses/partners/' . $p['id'] . '/delete')) ?>"><?= csrf_field() ?><button class="btn btn-ghost btn-icon btn-sm text-danger" title="حذف"><?= icon('trash-2') ?></button></form>
           </div>
           <?php endif; ?>
         </li>

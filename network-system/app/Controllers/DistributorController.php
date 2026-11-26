@@ -98,9 +98,10 @@ final class DistributorController extends Controller
         if (DB::value('SELECT 1 FROM sales WHERE distributor_id = ? LIMIT 1', [$id])) {
             return $this->backWithErrors($request, ['id' => 'لا يمكن حذف موزع له عمليات بيع. يمكنك إيقافه بدلاً من ذلك.'], '/distributors/' . $id);
         }
-        DB::delete('distributors', 'id = ?', [$id]);
-        Audit::log('distributor.delete', 'حذف الموزع ' . $dist['name'], 'distributor', $id);
-        return $this->ok('تم حذف الموزع.', '/distributors');
+        return $this->deleteWithUndo('distributors', $id, 'distributor.delete', 'حذف الموزع ' . $dist['name'], 'distributors.manage', static function () use ($id, $dist): void {
+            DB::delete('distributors', 'id = ?', [$id]);
+            Audit::log('distributor.delete', 'حذف الموزع ' . $dist['name'], 'distributor', $id);
+        }, 'تم حذف الموزع.', '/distributors');
     }
 
     public function show(Request $request, int $id): Response

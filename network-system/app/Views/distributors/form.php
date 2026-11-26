@@ -63,5 +63,5 @@ $val = static fn (string $k, $d = '') => old($k, $dist[$k] ?? $d);
   </div>
 </form>
 <?php if ($isEdit && can('distributors.manage')): ?>
-<form method="post" id="delete-form" action="<?= e(url('/distributors/' . $dist['id'] . '/delete')) ?>" data-confirm="حذف الموزع <?= e($dist['name']) ?>؟"><?= csrf_field() ?></form>
+<form method="post" id="delete-form" action="<?= e(url('/distributors/' . $dist['id'] . '/delete')) ?>"><?= csrf_field() ?></form>
 <?php endif; ?>

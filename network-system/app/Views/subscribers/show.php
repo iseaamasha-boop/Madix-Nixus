@@ -63,7 +63,7 @@ $base = url('/subscribers/' . $sub['id']);
           <?php endif; ?>
           <?php if (can('subscribers.delete')): ?>
           <div class="dropdown-sep"></div>
-          <form method="post" action="<?= e($base . '/delete') ?>" data-confirm="حذف المشترك <?= e($sub['full_name']) ?> وإزالته من جهاز MikroTik؟"><?= csrf_field() ?><button class="dropdown-item is-danger"><?= icon('trash-2') ?>حذف المشترك</button></form>
+          <form method="post" action="<?= e($base . '/delete') ?>"><?= csrf_field() ?><button class="dropdown-item is-danger"><?= icon('trash-2') ?>حذف المشترك</button></form>
           <?php endif; ?>
         </div>
       </div>

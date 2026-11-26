@@ -223,6 +223,14 @@ function flash(string $type, string $message): void
     Session::set('_flash', $list);
 }
 
+/** رسالة نجاح مع زر «تراجع» (رمز التراجع من App\Services\Undo) */
+function flash_undo(string $message, string $token): void
+{
+    $list = Session::get('_flash', []);
+    $list[] = ['type' => 'success', 'message' => $message, 'undo' => $token];
+    Session::set('_flash', $list);
+}
+
 function auth(): ?array
 {
     return Auth::user();

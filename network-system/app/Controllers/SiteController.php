@@ -111,12 +111,15 @@ final class SiteController extends Controller
     {
         $site = DB::row('SELECT * FROM sites WHERE id = ?', [$id]);
         $this->notFoundUnless($site);
-        DB::delete('sites', 'id = ?', [$id]);
-        Audit::log('site.delete', 'حذف الموقع ' . $site['name'], 'site', $id);
+        $delete = static function () use ($id, $site): void {
+            DB::delete('sites', 'id = ?', [$id]);
+            Audit::log('site.delete', 'حذف الموقع ' . $site['name'], 'site', $id);
+        };
         if ($request->wantsJson()) {
-            return json_response(['ok' => true, 'message' => 'تم حذف الموقع.']);
+            $token = $this->undoable('sites', $id, 'site.delete', 'حذف الموقع ' . $site['name'], 'map.manage', $delete);
+            return json_response(['ok' => true, 'message' => 'تم حذف الموقع.', 'undo' => $token]);
         }
-        return $this->ok('تم حذف الموقع.', '/sites');
+        return $this->deleteWithUndo('sites', $id, 'site.delete', 'حذف الموقع ' . $site['name'], 'map.manage', $delete, 'تم حذف الموقع.', '/sites');
     }
 
     public function linkStore(Request $request): Response

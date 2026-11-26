@@ -5287,4 +5287,11 @@ return [
     'الوضع الفاتح' => 'Light mode',
     'كل النتائج' => 'All results',
     'بحث عن صفحة، مشترك، كرت، جهاز MikroTik...' => 'Search pages, subscribers, cards, MikroTik devices...',
+    'تم التراجع.' => 'Undone.',
+    'لم يعد التراجع متاحاً.' => 'Undo is no longer available.',
+    'لا تملك صلاحية التراجع عن هذه العملية.' => 'You do not have permission to undo this action.',
+    'تم التراجع عن هذه العملية من قبل.' => 'This action was already undone.',
+    'تعذّر التراجع: أُضيفت بيانات تتعارض مع العنصر المحذوف بعد حذفه.' => 'Could not undo: data added after the deletion conflicts with the deleted item.',
+    'تعذّرت المزامنة مع جهاز MikroTik، وستُعاد تلقائياً.' => 'Syncing with the MikroTik device failed and will be retried automatically.',
+    'تراجع عن: ' => 'Undid: ',
 ];

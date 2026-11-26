@@ -43,8 +43,9 @@ final class AreaController extends Controller
     {
         $area = DB::row('SELECT * FROM areas WHERE id = ?', [$id]);
         $this->notFoundUnless($area);
-        DB::delete('areas', 'id = ?', [$id]);
-        Audit::log('area.delete', 'حذف المنطقة ' . $area['name'], 'area', $id);
-        return $this->ok('تم حذف المنطقة.', '/areas');
+        return $this->deleteWithUndo('areas', $id, 'area.delete', 'حذف المنطقة ' . $area['name'], 'areas.manage', static function () use ($id, $area): void {
+            DB::delete('areas', 'id = ?', [$id]);
+            Audit::log('area.delete', 'حذف المنطقة ' . $area['name'], 'area', $id);
+        }, 'تم حذف المنطقة.', '/areas');
     }
 }

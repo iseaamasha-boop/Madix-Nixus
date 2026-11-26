@@ -813,6 +813,14 @@ dialog.modal[open] > form { display: flex; flex-direction: column; flex: 1 1 aut
 .toast-info .icon { color: var(--info); }
 .toast-close { margin-inline-start: auto; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0; display: grid; }
 .toast.is-leaving { animation: toastOut var(--dur-3) ease-in forwards; }
+.toast-action {
+  margin-inline-start: auto; flex: none; align-self: center; border: 0; cursor: pointer; font: inherit; font-size: 13px; font-weight: 700;
+  color: var(--primary); background: var(--primary-soft); border-radius: var(--control-radius-sm); padding: 5px 12px;
+  transition: transform var(--dur-1) var(--ease-out), opacity var(--dur-2);
+}
+.toast-action:active { transform: scale(.96); }
+.toast-action:disabled { opacity: .6; cursor: default; }
+.toast-action + .toast-close { margin-inline-start: 2px; align-self: center; }
 /* شريط انقطاع الاتصال */
 .net-bar {
   position: fixed; top: calc(var(--topbar-h) + 8px); inset-inline: 0; margin-inline: auto; width: max-content; max-width: calc(100vw - 32px);
