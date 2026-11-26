@@ -37,8 +37,12 @@ function ok(cond, msg) {
     await Promise.all([page.waitForNavigation(), page.click('button[type=submit]')]);
     await page.goto(BASE + '/' + TENANT + '/plans');
     console.log(w + 'px');
-    const cell = page.locator('[data-edit][data-field="price"]').first();
-    if (!(await cell.count())) { console.log('  - no editable price, skipped'); await ctx.close(); continue; }
+    // خلية باقة محددة بمعرّفها: تغيير السعر قد يغيّر ترتيب الجدول بعد التحديث
+    const first = page.locator('[data-edit][data-field="price"]').first();
+    if (!(await first.count())) { console.log('  - no editable price, skipped'); await ctx.close(); continue; }
+    const url = await first.getAttribute('data-edit');
+    const sel = '[data-edit="' + url + '"]';
+    const cell = page.locator(sel);
     const old = await cell.getAttribute('data-value');
     let navigated = false;
     page.on('framenavigated', () => { navigated = true; });
@@ -50,12 +54,12 @@ function ok(cond, msg) {
     await input.fill('');
     await input.type('77.5');
     await input.press('Enter');
-    await page.waitForFunction(() => { const c = document.querySelector('[data-edit][data-field="price"]'); return c && c.getAttribute('data-value') === '77.50' && !c.classList.contains('is-saving'); }, null, { timeout: 6000 }).catch(() => null);
+    await page.waitForFunction((q) => { const c = document.querySelector(q); return c && c.getAttribute('data-value') === '77.50' && !c.classList.contains('is-saving'); }, sel, { timeout: 6000 }).catch(() => null);
     ok((await cell.getAttribute('data-value')) === '77.50' && /77/.test(await cell.textContent()), 'saved and shown');
     ok(!navigated, 'no page reload');
     await page.reload();
-    ok((await page.locator('[data-edit][data-field="price"]').first().getAttribute('data-value')) === '77.50', 'kept after reload');
-    const c2 = page.locator('[data-edit][data-field="price"]').first();
+    ok((await page.locator(sel).getAttribute('data-value')) === '77.50', 'kept after reload');
+    const c2 = page.locator(sel);
     await c2.click();
     await c2.locator('input').fill('999');
     await c2.locator('input').press('Escape');
@@ -70,7 +74,8 @@ function ok(cond, msg) {
     await c2.click();
     await c2.locator('input').fill(old);
     await c2.locator('input').press('Enter');
-    await page.waitForTimeout(800);
+    await page.waitForFunction(([q, v]) => { const c = document.querySelector(q); return c && c.getAttribute('data-value') === v && !c.classList.contains('is-saving'); }, [sel, old], { timeout: 6000 }).catch(() => null);
+    ok((await c2.getAttribute('data-value')) === old, 'original price restored');
     ok(errors.length === 0, 'no JavaScript errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
     await ctx.close();
   }
