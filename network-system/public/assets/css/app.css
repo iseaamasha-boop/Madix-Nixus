@@ -2642,9 +2642,19 @@ mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: c
 [data-glass="1"] .stat :is(.stat-label, .stat-meta) { color: rgba(255, 255, 255, .82); }
 [data-glass="1"] .stat .stat-value { color: #fff; }
 [data-glass="1"] .stat .stat-icon { background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2); }
-[data-glass="1"] .stat :is(.text-success, .is-up, .up) { color: #4ade80; }
-[data-glass="1"] .stat :is(.text-danger, .is-down, .down) { color: #fca5a5; }
-[data-glass="1"] .stat .text-warning { color: #fcd34d; }
+[data-glass="1"] .stat :is(.is-up, .up) { color: #4ade80; }
+[data-glass="1"] .stat :is(.is-down, .down) { color: #fca5a5; }
+/* ألوان الحالة على المسرح الداكن: أدوات النص تحمل !important فتُغلب هنا داخل البطاقة وحدها */
+[data-glass="1"] .stat .text-success { color: #4ade80 !important; }
+[data-glass="1"] .stat .text-danger { color: #fca5a5 !important; }
+[data-glass="1"] .stat .text-warning { color: #fcd34d !important; }
+[data-glass="1"] .stat .text-primary { color: #93c5fd !important; }
+[data-glass="1"] .stat .text-muted { color: rgba(255, 255, 255, .7) !important; }
+[data-glass="1"] .stat .badge { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .24); }
+[data-glass="1"] .stat .badge-success { background: rgba(74, 222, 128, .18); color: #86efac; }
+[data-glass="1"] .stat .badge-danger { background: rgba(248, 113, 113, .2); color: #fecaca; }
+[data-glass="1"] .stat .badge-warning { background: rgba(252, 211, 77, .18); color: #fde68a; }
+[data-glass="1"] .stat :is(.badge-primary, .badge-info, .badge-violet) { background: rgba(147, 197, 253, .18); color: #dbeafe; }
 [data-glass="1"] .stat:is(:hover, .is-lit) { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0, 0, 0, .38), inset 0 1px 0 rgba(255, 255, 255, .35); }
 /* التمويه على الأجهزة القادرة فقط (fx-blur: ذاكرة 4GB وأربع أنوية فأكثر)، على بطاقات الأرقام وحدها، في الحاسوب والجوال */
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {

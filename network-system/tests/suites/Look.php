@@ -268,7 +268,12 @@ return [
         T::ok(preg_match('/\[data-glass="1"\] :is\(\.stats, \.kpi-row\) \{\s*position: relative; isolation: isolate;/', $css) === 1, 'cards sit on a stage');
         T::contains('@keyframes glass-float { to { transform: translate(36px, 24px) scale(1.12); } }', $css, 'stage glows float with transform');
         T::contains('[data-glass="1"] .stat .stat-value { color: #fff; }', $css, 'white numbers on glass');
-        T::contains('[data-glass="1"] .stat :is(.text-danger, .is-down, .down) { color: #fca5a5; }', $css, 'warnings readable on glass');
+        T::contains('[data-glass="1"] .stat :is(.is-down, .down) { color: #fca5a5; }', $css, 'warnings readable on glass');
+        foreach (['success', 'danger', 'warning', 'primary', 'muted'] as $u) {
+            // أدوات النص تحمل !important، فلونها على المسرح يجب أن يغلبها
+            T::ok(preg_match('/\[data-glass="1"\] \.stat \.text-' . $u . ' \{ color: [^;]+ !important; \}/', $css) === 1, 'text-' . $u . ' readable on glass');
+        }
+        T::contains('[data-glass="1"] .stat .badge {', $css, 'badges readable on glass');
         T::contains('[data-glass="1"] .stat:is(:hover, .is-lit) { transform: translateY(-4px);', $css, 'cards lift on hover or touch');
         T::contains('[data-glass="1"] :is(.stats, .kpi-row)::before, [data-glass="1"] :is(.stats, .kpi-row)::after { animation: none; }', $css, 'stage glows still under reduced motion');
         T::contains('[data-glass="1"] .glass-still::before, [data-glass="1"] .glass-still::after { animation-play-state: paused; }', $css, 'glows pause off screen');
