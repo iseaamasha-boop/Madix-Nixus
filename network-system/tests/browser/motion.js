@@ -79,7 +79,8 @@ function ok(cond, msg) {
     await page.keyboard.press('Escape');
     if (reduced) { ok(!has, 'no ripple with reduced motion'); } else {
       ok(has, 'ripple on press');
-      await page.waitForTimeout(500);
+      // الموجة 600ms وتُزال بعد 650ms (كما في نموذج صاحب المشروع)
+      await page.waitForTimeout(800);
       ok(await page.evaluate(() => !document.querySelector('.ripple-wrap')), 'ripple removed afterwards');
     }
     // 64: أيقونة الصفحة الحالية في القائمة تظهر بنبضة وشريطها يمتد
