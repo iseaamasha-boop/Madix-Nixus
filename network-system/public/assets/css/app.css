@@ -681,6 +681,21 @@ tr.is-dragging > td { background: var(--surface); }
 }
 .empty > .icon { width: 40px; height: 40px; color: var(--faint); stroke-width: 1.5; }
 .empty-title { font-weight: 600; color: var(--text-2); font-size: 14.5px; }
+/* البند 63: رسمة خفيفة خلف أيقونة الحالة الفارغة (قرص، ومدار منقط مفتوح من الأسفل فلا يلمس العنوان، ونقاط) بلون الثيم، تظهر بحركة قصيرة (transform وopacity) */
+/* الرسمة عنصر في التدفق بهوامش سالبة: مركزها على مركز الأيقونة أياً كانت الحشوة، ولا تغيّر ارتفاع الحالة الفارغة */
+.empty:has(> .icon:first-child) { isolation: isolate; overflow: clip; }
+.empty:has(> .icon:first-child) > .icon:first-child { color: color-mix(in srgb, var(--primary) 55%, var(--muted)); }
+.empty:has(> .icon:first-child)::before {
+  content: ""; position: relative; z-index: -1; flex: none; width: 120px; height: 120px;
+  margin-top: -40px; margin-bottom: calc(-80px - var(--space-2h));
+  background: var(--primary); pointer-events: none;
+  -webkit-mask: var(--empty-art) center / contain no-repeat; mask: var(--empty-art) center / contain no-repeat;
+  animation: empty-in var(--dur-6) var(--ease-pop) both;
+}
+:root { --empty-art: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Ccircle cx='60' cy='60' r='30' fill-opacity='.12'/%3E%3Cpath d='M23.6 81A42 42 0 1 1 96.4 81' fill='none' stroke='%23000' stroke-opacity='.3' stroke-width='1.5' stroke-dasharray='2 7' stroke-linecap='round'/%3E%3Cg fill-opacity='.45'%3E%3Ccircle cx='13' cy='50' r='3'/%3E%3Ccircle cx='106' cy='36' r='2.5'/%3E%3Ccircle cx='28' cy='14' r='2'/%3E%3C/g%3E%3Cpath d='M98 8v8m-4-4h8' stroke='%23000' stroke-opacity='.45' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+[data-theme="dark"] .empty:has(> .icon:first-child)::before { opacity: .85; }
+@keyframes empty-in { from { transform: scale(.86); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .empty:has(> .icon:first-child)::before { animation: none; } }
 
 /* شريط الفلاتر */
 .filters { display: flex; flex-wrap: wrap; gap: var(--space-2h); align-items: flex-end; padding: 14px 18px; border-bottom: 1px solid var(--border); background: var(--surface); border-start-start-radius: var(--radius-lg); border-start-end-radius: var(--radius-lg); }
@@ -1436,7 +1451,17 @@ dialog.modal::backdrop { animation: fade-in var(--dur-4) ease; }
 /* الانتقال بين الصفحات (View Transitions): المحتوى يتبدّل بتلاشٍ قصير، والقائمة الجانبية والشريط العلوي يبقيان في مكانهما بلا وميض */
 .sidebar { view-transition-name: mnx-sidebar; }
 .topbar { view-transition-name: mnx-topbar; }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: var(--dur-1); animation-timing-function: ease-out; }
+/* البند 53: الصفحة القديمة تتلاشى سريعاً، والجديدة تظهر بصعود خفيف (opacity وtransform فقط) */
+::view-transition-old(root) { animation: var(--dur-1) ease-out both mnx-vt-out; }
+::view-transition-new(root) { animation: var(--dur-4) var(--ease-out) both mnx-vt-in; }
+@keyframes mnx-vt-out { to { opacity: 0; } }
+@keyframes mnx-vt-in { from { opacity: 0; transform: translateY(6px); } }
+/* البند 81: مجموعة التحول بلا حركة حجم من المتصفح؛ السكربت ينقلها بـ translate من مكان البطاقة إلى رأس الصفحة،
+   والبطاقة والرأس كلٌّ بحجمه الطبيعي على حافة البداية (لا تمديد للنص) يتمازجان */
+::view-transition-group(mnx-morph) { animation: none; }
+::view-transition-old(mnx-morph), ::view-transition-new(mnx-morph) { inline-size: auto; block-size: auto; inset-inline-start: 0; inset-inline-end: auto; }
+::view-transition-old(mnx-morph) { animation-duration: var(--dur-3); }
+::view-transition-new(mnx-morph) { animation-duration: var(--dur-5); }
 ::view-transition-group(mnx-sidebar), ::view-transition-group(mnx-topbar) { animation-duration: var(--dur-1); animation-timing-function: ease-out; }
 ::view-transition-old(mnx-sidebar), ::view-transition-new(mnx-sidebar),
 ::view-transition-old(mnx-topbar), ::view-transition-new(mnx-topbar) { animation-duration: .1s; }
@@ -1481,7 +1506,10 @@ dialog.modal::backdrop { animation: fade-in var(--dur-4) ease; }
 @keyframes mx-slide { from { opacity: .4; transform: translateX(14px); } to { opacity: 1; transform: none; } }
 [dir="ltr"] [data-motion="slide"] .mx { animation-name: mx-slide-ltr; }
 @keyframes mx-slide-ltr { from { opacity: .4; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+/* البطاقة التي تحت الشاشة تبقى على أول إطار من حركتها حتى تصل إليها (البند 83) */
+.mx.mx-wait { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .mx { animation: none !important; } }
+@media print { .mx { animation: none !important; } }
 
 [data-density="compact"] .content { padding: 16px; }
 [data-density="compact"] .panel-body { padding: 13px; }
@@ -1737,7 +1765,9 @@ dialog.modal::backdrop { animation: fade-in var(--dur-4) ease; }
 .nav-link .icon { box-sizing: content-box; width: 17px; height: 17px; padding: 7px; border-radius: var(--radius-sm); flex: none; opacity: 1; color: var(--nav-icon); background: var(--nav-tile); transition: background-color var(--dur-4), color var(--dur-4), box-shadow var(--dur-4), transform var(--dur-4); }
 .nav-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nav-link:hover { background: var(--sidebar-hover); color: var(--text); }
-.nav-link:hover .icon { background: var(--nav-tile-hover); color: var(--nav-icon-hover); transform: scale(1.06); }
+.nav-link:hover .icon { background: var(--nav-tile-hover); color: var(--nav-icon-hover); transform: translateY(-1px) scale(1.06); }
+/* البند 64: الأيقونة تنضغط عند الضغط، وأيقونة الصفحة الحالية تظهر بنبضة قصيرة وشريطها يمتد (transform فقط) */
+.nav-link:active .icon { transform: scale(.9); transition-duration: var(--dur-1); }
 .nav-link:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
 .nav-link.is-active {
   color: var(--sidebar-active); font-weight: 650;
@@ -1750,7 +1780,11 @@ dialog.modal::backdrop { animation: fade-in var(--dur-4) ease; }
   inset-inline-start: -12px; top: 9px; bottom: 9px; width: 4px;
   border-radius: 0; border-start-end-radius: 4px; border-end-end-radius: 4px;
   background: var(--sidebar-accent); box-shadow: 0 0 12px var(--sidebar-accent);
+  animation: nav-bar-in var(--dur-5) var(--ease-out);
 }
+.nav-link.is-active .icon { animation: nav-icon-in var(--dur-6) var(--ease-pop); }
+@keyframes nav-icon-in { from { transform: scale(.82); } }
+@keyframes nav-bar-in { from { transform: scaleY(0); } }
 .nav-badge { margin-inline-start: auto; min-width: 22px; height: 20px; padding: 0 7px; border-radius: 999px; font-size: 11px; font-weight: 700; flex: none; }
 .nav-badge.is-danger { background: linear-gradient(135deg, #f43f5e, var(--danger)); color: #fff; box-shadow: 0 4px 10px -4px var(--danger); }
 mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: color-mix(in srgb, var(--warning) 32%, transparent); }
@@ -1808,7 +1842,8 @@ mark.nav-hit { padding: 0 1px; border-radius: 3px; color: inherit; background: c
 [data-sidebar-style="brand"] .sidebar-brand .brand-logo, [data-sidebar-style="brand"] .sidebar-brand .net-mark { box-shadow: 0 0 0 3px rgba(255, 255, 255, .22), 0 8px 18px -8px rgba(0, 0, 0, .5); }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-link:hover .icon { transform: none; }
+  .nav-link:hover .icon, .nav-link:active .icon { transform: none; }
+  .nav-link.is-active .icon, .nav-link.is-active::before { animation: none; }
   .nav-group-items, .nav-chevron { transition: none; }
   .nav-group.is-toggling .nav-group-inner { animation: none; }
 }

@@ -97,6 +97,7 @@ $initial = mb_substr(trim((string) $admin['name']), 0, 1);
 <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
 <?= $v->styleTags() ?>
 <?= Theme::style() ?>
+<?= Theme::morph() ?>
 <?= Brand::headTags() ?>
 </head>
 <body class="admin-body">

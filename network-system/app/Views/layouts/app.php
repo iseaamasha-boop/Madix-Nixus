@@ -40,6 +40,7 @@ $initial = mb_substr(trim((string) $user['name']), 0, 1);
 <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
 <?= $v->styleTags() ?>
 <?= \App\Core\Theme::style() ?>
+<?= \App\Core\Theme::morph() ?>
 <?= Brand::headTags() ?>
 </head>
 <body class="<?= e(trim($v->bodyClass . (Settings::bool('ui.sidebar_hidden') ? ' sidebar-hidden' : ''))) ?>">

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /*
- * المرحلة 3 في المتصفح: شريط التحميل، هيكل التحميل، المنحنى النابضي، عدّاد الأرقام، تموج الضغط، وتقليل الحركة.
+ * المرحلة 3 في المتصفح: شريط التحميل، هيكل التحميل، المنحنى النابضي، عدّاد الأرقام، تموج الضغط،
+ * حركة أيقونات القائمة، رسمة الحالة الفارغة، الظهور المتتالي للبطاقات، وتقليل الحركة.
  *   node tests/browser/motion.js https://madix.test [--theme=dark]
  */
 'use strict';
@@ -81,6 +82,43 @@ function ok(cond, msg) {
       await page.waitForTimeout(500);
       ok(await page.evaluate(() => !document.querySelector('.ripple-wrap')), 'ripple removed afterwards');
     }
+    // 64: أيقونة الصفحة الحالية في القائمة تظهر بنبضة وشريطها يمتد
+    const nav = await page.evaluate(() => {
+      const a = document.querySelector('.sidebar .nav-link.is-active');
+      return a ? { icon: getComputedStyle(a.querySelector('.icon')).animationName, bar: getComputedStyle(a, '::before').animationName } : null;
+    });
+    if (reduced) {
+      ok(nav && nav.icon === 'none' && nav.bar === 'none', 'sidebar icon motion off with reduced motion');
+    } else {
+      ok(nav && nav.icon === 'nav-icon-in' && nav.bar === 'nav-bar-in', 'active sidebar icon pops and its bar grows (' + JSON.stringify(nav) + ')');
+    }
+    // 63: رسمة الحالة الفارغة خلف الأيقونة
+    const empty = await page.evaluate(() => {
+      const d = document.createElement('div'); d.className = 'empty';
+      d.innerHTML = SN.icon('package') + '<div class="empty-title">x</div>';
+      document.querySelector('.content').appendChild(d);
+      const cs = getComputedStyle(d, '::before');
+      const r = { content: cs.content, mask: /^url\(/.test(cs.maskImage || cs.webkitMaskImage || ''), anim: cs.animationName, w: cs.width };
+      d.remove(); return r;
+    });
+    ok(empty.content === '""' && empty.mask && empty.w === '120px', 'empty state draws its illustration behind the icon');
+    ok(reduced ? empty.anim === 'none' : empty.anim === 'empty-in', 'empty state illustration ' + (reduced ? 'still' : 'fades in') + ' (' + empty.anim + ')');
+    // 83: البطاقات تحت الشاشة على الهاتف تنتظر ثم تظهر متتالية عند الوصول إليها
+    const phone = await ctx.newPage();
+    await phone.setViewportSize({ width: 360, height: 640 });
+    await phone.goto(BASE + '/' + TENANT + '/', { waitUntil: 'load' });
+    const wait0 = await phone.evaluate(() => ({ n: document.querySelectorAll('.mx-wait').length, paused: [...document.querySelectorAll('.mx-wait')].every((e) => getComputedStyle(e).animationPlayState === 'paused' && e.getBoundingClientRect().top > innerHeight), mx: document.querySelectorAll('.mx').length }));
+    if (reduced) {
+      ok(wait0.mx === 0 && wait0.n === 0, 'no staggered cards with reduced motion');
+    } else {
+      ok(wait0.n > 0 && wait0.paused, 'cards below the fold wait on their first frame (' + wait0.n + ')');
+      for (let y = 0; y < 6000; y += 300) { await phone.evaluate((v) => window.scrollTo(0, v), y); await phone.waitForTimeout(40); }
+      await phone.waitForTimeout(400);
+      ok(await phone.evaluate(() => document.querySelectorAll('.mx-wait').length === 0), 'every waiting card appears once scrolled to');
+      const delays = await phone.evaluate(() => [...document.querySelectorAll('.mx')].map((e) => parseFloat(getComputedStyle(e).animationDelay) || 0));
+      ok(Math.max(...delays) <= 0.15 + 1e-6, 'stagger delays stay short (max ' + Math.max(...delays) + 's)');
+    }
+    await phone.close();
     ok(errors.length === 0, 'no JavaScript errors' + (errors.length ? ': ' + errors.join(' | ') : ''));
     await ctx.close();
   }

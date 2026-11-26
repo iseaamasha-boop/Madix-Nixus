@@ -1366,6 +1366,26 @@
       if (i) { el.style.animationDelay = 'calc(' + i + ' * var(--motion-stagger, 20ms))'; }
       el.classList.add('mx');
     });
+    // البند 83: البطاقات التي تحت الشاشة تنتظر في بداية حركتها (متوقفة، لا إخفاء ولا إزاحة في التخطيط)
+    // وتظهر متتالية حين تصل إليها: كل دفعة تبدأ من الصفر بتأخير 20ms لكل بطاقة (5 كحد أعلى)
+    if (!('IntersectionObserver' in window)) { return; }
+    var fold = window.innerHeight, waiting = [];
+    Array.prototype.forEach.call(content.querySelectorAll('.stats > *, .grid > *, .admin-grid > *'), function (el) {
+      if (waiting.length >= 60 || el.parentElement.closest('.mx') || el.offsetParent === null || el.getBoundingClientRect().top <= fold) { return; }
+      el.classList.add('mx', 'mx-wait');
+      waiting.push(el);
+    });
+    if (!waiting.length) { return; }
+    var io = new IntersectionObserver(function (entries) {
+      var n = 0;
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) { return; }
+        io.unobserve(en.target);
+        en.target.style.animationDelay = 'calc(' + Math.min(n++, 5) + ' * var(--motion-stagger, 20ms))';
+        en.target.classList.remove('mx-wait');
+      });
+    }, { rootMargin: '0px 0px -24px 0px' });
+    waiting.forEach(function (el) { io.observe(el); });
   }
   if (doc.readyState === 'loading') { doc.addEventListener('DOMContentLoaded', stagger); } else { stagger(); }
 

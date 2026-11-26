@@ -36,7 +36,9 @@ function ok(cond, msg) {
   await page.fill('input[name=username]', USER);
   await page.fill('input[name=password]', PASS);
   await Promise.all([page.waitForNavigation(), page.click('button[type=submit]')]);
-  const hoverOn = async (loc) => { const b = await loc.boundingBox(); await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); };
+  // حركة الظهور (.mx) تحرك الجدول بضع بكسلات أول 200ms: المرور يكون على الرابط بعد استقراره في مكانه
+  const settle = () => page.waitForFunction(() => !document.getAnimations().some((a) => /^mx-/.test(a.animationName || '') && a.playState === 'running'), null, { timeout: 5000 }).catch(() => null);
+  const hoverOn = async (loc) => { await settle(); const b = await loc.boundingBox(); await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); };
   const card = () => page.evaluate(() => {
     const c = document.querySelector('.qp-card.is-on');
     if (!c || !c.querySelector('.qp-title')) { return null; }

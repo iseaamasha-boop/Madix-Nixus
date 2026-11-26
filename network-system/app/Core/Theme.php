@@ -405,6 +405,35 @@ final class Theme
         return '<style id="theme-vars">' . $css . '</style>' . self::fonts($t);
     }
 
+    /**
+     * البند 81: البطاقة المضغوطة (بطاقة رقم، لوحة، رابط قسم) تتحول إلى رأس الصفحة التالية.
+     * يعمل فقط مع خيار «حركة الصفحات» وفي المتصفحات التي تدعم الانتقال بين المستندات (pageswap/pagereveal)؛
+     * يُضمَّن في رأس الصفحة لأن pagereveal يقع قبل أول رسم. الحركة translate فقط (بلا تمديد ولا تغيير حجم):
+     * البطاقة والرأس كلٌّ بحجمه الطبيعي على حافة البداية، يتمازجان بـ opacity. تقليل الحركة يلغيها.
+     */
+    public static function morph(?array $t = null): string
+    {
+        $t ??= self::current();
+        if ($t['page_fx'] !== '1') {
+            return '';
+        }
+        return '<script>(function(){if(!("onpagereveal" in window)||matchMedia("(prefers-reduced-motion: reduce)").matches){return}'
+            . 'var S,K="mnx-morph",d=document,pick=null,u=function(h){return String(h).split("#")[0]};try{S=sessionStorage}catch(x){return}'
+            . 'd.addEventListener("click",function(e){var a=e.target.closest&&e.target.closest("a.stat[href],a.panel[href],a.section-link[href],a[data-morph][href]");'
+            . 'pick=a&&!a.target&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey?a:null},true);'
+            . 'addEventListener("pageswap",function(e){try{S.removeItem(K)}catch(x){}var a=pick,to=e.activation&&e.activation.entry&&e.activation.entry.url;pick=null;'
+            . 'if(!e.viewTransition||!a||!to||u(to)!==u(a.href)){return}var r=a.getBoundingClientRect();a.style.viewTransitionName=K;'
+            . 'try{S.setItem(K,JSON.stringify({u:u(to),x:r.left,y:r.top,w:r.width,h:r.height}))}catch(x){}'
+            . 'e.viewTransition.finished.finally(function(){a.style.viewTransitionName=""})});'
+            . 'addEventListener("pagereveal",function(e){var o=null;try{o=JSON.parse(S.getItem(K)||"null");S.removeItem(K)}catch(x){}'
+            . 'var h=d.querySelector(".page-head");if(!e.viewTransition||!o||o.u!==u(location.href)||!h){return}h.style.viewTransitionName=K;'
+            . 'e.viewTransition.ready.then(function(){var n=h.getBoundingClientRect();if(!n.width){return}'
+            . 'var x=getComputedStyle(h).direction==="rtl"?o.x+o.w-n.width:o.x;'
+            . 'd.documentElement.animate([{transform:"translate("+x+"px,"+o.y+"px)"},{transform:"translate("+n.left+"px,"+n.top+"px)"}],'
+            . '{duration:280,easing:"cubic-bezier(.2,.8,.2,1)",pseudoElement:"::view-transition-group("+K+")"})});'
+            . 'e.viewTransition.finished.finally(function(){h.style.viewTransitionName=""})})})();</script>';
+    }
+
     private static function accent(string $hex, bool $dark): string
     {
         [$r, $g, $b] = sscanf($hex, '#%02x%02x%02x');
